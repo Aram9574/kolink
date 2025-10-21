@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
@@ -21,9 +21,13 @@ type DashboardProps = {
 
 export default function Dashboard({ session }: DashboardProps) {
   const router = useRouter();
+  const userId = session?.user?.id ?? null;
   const [posts, setPosts] = useState<Post[]>([]);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
 
   useEffect(() => {
     if (session === undefined) return;
@@ -32,15 +36,44 @@ export default function Dashboard({ session }: DashboardProps) {
     }
   }, [router, session]);
 
+  const loadCredits = useCallback(async () => {
+    if (!userId) {
+      setCredits(null);
+      setPlan(null);
+      return;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .select("credits, plan")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      toast.error("No se pudieron cargar tus créditos.");
+      return;
+    }
+
+    setCredits(data?.credits ?? 0);
+    setPlan(data?.plan ?? "free");
+  }, [userId]);
+
+  useEffect(() => {
+    loadCredits();
+  }, [loadCredits]);
+
   // Cargar posts desde Supabase para el usuario autenticado
   useEffect(() => {
-    if (!session?.user) return;
+    if (!userId) {
+      setPosts([]);
+      return;
+    }
 
     async function fetchPosts() {
       const { data, error } = await supabaseClient
         .from("posts")
         .select("*")
-        .eq("user_id", session.user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
       if (error) {
         toast.error("No se pudo cargar tus publicaciones.");
@@ -52,7 +85,7 @@ export default function Dashboard({ session }: DashboardProps) {
     }
 
     fetchPosts();
-  }, [session]);
+  }, [userId]);
 
   if (session === undefined) {
     return (
@@ -92,27 +125,67 @@ export default function Dashboard({ session }: DashboardProps) {
       });
       const data = await res.json();
 
-      if (data.ok) {
-        setPosts((current) => [
-          {
-            id: Date.now().toString(),
-            prompt,
-            generated_text: data.output,
-            created_at: new Date().toISOString(),
-            user_id: session.user.id,
-          },
-          ...current,
-        ]);
-        setPrompt("");
-        toast.success("✨ Post generado con éxito");
-      } else {
-        toast.error("Error al generar el post 😢");
+      if (!res.ok) {
+        toast.error(data?.error ?? "Error al generar el post 😢");
+        if (res.status === 401) {
+          router.replace("/signin");
+        }
+        if (res.status === 402) {
+          setPrompt("");
+        }
+        await loadCredits();
+        return;
       }
+
+      setPosts((current) => [
+        {
+          id: Date.now().toString(),
+          prompt,
+          generated_text: data.output,
+          created_at: new Date().toISOString(),
+          user_id: session.user.id,
+        },
+        ...current,
+      ]);
+      setPrompt("");
+      if (typeof data.remainingCredits === "number") {
+        setCredits(data.remainingCredits);
+      } else {
+        await loadCredits();
+      }
+      if (typeof data.plan === "string") {
+        setPlan(data.plan);
+      }
+      toast.success("✨ Post generado con éxito");
     } catch {
       toast.error("Error al conectar con el servidor");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpgrade = async () => {
+    if (!session?.user) return;
+    if (plan === "pro") {
+      toast.success("Ya estás en el plan PRO 🚀");
+      return;
+    }
+
+    setUpgradeLoading(true);
+    const { error } = await supabaseClient
+      .from("profiles")
+      .update({ plan: "pro", credits: 100 })
+      .eq("id", session.user.id);
+
+    if (error) {
+      toast.error("No se pudo actualizar tu plan.");
+      setUpgradeLoading(false);
+      return;
+    }
+
+    toast.success("Cuenta actualizada a PRO con 100 créditos 🚀");
+    await loadCredits();
+    setUpgradeLoading(false);
   };
 
   // Copiar al portapapeles
@@ -135,6 +208,27 @@ export default function Dashboard({ session }: DashboardProps) {
             Genera contenido optimizado con IA, guarda tus ideas y trabaja tu estrategia en un solo lugar.
           </p>
         </header>
+
+        <Card className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-secondary dark:text-accent">
+              {credits === null
+                ? "Cargando créditos..."
+                : `Créditos disponibles: ${credits}`}
+            </p>
+            <p className="text-xs text-textMain/70 dark:text-gray-400">
+              Plan actual: {plan ? plan.toUpperCase() : "—"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleUpgrade}
+            disabled={plan === "pro" || upgradeLoading}
+            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {plan === "pro" ? "Plan PRO activo" : "🚀 Upgrade to PRO"}
+          </button>
+        </Card>
 
         {/* Formulario */}
         <Card className="mb-10">

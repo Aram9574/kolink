@@ -14,17 +14,36 @@ export default function SignUp() {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
-    const { error } = await supabaseClient.auth.signUp({
+    const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
     });
+    
 
     if (error) {
       alert(error.message);
-    } else {
-      alert("Revisa tu correo para confirmar tu cuenta.");
-      router.push("/signin");
+      setLoading(false);
+      return;
     }
+
+    if (data?.user) {
+      const token = data.session?.access_token;
+      try {
+        await fetch("/api/createProfile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ user: data.user }),
+        });
+      } catch (profileError) {
+        console.error("Error creating profile:", profileError);
+      }
+    }
+
+    alert("Revisa tu correo para confirmar tu cuenta.");
+    router.push("/signin");
     setLoading(false);
   };
 

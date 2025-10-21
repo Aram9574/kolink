@@ -32,6 +32,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Usuario no autenticado" });
   }
 
+  const {
+    data: profile,
+    error: profileError,
+  } = await supabase
+    .from("profiles")
+    .select("credits, plan")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return res.status(400).json({ error: "Perfil no encontrado" });
+  }
+
+  if (profile.credits <= 0) {
+    return res.status(402).json({
+      error: "Sin créditos disponibles. Actualiza tu plan para continuar.",
+      plan: profile.plan,
+    });
+  }
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -39,6 +59,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const output = completion.choices[0].message.content;
+
+    const remainingCredits = profile.credits - 1;
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ credits: remainingCredits })
+      .eq("id", user.id);
+
+    if (updateError) {
+      console.error("Credit update error:", updateError);
+      return res.status(500).json({ error: updateError.message });
+    }
 
     const { error: insertError } = await supabase.from("posts").insert({
       prompt,
@@ -51,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: insertError.message });
     }
 
-    return res.status(200).json({ ok: true, output });
+    return res.status(200).json({ ok: true, output, remainingCredits, plan: profile.plan });
   } catch (error) {
     const err = error as Error;
     return res.status(500).json({ ok: false, error: err.message });
