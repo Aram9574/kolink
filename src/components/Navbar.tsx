@@ -1,7 +1,18 @@
 import Link from "next/link";
+import type { Session } from "@supabase/supabase-js";
+import { supabaseClient } from "@/lib/supabaseClient";
 import ThemeToggle from "./ThemeToggle";
 
-export default function Navbar() {
+type NavbarProps = {
+  session: Session | null | undefined;
+};
+
+const handleSignOut = async () => {
+  await supabaseClient.auth.signOut();
+  window.location.href = "/signin";
+};
+
+export default function Navbar({ session }: NavbarProps) {
   return (
     <nav className="fixed top-0 left-0 z-50 w-full border-b border-secondary/10 bg-white/70 backdrop-blur-md shadow-sm dark:bg-darkBg/70">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
@@ -25,6 +36,15 @@ export default function Navbar() {
             Perfil
           </Link>
           <ThemeToggle />
+          {session && (
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="text-sm font-semibold text-red-500 transition hover:text-red-600"
+            >
+              Cerrar sesión
+            </button>
+          )}
         </div>
       </div>
     </nav>

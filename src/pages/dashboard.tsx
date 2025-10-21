@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { Session } from "@supabase/supabase-js";
+import { supabaseClient } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -10,54 +12,103 @@ type Post = {
   prompt: string;
   generated_text: string;
   created_at: string;
+  user_id: string | null;
 };
 
-export default function Dashboard() {
+type DashboardProps = {
+  session: Session | null | undefined;
+};
+
+export default function Dashboard({ session }: DashboardProps) {
+  const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Cargar posts desde Supabase
   useEffect(() => {
+    if (session === undefined) return;
+    if (!session) {
+      router.replace("/signin");
+    }
+  }, [router, session]);
+
+  // Cargar posts desde Supabase para el usuario autenticado
+  useEffect(() => {
+    if (!session?.user) return;
+
     async function fetchPosts() {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("posts")
         .select("*")
+        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
-      if (!error && data) setPosts(data);
+      if (error) {
+        toast.error("No se pudo cargar tus publicaciones.");
+        return;
+      }
+      if (data) {
+        setPosts(data as Post[]);
+      }
     }
+
     fetchPosts();
-  }, []);
+  }, [session]);
+
+  if (session === undefined) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-lightBg dark:bg-darkBg">
+        <Loader />
+      </div>
+    );
+  }
 
   // Enviar prompt al backend
   const handleGenerate = async () => {
+    if (!session?.user) {
+      toast.error("Inicia sesión para generar contenido.");
+      return;
+    }
+
     if (!prompt.trim()) return toast.error("Escribe una idea primero ✍️");
     setLoading(true);
 
     try {
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        toast.error("Sesión inválida. Vuelve a iniciar sesión.");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ prompt }),
       });
       const data = await res.json();
 
       if (data.ok) {
-        setPosts([
+        setPosts((current) => [
           {
             id: Date.now().toString(),
             prompt,
             generated_text: data.output,
             created_at: new Date().toISOString(),
+            user_id: session.user.id,
           },
-          ...posts,
+          ...current,
         ]);
         setPrompt("");
         toast.success("✨ Post generado con éxito");
       } else {
         toast.error("Error al generar el post 😢");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error al conectar con el servidor");
     } finally {
       setLoading(false);
