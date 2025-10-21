@@ -172,20 +172,42 @@ export default function Dashboard({ session }: DashboardProps) {
     }
 
     setUpgradeLoading(true);
-    const { error } = await supabaseClient
-      .from("profiles")
-      .update({ plan: "pro", credits: 100 })
-      .eq("id", session.user.id);
+    try {
+      const { data } = await supabaseClient.auth.getSession();
+      const userId = data.session?.user.id;
 
-    if (error) {
-      toast.error("No se pudo actualizar tu plan.");
+      if (!userId) {
+        toast.error("Sesión inválida. Vuelve a iniciar sesión.");
+        setUpgradeLoading(false);
+        return;
+      }
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        toast.error(payload.error ?? "No se pudo iniciar el checkout.");
+        setUpgradeLoading(false);
+        return;
+      }
+
+      const payload = (await response.json()) as { url?: string };
+
+      if (payload.url) {
+        window.location.href = payload.url;
+      } else {
+        toast.error("No se recibió una URL de Stripe.");
+        setUpgradeLoading(false);
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("No se pudo iniciar el checkout.");
       setUpgradeLoading(false);
-      return;
     }
-
-    toast.success("Cuenta actualizada a PRO con 100 créditos 🚀");
-    await loadCredits();
-    setUpgradeLoading(false);
   };
 
   // Copiar al portapapeles
