@@ -9,7 +9,7 @@ export default function Home() {
     // o al login si no.
     const token = localStorage.getItem("supabase.auth.token");
     router.push(token ? "/dashboard" : "/signin");
-  }, []);
+  }, [router]); // ✅ se incluye router como dependencia
 
   return (
     <main style={{ textAlign: "center", marginTop: "30vh" }}>
