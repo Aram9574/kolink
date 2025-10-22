@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu Resumen Semanal de Kolink</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #F9D65C 0%, #E8C84E 100%);
+      padding: 40px 30px;
+      text-align: center;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1E1E1E;
+      margin: 0 0 10px 0;
+    }
+    .header-subtitle {
+      font-size: 16px;
+      color: #1E1E1E;
+      margin: 0;
+      opacity: 0.8;
+    }
+    .content {
+      padding: 40px 30px;
+      color: #333333;
+      line-height: 1.6;
+    }
+    .content h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1E1E1E;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .content p {
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 30px 0;
+    }
+    .stat-card {
+      background-color: #f9f9f9;
+      padding: 24px;
+      border-radius: 8px;
+      text-align: center;
+      border: 2px solid #F9D65C;
+    }
+    .stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: #1E1E1E;
+      margin: 0 0 8px 0;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #666666;
+      margin: 0;
+    }
+    .cta-button {
+      display: inline-block;
+      padding: 14px 32px;
+      background-color: #F9D65C;
+      color: #1E1E1E;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+    }
+    .cta-button:hover {
+      background-color: #E8C84E;
+    }
+    .highlight-box {
+      background-color: #FFF9E6;
+      border-left: 4px solid #F9D65C;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .highlight-box p {
+      margin: 0;
+      font-size: 15px;
+      color: #555555;
+    }
+    .footer {
+      background-color: #1E1E1E;
+      color: #ffffff;
+      padding: 30px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #F9D65C;
+      text-decoration: none;
+    }
+    .tips-section {
+      background-color: #f9f9f9;
+      padding: 25px;
+      border-radius: 8px;
+      margin: 25px 0;
+    }
+    .tips-section h3 {
+      margin-top: 0;
+      color: #1E1E1E;
+      font-size: 18px;
+    }
+    .tip-item {
+      margin-bottom: 12px;
+      padding-left: 24px;
+      position: relative;
+      font-size: 14px;
+      color: #555555;
+    }
+    .tip-item:before {
+      content: "💡";
+      position: absolute;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1 class="logo">KOLINK</h1>
+      <p class="header-subtitle">Resumen Semanal</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <h1>¡Hola {{userName}}! 👋</h1>
+
+      <p>
+        Aquí tienes un resumen de tu actividad esta semana en Kolink:
+      </p>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <p class="stat-number">{{postsGenerated}}</p>
+          <p class="stat-label">Publicaciones generadas</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-number">{{creditsUsed}}</p>
+          <p class="stat-label">Créditos utilizados</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <p class="stat-number">{{creditsRemaining}}</p>
+          <p class="stat-label">Créditos disponibles</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-number">{{currentPlan}}</p>
+          <p class="stat-label">Plan actual</p>
+        </div>
+      </div>
+
+      <!-- Highlight Box -->
+      {{#if hasLowCredits}}
+      <div class="highlight-box">
+        <p>
+          ⚠️ <strong>Atención:</strong> Tienes solo {{creditsRemaining}} créditos disponibles.
+          <a href="{{dashboardUrl}}" style="color: #1E1E1E; text-decoration: underline;">Mejora tu plan</a> para continuar generando contenido sin interrupciones.
+        </p>
+      </div>
+      {{/if}}
+
+      {{#if hasHighActivity}}
+      <div class="highlight-box">
+        <p>
+          🎉 <strong>¡Gran trabajo!</strong> Has generado {{postsGenerated}} publicaciones esta semana. Sigue así!
+        </p>
+      </div>
+      {{/if}}
+
+      <!-- Tips Section -->
+      <div class="tips-section">
+        <h3>💡 Consejos de la semana</h3>
+        <div class="tip-item">
+          Usa el atajo <strong>⌘ + Enter</strong> para generar contenido más rápido
+        </div>
+        <div class="tip-item">
+          Tus borradores se guardan automáticamente, nunca perderás una idea
+        </div>
+        <div class="tip-item">
+          Exporta tus publicaciones en formato .md para usarlas en otras plataformas
+        </div>
+        <div class="tip-item">
+          Revisa la sección de estadísticas para ver tu progreso detallado
+        </div>
+      </div>
+
+      <p style="text-align: center;">
+        <a href="{{dashboardUrl}}" class="cta-button">
+          Ir al Dashboard
+        </a>
+      </p>
+
+      <p style="margin-top: 30px; font-size: 14px; color: #888888;">
+        Este es un resumen automático de tu actividad semanal. Si prefieres no recibir estos correos, puedes desactivarlos en tu perfil.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p style="margin: 0 0 10px 0;">
+        © 2025 Kolink. Todos los derechos reservados.
+      </p>
+      <p style="margin: 0;">
+        <a href="{{siteUrl}}">Visitar sitio web</a> |
+        <a href="{{siteUrl}}/profile">Mi perfil</a> |
+        <a href="{{siteUrl}}/stats">Ver estadísticas</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

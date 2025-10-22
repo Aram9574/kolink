@@ -6,15 +6,57 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Estilos globales de KOLINK ===== */
-body {
-  @apply bg-lightBg text-textMain transition-colors duration-300 font-sans;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 12%;
+    --primary: 45 96% 67%;
+    --primary-foreground: 0 0% 12%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 45 96% 67%;
+    --accent-foreground: 0 0% 12%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 32% 91%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 100%;
+    --primary: 45 96% 67%;
+    --primary-foreground: 0 0% 12%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 45 96% 67%;
+    --accent-foreground: 0 0% 12%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 215 16% 57%;
+    --border: 0 0% 17%;
+  }
 }
 
-h1, h2, h3 {
-  color: #0f172a; /* azul oscuro */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-300 font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-light dark:text-text-dark font-semibold;
+  }
+
+  button {
+    @apply transition-all duration-200 ease-in-out;
+  }
 }
 
-button {
-  transition: all 0.2s ease-in-out;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }

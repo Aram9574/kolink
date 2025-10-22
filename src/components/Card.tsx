@@ -1,14 +1,16 @@
 import type { HTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
 type CardProps = HTMLAttributes<HTMLDivElement>;
 
 export default function Card({ className = "", ...props }: CardProps) {
-  const classes = [
-    "rounded-2xl bg-white p-6 shadow-sm transition-colors duration-300 dark:bg-darkBg dark:shadow-none border border-secondary/10",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return <div className={classes} {...props} />;
+  return (
+    <div
+      className={cn(
+        "rounded-xl bg-background-light dark:bg-surface-dark p-6 shadow-sm border border-border-light dark:border-border-dark transition-all duration-300 hover:shadow-md",
+        className
+      )}
+      {...props}
+    />
+  );
 }

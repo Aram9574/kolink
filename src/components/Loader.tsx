@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 type LoaderProps = {
   size?: number;
   className?: string;
@@ -5,16 +7,13 @@ type LoaderProps = {
 
 export default function Loader({ size = 24, className = "" }: LoaderProps) {
   const dimension = `${size}px`;
-  const classes = [
-    "inline-block animate-spin rounded-full border-2 border-primary/20 border-t-primary dark:border-accent/20 dark:border-t-accent",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
 
   return (
     <span
-      className={classes}
+      className={cn(
+        "inline-block animate-spin rounded-full border-2 border-primary/20 border-t-primary",
+        className
+      )}
       style={{ width: dimension, height: dimension }}
       aria-label="Loading"
       role="status"
