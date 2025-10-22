@@ -19,6 +19,42 @@ type DashboardProps = {
   session: Session | null | undefined;
 };
 
+type PlanTier = "basic" | "standard" | "premium";
+
+const PLAN_LABELS: Record<PlanTier, string> = {
+  basic: "Basic",
+  standard: "Standard",
+  premium: "Premium",
+};
+
+const PLAN_OPTIONS: Array<{
+  id: PlanTier;
+  name: string;
+  price: string;
+  description: string;
+  highlight?: boolean;
+}> = [
+  {
+    id: "basic",
+    name: "Basic",
+    price: "$9 USD / mes",
+    description: "Empieza a crear con las funciones esenciales y créditos limitados.",
+  },
+  {
+    id: "standard",
+    name: "Standard",
+    price: "$19 USD / mes",
+    description: "Equilibrio perfecto entre volumen y herramientas avanzadas para crecer.",
+    highlight: true,
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    price: "$39 USD / mes",
+    description: "Máximo rendimiento con prioridad en soporte y recursos ilimitados.",
+  },
+];
+
 export default function Dashboard({ session }: DashboardProps) {
   const router = useRouter();
   const userId = session?.user?.id ?? null;
@@ -27,10 +63,13 @@ export default function Dashboard({ session }: DashboardProps) {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
   const [plan, setPlan] = useState<string | null>(null);
-  const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [checkoutLoadingPlan, setCheckoutLoadingPlan] = useState<PlanTier | null>(null);
+  const [successPlan, setSuccessPlan] = useState<PlanTier | null>(null);
   const { isReady, query } = router;
   const statusParam = query.status;
+  const planParam = query.plan;
 
   useEffect(() => {
     if (session === undefined) return;
@@ -70,10 +109,15 @@ export default function Dashboard({ session }: DashboardProps) {
     const isSuccess = Array.isArray(statusParam)
       ? statusParam.includes("success")
       : statusParam === "success";
+    const planValue = Array.isArray(planParam) ? planParam[0] : planParam;
+    const normalizedPlan = typeof planValue === "string" ? planValue.toLowerCase() : undefined;
+    const isValidPlan =
+      normalizedPlan && (["basic", "standard", "premium"] as const).includes(normalizedPlan as PlanTier);
     if (isSuccess) {
+      setSuccessPlan(isValidPlan ? (normalizedPlan as PlanTier) : null);
       setShowSuccessModal(true);
     }
-  }, [isReady, statusParam]);
+  }, [isReady, planParam, statusParam]);
 
   // Cargar posts desde Supabase para el usuario autenticado
   useEffect(() => {
@@ -177,61 +221,81 @@ export default function Dashboard({ session }: DashboardProps) {
     }
   };
 
-  const handleUpgrade = async () => {
-    if (!session?.user) return;
-    if (plan === "pro") {
-      toast.success("Ya estás en el plan PRO 🚀");
-      return;
-    }
-
-    setUpgradeLoading(true);
-    try {
-      const { data } = await supabaseClient.auth.getSession();
-      const userId = data.session?.user.id;
-
-      if (!userId) {
-        toast.error("Sesión inválida. Vuelve a iniciar sesión.");
-        setUpgradeLoading(false);
-        return;
-      }
-
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        toast.error(payload.error ?? "No se pudo iniciar el checkout.");
-        setUpgradeLoading(false);
-        return;
-      }
-
-      const payload = (await response.json()) as { url?: string };
-
-      if (payload.url) {
-        window.location.href = payload.url;
-      } else {
-        toast.error("No se recibió una URL de Stripe.");
-        setUpgradeLoading(false);
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast.error("No se pudo iniciar el checkout.");
-      setUpgradeLoading(false);
-    }
-  };
-
   // Copiar al portapapeles
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("📋 Copiado al portapapeles");
   };
 
+  const handleCheckout = async (selectedPlan: PlanTier) => {
+    if (!session?.user) {
+      toast.error("Inicia sesión para actualizar tu plan.");
+      return;
+    }
+
+    setCheckoutLoadingPlan(selectedPlan);
+
+    try {
+      const { data } = await supabaseClient.auth.getSession();
+      const userIdFromSession = data.session?.user.id;
+
+      if (!userIdFromSession) {
+        toast.error("Sesión inválida. Vuelve a iniciar sesión.");
+        setCheckoutLoadingPlan(null);
+        return;
+      }
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: userIdFromSession, plan: selectedPlan }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
+
+      if (!response.ok) {
+        toast.error(payload.error ?? "No se pudo iniciar el checkout.");
+        return;
+      }
+
+      if (!payload.url) {
+        toast.error("No se recibió una URL de Stripe.");
+        return;
+      }
+
+      setShowPlanModal(false);
+      window.location.href = payload.url;
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("No se pudo iniciar el checkout.");
+    } finally {
+      setCheckoutLoadingPlan(null);
+    }
+  };
+
+  const openPlanModal = () => {
+    if (!session?.user) {
+      toast.error("Inicia sesión para actualizar tu plan.");
+      return;
+    }
+    setShowPlanModal(true);
+  };
+
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
+    setSuccessPlan(null);
     void router.replace("/dashboard", undefined, { shallow: true });
+  };
+
+  const getPlanDisplayName = (value: string | null | undefined) => {
+    const normalized = value?.toLowerCase();
+    if (normalized && PLAN_LABELS[normalized as PlanTier]) {
+      return PLAN_LABELS[normalized as PlanTier];
+    }
+    if (!value) {
+      return "Free";
+    }
+    return value.toUpperCase();
   };
 
   return (
@@ -257,16 +321,15 @@ export default function Dashboard({ session }: DashboardProps) {
                 : `Créditos disponibles: ${credits}`}
             </p>
             <p className="text-xs text-textMain/70 dark:text-gray-400">
-              Plan actual: {plan ? plan.toUpperCase() : "—"}
+              Plan actual: {getPlanDisplayName(plan)}
             </p>
           </div>
           <button
             type="button"
-            onClick={handleUpgrade}
-            disabled={plan === "pro" || upgradeLoading}
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={openPlanModal}
+            className="rounded-lg bg-gradient-to-r from-primary to-secondary px-4 py-2 text-sm font-semibold text-white transition hover:from-primary/90 hover:to-secondary/90"
           >
-            {plan === "pro" ? "Plan PRO activo" : "🚀 Upgrade to PRO"}
+            💎 Mejora tu plan
           </button>
         </Card>
 
@@ -343,6 +406,56 @@ export default function Dashboard({ session }: DashboardProps) {
           </div>
         )}
       </div>
+      {showPlanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-4xl rounded-3xl bg-white p-10 shadow-2xl ring-1 ring-secondary/20 dark:bg-darkBg dark:text-gray-100">
+            <div className="flex flex-col items-center text-center">
+              <h2 className="text-3xl font-bold text-primary dark:text-accent">Elige tu plan ideal</h2>
+              <p className="mt-3 text-sm text-textMain/80 dark:text-gray-300">
+                Selecciona la membresía que mejor se ajuste a tus objetivos y continúa con Stripe Checkout.
+              </p>
+            </div>
+            <div className="mt-8 grid gap-6 md:grid-cols-3">
+              {PLAN_OPTIONS.map((option) => {
+                const isCurrentPlan = plan?.toLowerCase() === option.id;
+                const isLoading = checkoutLoadingPlan === option.id;
+                return (
+                  <div
+                    key={option.id}
+                    className={`relative flex h-full flex-col rounded-2xl border border-secondary/20 bg-white/90 p-6 text-left shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-gray-700 dark:bg-darkBg/90 ${
+                      option.highlight ? "ring-2 ring-secondary/40 dark:ring-accent/50" : ""
+                    }`}
+                  >
+                    {option.highlight && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-white shadow-md dark:bg-accent">
+                        Más popular
+                      </span>
+                    )}
+                    <h3 className="text-xl font-semibold text-primary dark:text-accent">{option.name}</h3>
+                    <p className="mt-2 text-lg font-bold text-textMain dark:text-gray-100">{option.price}</p>
+                    <p className="mt-3 flex-1 text-sm text-textMain/70 dark:text-gray-400">{option.description}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleCheckout(option.id)}
+                      disabled={isLoading || isCurrentPlan}
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:text-gray-200 dark:bg-accent dark:hover:bg-accent/90"
+                    >
+                      {isCurrentPlan ? "Plan actual" : isLoading ? "Redirigiendo..." : "Seleccionar"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPlanModal(false)}
+              className="mt-8 inline-flex w-full items-center justify-center rounded-full border border-secondary/40 px-4 py-2 text-sm font-semibold text-secondary transition hover:bg-secondary/10 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700/40"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl ring-1 ring-secondary/20 dark:bg-darkBg dark:text-gray-100">
@@ -350,7 +463,9 @@ export default function Dashboard({ session }: DashboardProps) {
               ¡Gracias por tu apoyo!
             </h2>
             <p className="mt-4 text-base text-textMain/80 dark:text-gray-300">
-              Tu plan ha sido actualizado correctamente a PRO 🎉
+              {`Tu plan ha sido actualizado a ${
+                successPlan ? PLAN_LABELS[successPlan].toUpperCase() : "TU PLAN"
+              } 🎉`}
             </p>
             <button
               type="button"

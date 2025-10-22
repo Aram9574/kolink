@@ -3,10 +3,16 @@ import type Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 
+type PlanTier = "basic" | "standard" | "premium";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const priceId = process.env.STRIPE_PRO_PLAN_PRICE_ID;
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const priceMap: Record<PlanTier, string | undefined> = {
+  basic: process.env.STRIPE_PRICE_ID_BASIC,
+  standard: process.env.STRIPE_PRICE_ID_STANDARD,
+  premium: process.env.STRIPE_PRICE_ID_PREMIUM,
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -18,21 +24,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Error de configuración del servidor." });
   }
 
-  if (!priceId) {
-    console.error("❌ STRIPE_PRO_PLAN_PRICE_ID no configurado.");
-    return res.status(500).json({ error: "Precio de Stripe no configurado." });
-  }
-
   if (!siteUrl) {
     console.error("❌ NEXT_PUBLIC_SITE_URL no configurado.");
     return res.status(500).json({ error: "URL del sitio no configurada." });
   }
 
-  console.log(
-    `🧾 Checkout request recibida. userId=${req.body?.userId ?? "undefined"} priceId=${priceId}`
-  );
+  const { userId, plan } = req.body as { userId?: string; plan?: string };
+  const normalizedPlan = typeof plan === "string" ? plan.toLowerCase() : undefined;
 
-  const { userId } = req.body as { userId?: string };
+  const isValidPlan = (value: string): value is PlanTier =>
+    (["basic", "standard", "premium"] as const).includes(value as PlanTier);
+
+  if (!normalizedPlan || !isValidPlan(normalizedPlan)) {
+    console.warn(`⚠️ Plan inválido recibido en checkout: ${plan}`);
+    return res.status(400).json({ error: "Plan seleccionado inválido." });
+  }
+
+  const priceId = priceMap[normalizedPlan];
+
+  if (!priceId) {
+    console.error(`❌ Price ID no configurado para el plan ${normalizedPlan}.`);
+    return res.status(500).json({ error: "Plan no disponible temporalmente." });
+  }
+
+  console.log(
+    `🧾 Checkout request recibida. userId=${userId ?? "undefined"} plan=${normalizedPlan} priceId=${priceId}`
+  );
 
   if (!userId) {
     console.warn("⚠️ userId faltante en petición de checkout.");
@@ -75,9 +92,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           quantity: 1,
         },
       ],
-      success_url: `${siteUrl}/dashboard?status=success`,
+      success_url: `${siteUrl}/dashboard?status=success&plan=${encodeURIComponent(normalizedPlan)}`,
       cancel_url: `${siteUrl}/dashboard?status=cancelled`,
-      metadata: { user_id: userId },
+      metadata: { user_id: userId, selected_plan: normalizedPlan },
     };
 
     if (customerEmail) {
