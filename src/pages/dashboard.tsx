@@ -28,6 +28,9 @@ export default function Dashboard({ session }: DashboardProps) {
   const [credits, setCredits] = useState<number | null>(null);
   const [plan, setPlan] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { isReady, query } = router;
+  const statusParam = query.status;
 
   useEffect(() => {
     if (session === undefined) return;
@@ -61,6 +64,16 @@ export default function Dashboard({ session }: DashboardProps) {
   useEffect(() => {
     loadCredits();
   }, [loadCredits]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    const isSuccess = Array.isArray(statusParam)
+      ? statusParam.includes("success")
+      : statusParam === "success";
+    if (isSuccess) {
+      setShowSuccessModal(true);
+    }
+  }, [isReady, statusParam]);
 
   // Cargar posts desde Supabase para el usuario autenticado
   useEffect(() => {
@@ -216,6 +229,11 @@ export default function Dashboard({ session }: DashboardProps) {
     toast.success("📋 Copiado al portapapeles");
   };
 
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    void router.replace("/dashboard", undefined, { shallow: true });
+  };
+
   return (
     <div className="min-h-screen bg-lightBg transition-colors duration-300 dark:bg-darkBg">
       <div className="mx-auto max-w-5xl px-4 pt-24 pb-12">
@@ -325,6 +343,25 @@ export default function Dashboard({ session }: DashboardProps) {
           </div>
         )}
       </div>
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-2xl ring-1 ring-secondary/20 dark:bg-darkBg dark:text-gray-100">
+            <h2 className="text-2xl font-bold text-primary dark:text-accent">
+              ¡Gracias por tu apoyo!
+            </h2>
+            <p className="mt-4 text-base text-textMain/80 dark:text-gray-300">
+              Tu plan ha sido actualizado correctamente a PRO 🎉
+            </p>
+            <button
+              type="button"
+              onClick={handleCloseSuccessModal}
+              className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 dark:bg-accent dark:hover:bg-accent/90"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
