@@ -7,7 +7,10 @@ type PlanTier = "basic" | "standard" | "premium";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+// Dynamic domain configuration for Stripe redirects
+const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink-gamma.vercel.app';
+
 const priceMap: Record<PlanTier, string | undefined> = {
   basic: process.env.STRIPE_PRICE_ID_BASIC,
   standard: process.env.STRIPE_PRICE_ID_STANDARD,
@@ -24,10 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Error de configuración del servidor." });
   }
 
-  if (!siteUrl) {
-    console.error("❌ NEXT_PUBLIC_SITE_URL no configurado.");
-    return res.status(500).json({ error: "URL del sitio no configurada." });
-  }
+  // Log the domain being used for redirects (helpful for debugging)
+  console.log(`🌐 Using domain for Stripe redirects: ${YOUR_DOMAIN}`);
 
   const { userId, plan } = req.body as { userId?: string; plan?: string };
   const normalizedPlan = typeof plan === "string" ? plan.toLowerCase() : undefined;
@@ -83,6 +84,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Construct Stripe checkout session with dynamic domain
+    // This ensures redirects always point to the correct deployment URL
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       payment_method_types: ["card"],
@@ -92,8 +95,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           quantity: 1,
         },
       ],
-      success_url: `${siteUrl}/dashboard?status=success&plan=${encodeURIComponent(normalizedPlan)}`,
-      cancel_url: `${siteUrl}/dashboard?status=cancelled`,
+      // Include {CHECKOUT_SESSION_ID} for server-side verification if needed
+      success_url: `${YOUR_DOMAIN}/dashboard?status=success&plan=${encodeURIComponent(normalizedPlan)}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancelled`,
       metadata: { user_id: userId, selected_plan: normalizedPlan },
     };
 
@@ -104,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const session = await stripe.checkout.sessions.create(sessionParams);
 
     console.log(
-      `✅ Sesión de checkout creada para ${userId}: sessionId=${session.id} priceId=${priceId}`
+      `✅ Sesión de checkout creada para ${userId}: sessionId=${session.id} priceId=${priceId} redirectTo=${YOUR_DOMAIN}`
     );
     return res.status(200).json({ url: session.url });
   } catch (error) {
