@@ -20,7 +20,7 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         { "key": "Permissions-Policy", "value": "geolocation=(), microphone=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self' https://*.vercel.app; script-src 'self' https://js.stripe.com; connect-src 'self' https://api.stripe.com https://*.supabase.co https://*.vercel.app; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; object-src 'none'; base-uri 'self';" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self' https://kolink.es; script-src 'self' https://js.stripe.com; connect-src 'self' https://api.stripe.com https://*.supabase.co https://kolink.es; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; object-src 'none'; base-uri 'self';" }
       ]
     }
   ]
