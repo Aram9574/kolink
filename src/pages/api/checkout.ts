@@ -8,9 +8,10 @@ type PlanTier = "basic" | "standard" | "premium";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Dynamic domain configuration for Stripe redirects
-const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink.es';
+// Dominio de producción (fallback a kolink.es si no hay variable definida)
+const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
 
+// Map de precios por plan (IDs configurados en Stripe)
 const priceMap: Record<PlanTier, string | undefined> = {
   basic: process.env.STRIPE_PRICE_ID_BASIC,
   standard: process.env.STRIPE_PRICE_ID_STANDARD,
@@ -27,8 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "Error de configuración del servidor." });
   }
 
-  // Log the domain being used for redirects (helpful for debugging)
+  // Log para verificar el dominio activo
   console.log(`🌐 Using domain for Stripe redirects: ${YOUR_DOMAIN}`);
+  if (YOUR_DOMAIN.includes("vercel.app")) {
+    console.warn("⚠️ Atención: estás usando un dominio temporal de Vercel, no el dominio final kolink.es");
+  }
 
   const { userId, plan } = req.body as { userId?: string; plan?: string };
   const normalizedPlan = typeof plan === "string" ? plan.toLowerCase() : undefined;
@@ -58,7 +62,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
   let customerEmail: string | undefined;
 
   try {
@@ -74,7 +77,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customerEmail = profile?.email ?? undefined;
 
       if (!customerEmail && profile?.full_name) {
-        // Stripe requiere un email, así que sólo usamos full_name para logging en caso de ausencia.
         console.warn(`⚠️ Usuario ${userId} no tiene email registrado, continuando sin customer_email.`);
       }
     }
@@ -84,8 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Construct Stripe checkout session with dynamic domain
-    // This ensures redirects always point to the correct deployment URL
+    // Sesión de Stripe configurada con dominio dinámico (producción segura)
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       payment_method_types: ["card"],
@@ -95,9 +96,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           quantity: 1,
         },
       ],
-      // Include {CHECKOUT_SESSION_ID} for server-side verification if needed
-      success_url: `${YOUR_DOMAIN}/dashboard?status=success&plan=${encodeURIComponent(normalizedPlan)}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancelled`,
+      // URLs seguras para redirección en dominio propio
+      success_url: `${YOUR_DOMAIN}/success?plan=${encodeURIComponent(
+        normalizedPlan
+      )}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${YOUR_DOMAIN}/cancel?plan=${encodeURIComponent(normalizedPlan)}`,
       metadata: { user_id: userId, selected_plan: normalizedPlan },
     };
 
@@ -110,6 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log(
       `✅ Sesión de checkout creada para ${userId}: sessionId=${session.id} priceId=${priceId} redirectTo=${YOUR_DOMAIN}`
     );
+
     return res.status(200).json({ url: session.url });
   } catch (error) {
     const err = error as Error;
