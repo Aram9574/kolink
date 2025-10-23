@@ -1,0 +1,28 @@
+# Supabase local development files
+.branches
+.temp
+.env
+
+# Local database files
+data/
+volumes/
+
+# Function build files
+functions/**/*.map
+functions/**/node_modules/
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*.backup
