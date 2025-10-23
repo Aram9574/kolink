@@ -9,7 +9,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Dynamic domain configuration for Stripe redirects
-const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink-gamma.vercel.app';
+const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink.es';
 
 const priceMap: Record<PlanTier, string | undefined> = {
   basic: process.env.STRIPE_PRICE_ID_BASIC,

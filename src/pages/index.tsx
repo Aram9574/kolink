@@ -10,13 +10,6 @@ type HomeProps = {
 };
 
 export default function Home({ session }: HomeProps) {
-  if (session) {
-    if (typeof window !== "undefined") {
-      window.location.href = "/dashboard";
-    }
-    return null;
-  }
-
   return (
     <div className="min-h-screen">
       {/* Hero Section */}

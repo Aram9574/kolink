@@ -103,6 +103,7 @@ export async function generatePostWithContext(input: GenerateInput): Promise<Gen
       prompt: payload.prompt,
       style: payload.style ?? null,
       content: generatedContent,
+      generated_text: generatedContent,
       hashtags,
       metadata,
       embedding,
@@ -240,6 +241,7 @@ export async function repurposePost(input: RepurposeInput): Promise<GenerationRe
       prompt: `repurpose:${payload.postId}`,
       style: payload.newStyle ?? null,
       content: generatedContent,
+      generated_text: generatedContent,
       hashtags,
       metadata,
       embedding,
@@ -304,7 +306,7 @@ function parseLLMJson(raw: string): LLMGeneration {
 async function createEmbedding(text: string) {
   try {
     const response = await openai.embeddings.create({
-      model: "text-embedding-3-large",
+      model: "text-embedding-3-small",
       input: text,
     });
     return response.data[0]?.embedding ?? null;

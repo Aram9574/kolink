@@ -3,7 +3,7 @@
 # Script de Verificación de Seguridad para Kolink
 # Verifica que no haya redirects maliciosos activos
 
-DOMAIN="https://kolink-gamma.vercel.app"
+DOMAIN="https://kolink.es"
 PASS=0
 FAIL=0
 

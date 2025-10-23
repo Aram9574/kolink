@@ -19,7 +19,7 @@ success_url: `${siteUrl}/dashboard?status=success&plan=${plan}`
 cancel_url: `${siteUrl}/dashboard?status=cancelled`
 
 // AHORA:
-const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink-gamma.vercel.app';
+const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink.es';
 success_url: `${YOUR_DOMAIN}/dashboard?status=success&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`
 cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancelled`
 ```
@@ -76,8 +76,8 @@ El dashboard ya tiene la lógica para:
 2. PlansModal → POST /api/checkout
    ↓
 3. API crea session con:
-   - success_url: https://kolink-gamma.vercel.app/dashboard?status=success&plan=premium&session_id={CHECKOUT_SESSION_ID}
-   - cancel_url: https://kolink-gamma.vercel.app/dashboard?status=cancelled
+   - success_url: https://kolink.es/dashboard?status=success&plan=premium&session_id={CHECKOUT_SESSION_ID}
+   - cancel_url: https://kolink.es/dashboard?status=cancelled
    ↓
 4. Usuario → Redirigido a Stripe Checkout
    ↓
@@ -100,7 +100,7 @@ El dashboard ya tiene la lógica para:
 
 ```bash
 # En .env.local y Vercel:
-NEXT_PUBLIC_SITE_URL=https://kolink-gamma.vercel.app
+NEXT_PUBLIC_SITE_URL=https://kolink.es
 
 # Stripe
 STRIPE_SECRET_KEY=sk_live_...
@@ -115,7 +115,7 @@ STRIPE_PRICE_ID_PREMIUM=price_...
 En Stripe Dashboard → Webhooks, asegúrate de que el endpoint apunte a:
 
 ```
-https://kolink-gamma.vercel.app/api/webhook
+https://kolink.es/api/webhook
 ```
 
 Eventos a escuchar:
@@ -145,7 +145,7 @@ stripe listen --forward-to localhost:3000/api/webhook
 
 1. Deploy a Vercel: `git push`
 2. Espera que el deployment termine
-3. Ve a https://kolink-gamma.vercel.app/dashboard
+3. Ve a https://kolink.es/dashboard
 4. Click en "Upgrade Plan"
 5. Selecciona un plan
 6. Usa tarjeta de prueba (si estás en test mode)
@@ -164,7 +164,7 @@ stripe listen --forward-to localhost:3000/api/webhook
 Dashboard → Deployments → [Latest] → Functions → Runtime Logs
 
 Busca:
-🌐 Using domain for Stripe redirects: https://kolink-gamma.vercel.app
+🌐 Using domain for Stripe redirects: https://kolink.es
 ✅ Sesión de checkout creada para [userId]: sessionId=[id] redirectTo=...
 ```
 

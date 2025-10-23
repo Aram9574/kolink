@@ -30,18 +30,18 @@
      /wallet,/wallet/*,/blocknative,/blocknative.svg,/blocknative/*,/connect,/connect/*,/_connect,/_wallet,/_next/static/*,/_next/static/chunks/*,/_next/static/media/*,/public/*,/assets/*,/images/*,/icons/*,/favicon.ico
      ```
 
-4. Redeploy forzado del build limpio y promoción del deployment seguro a producción (`kolink-gamma.vercel.app` es el dominio de producción actual).
+4. Redeploy forzado del build limpio y promoción del deployment seguro a producción (`kolink.es` es el dominio de producción actual).
 
 ---
 
 ## 2. Resultado de la verificación (resumen)
 
 - **Deployment promovido:** AWwLcoyru — commit: `Security: remove rogue routes and add strict CSP`
-- **Dominio de producción principal:** `https://kolink-gamma.vercel.app`
+- **Dominio de producción principal:** `https://kolink.es`
 - **Rutas maliciosas:** redirigidas permanentemente a `/` (HTTP 308)
 - **CSP:** aplicada y en efecto; bloquea inyecciones de `blocknative` y `hm.baidu`
 - **CDN:** purgado
-- **Webhooks de Stripe:** apuntan a `https://kolink-gamma.vercel.app/api/webhook` y muestran 0% de errores
+- **Webhooks de Stripe:** apuntan a `https://kolink.es/api/webhook` y muestran 0% de errores
 - **Estado final:** PASS — producción limpia
 
 ---
@@ -60,17 +60,17 @@ Desde una terminal o CI (recomendado ejecutar como usuario con permisos de lectu
 
 ```bash
 # 1) Comprobar redirect en production actual
-curl -I https://kolink-gamma.vercel.app/wallet
+curl -I https://kolink.es/wallet
 
 # 2) Comprobar redirect en alias principal si aplica
 curl -I https://kolink.vercel.app/wallet
 
 # 3) Comprobar que blocknative.svg no devuelve 200
-curl -I https://kolink-gamma.vercel.app/blocknative.svg
+curl -I https://kolink.es/blocknative.svg
 
 # 4) Descargar HTML del dashboard y buscar indicadores
-curl -s -D - "https://kolink-gamma.vercel.app/dashboard?status=success" -o /tmp/dashboard.html
+curl -s -D - "https://kolink.es/dashboard?status=success" -o /tmp/dashboard.html
 grep -Ei "blocknative|baidu|hm.baidu|wallet|connect" /tmp/dashboard.html || true
 
 # 5) Verificar headers de seguridad y cache
-curl -I https://kolink-gamma.vercel.app/ | egrep -i "content-security-policy|x-frame-options|strict-transport-security|x-vercel-cache"
+curl -I https://kolink.es/ | egrep -i "content-security-policy|x-frame-options|strict-transport-security|x-vercel-cache"

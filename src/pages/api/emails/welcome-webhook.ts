@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const templatePath = path.join(process.cwd(), "src", "emails", "welcome.html");
     const html = await fs.readFile(templatePath, "utf-8");
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink-gamma.vercel.app";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
 
     const emailData = {
       userName: profile.email?.split("@")[0] || "Usuario",

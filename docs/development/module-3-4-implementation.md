@@ -269,7 +269,7 @@ CREATE FUNCTION trigger_welcome_email()
 RETURNS TRIGGER AS $$
 BEGIN
   SELECT net.http_post(
-    url := 'https://kolink-gamma.vercel.app/api/emails/welcome-webhook',
+    url := 'https://kolink.es/api/emails/welcome-webhook',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'x-webhook-secret', current_setting('app.supabase_service_role_key')
@@ -299,7 +299,7 @@ FROM_EMAIL=noreply@yourdomain.com  # Debe estar verificado en Resend
 
 # Ya existentes (necesarias para webhooks)
 SUPABASE_SERVICE_ROLE_KEY=xxx
-NEXT_PUBLIC_SITE_URL=https://kolink-gamma.vercel.app
+NEXT_PUBLIC_SITE_URL=https://kolink.es
 ```
 
 ### Configuración en Resend
@@ -314,7 +314,7 @@ NEXT_PUBLIC_SITE_URL=https://kolink-gamma.vercel.app
 
 **Test Welcome Email (via API):**
 ```bash
-curl -X POST https://kolink-gamma.vercel.app/api/emails/send \
+curl -X POST https://kolink.es/api/emails/send \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
@@ -329,7 +329,7 @@ curl -X POST https://kolink-gamma.vercel.app/api/emails/send \
 
 **Test Welcome Webhook (simular trigger):**
 ```bash
-curl -X POST https://kolink-gamma.vercel.app/api/emails/welcome-webhook \
+curl -X POST https://kolink.es/api/emails/welcome-webhook \
   -H "Content-Type: application/json" \
   -H "x-webhook-secret: YOUR_SERVICE_ROLE_KEY" \
   -d '{"userId": "user-uuid-here"}'
@@ -337,7 +337,7 @@ curl -X POST https://kolink-gamma.vercel.app/api/emails/welcome-webhook \
 
 **Test Weekly Email:**
 ```bash
-curl -X POST https://kolink-gamma.vercel.app/api/emails/send \
+curl -X POST https://kolink.es/api/emails/send \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{

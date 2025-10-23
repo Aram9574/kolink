@@ -14,7 +14,7 @@ serve(async (req) => {
     const { record } = await req.json()
 
     // Call your welcome email webhook
-    const response = await fetch('https://kolink-gamma.vercel.app/api/emails/welcome-webhook', {
+    const response = await fetch('https://kolink.es/api/emails/welcome-webhook', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -63,7 +63,7 @@ DECLARE
 BEGIN
   -- Make HTTP request to welcome email webhook
   SELECT net.http_post(
-    url := 'https://kolink-gamma.vercel.app/api/emails/welcome-webhook',
+    url := 'https://kolink.es/api/emails/welcome-webhook',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'x-webhook-secret', current_setting('app.supabase_service_role_key', true)
@@ -92,7 +92,7 @@ CREATE TRIGGER on_profile_created_send_welcome
 -- Run this to test the welcome email for a specific user:
 /*
 SELECT net.http_post(
-  url := 'https://kolink-gamma.vercel.app/api/emails/welcome-webhook',
+  url := 'https://kolink.es/api/emails/welcome-webhook',
   headers := jsonb_build_object(
     'Content-Type', 'application/json',
     'x-webhook-secret', current_setting('app.supabase_service_role_key', true)

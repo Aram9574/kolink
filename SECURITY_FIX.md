@@ -54,13 +54,13 @@ vercel --prod
 
 ```bash
 # Abre una ventana de incógnito en tu navegador
-# Visita: https://kolink-gamma.vercel.app/dashboard
+# Visita: https://kolink.es/dashboard
 
 # O verifica con curl:
-curl -I https://kolink-gamma.vercel.app/wallet
+curl -I https://kolink.es/wallet
 # Debería devolver: HTTP 308 (redirect permanente)
 
-curl -I https://kolink-gamma.vercel.app/blocknative.svg
+curl -I https://kolink.es/blocknative.svg
 # Debería devolver: HTTP 308 (redirect permanente)
 ```
 
@@ -155,8 +155,8 @@ git push
 https://checkout.stripe.com/c/pay/cs_test_...
 
 # URL INCORRECTA (si ves esto, hay problema):
-https://kolink-gamma.vercel.app/wallet
-https://kolink-gamma.vercel.app/connect
+https://kolink.es/wallet
+https://kolink.es/connect
 ```
 
 ## Contacto de Emergencia

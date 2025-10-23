@@ -52,7 +52,7 @@ async function loadEmailTemplate(type: EmailType, data: Record<string, unknown>)
  * Sends welcome email to new user
  */
 async function sendWelcomeEmail(to: string, data: Record<string, unknown>) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink-gamma.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
 
   const emailData = {
     userName: data.userName || "Usuario",
@@ -78,7 +78,7 @@ async function sendWelcomeEmail(to: string, data: Record<string, unknown>) {
  * Sends weekly summary email to user
  */
 async function sendWeeklyEmail(to: string, data: Record<string, unknown>) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink-gamma.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
 
   const emailData = {
     userName: data.userName || "Usuario",

@@ -169,6 +169,9 @@ SELECT
   p.viral_score
 FROM posts p;
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_vw_post_performance_post_id
+  ON vw_post_performance(post_id);
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS vw_user_engagement AS
 SELECT
   user_id,
@@ -177,6 +180,9 @@ SELECT
   MAX(created_at) AS last_post_at
 FROM posts
 GROUP BY user_id;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_vw_user_engagement_user_id
+  ON vw_user_engagement(user_id);
 
 COMMENT ON MATERIALIZED VIEW vw_post_performance IS 'Aggregated performance metrics per post';
 COMMENT ON MATERIALIZED VIEW vw_user_engagement IS 'Engagement summary per user';

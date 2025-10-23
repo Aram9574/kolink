@@ -34,7 +34,7 @@
 
 **Cambio principal en `/api/checkout.ts`:**
 ```typescript
-const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink-gamma.vercel.app';
+const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink.es';
 
 success_url: `${YOUR_DOMAIN}/dashboard?status=success&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`
 cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancelled`
@@ -145,7 +145,7 @@ vercel --prod
 
 **B. Verificación Manual:**
 1. Abrir navegador en modo incógnito
-2. Ir a https://kolink-gamma.vercel.app/dashboard
+2. Ir a https://kolink.es/dashboard
 3. Hacer pago de prueba (tarjeta: 4242 4242 4242 4242)
 4. Verificar:
    - ✅ Redirect a checkout.stripe.com
@@ -157,11 +157,11 @@ vercel --prod
 **C. Verificar Logs:**
 ```bash
 # En terminal local:
-curl -I https://kolink-gamma.vercel.app/wallet
+curl -I https://kolink.es/wallet
 # Debe devolver: HTTP/2 308
 
 # En Vercel Dashboard → Functions → Logs, buscar:
-🌐 Using domain for Stripe redirects: https://kolink-gamma.vercel.app
+🌐 Using domain for Stripe redirects: https://kolink.es
 ✅ Sesión de checkout creada...
 ```
 
@@ -198,7 +198,7 @@ STRIPE_WEBHOOK_SECRET=[configurada]
 STRIPE_PRICE_ID_BASIC=[configurado]
 STRIPE_PRICE_ID_STANDARD=[configurado]
 STRIPE_PRICE_ID_PREMIUM=[configurado]
-NEXT_PUBLIC_SITE_URL=https://kolink-gamma.vercel.app
+NEXT_PUBLIC_SITE_URL=https://kolink.es
 ```
 
 ### Pendientes (Opcionales) ⚠️
@@ -247,7 +247,7 @@ POSTHOG_API_KEY=phc_YOUR_POSTHOG_KEY
 **Solución:**
 ```bash
 # 1. Verifica que el deployment se promovió
-curl -I https://kolink-gamma.vercel.app/ | grep -i "x-vercel-id"
+curl -I https://kolink.es/ | grep -i "x-vercel-id"
 
 # 2. Purga cache NUEVAMENTE (espera 3 min)
 # Vercel Dashboard → Settings → Advanced → Clear CDN Cache
@@ -260,7 +260,7 @@ curl -I https://kolink-gamma.vercel.app/ | grep -i "x-vercel-id"
 **Solución:**
 ```bash
 # 1. Verifica la URL del webhook en Stripe Dashboard
-https://kolink-gamma.vercel.app/api/webhook
+https://kolink.es/api/webhook
 
 # 2. Verifica que STRIPE_WEBHOOK_SECRET esté en Vercel env vars
 
