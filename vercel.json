@@ -5,7 +5,11 @@
     { "source": "/connect", "destination": "/", "permanent": true },
     { "source": "/connect/(.*)", "destination": "/", "permanent": true },
     { "source": "/blocknative.svg", "destination": "/", "permanent": true },
-    { "source": "/blocknative/(.*)", "destination": "/", "permanent": true }
+    { "source": "/blocknative/(.*)", "destination": "/", "permanent": true },
+    { "source": "/_wallet", "destination": "/", "permanent": true },
+    { "source": "/_wallet/(.*)", "destination": "/", "permanent": true },
+    { "source": "/_connect", "destination": "/", "permanent": true },
+    { "source": "/_connect/(.*)", "destination": "/", "permanent": true }
   ],
   "headers": [
     {

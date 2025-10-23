@@ -82,7 +82,15 @@ export default function PlansModal({ open, onOpenChange, userId }: PlansModalPro
       const data = await response.json();
 
       if (data.url) {
-        window.location.href = data.url;
+        // Validar que la URL es de Stripe (seguridad adicional)
+        if (data.url.startsWith('https://checkout.stripe.com/') ||
+            data.url.startsWith('https://billing.stripe.com/')) {
+          window.location.href = data.url;
+        } else {
+          console.error('Invalid checkout URL:', data.url);
+          toast.error("URL de pago inválida");
+          setLoading(null);
+        }
       } else {
         toast.error(data.error || "Error al procesar el pago");
         setLoading(null);
