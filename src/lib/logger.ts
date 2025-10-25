@@ -267,7 +267,7 @@ export async function logBatch(
 export async function getUserLogs(
   userId: string,
   limit: number = 50
-): Promise<Array<any>> {
+): Promise<Array<Record<string, unknown>>> {
   try {
     const { data, error } = await supabaseClient
       .from('logs')
@@ -294,7 +294,7 @@ export async function getUserLogs(
  * @param limit - Maximum number of logs to retrieve (default: 100)
  * @returns Promise<Array> - Array of admin log entries
  */
-export async function getAdminLogs(limit: number = 100): Promise<Array<any>> {
+export async function getAdminLogs(limit: number = 100): Promise<Array<Record<string, unknown>>> {
   try {
     const supabase = getSupabaseAdminClient();
 

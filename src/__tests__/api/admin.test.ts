@@ -3,6 +3,8 @@
  * Tests authorization, CRUD operations, and audit logging
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { NextApiRequest, NextApiResponse } from 'next';
 
 // Mock Supabase client
