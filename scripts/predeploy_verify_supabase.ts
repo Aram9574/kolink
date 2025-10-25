@@ -20,9 +20,13 @@
  *   SUPABASE_SERVICE_ROLE_KEY
  */
 
+// Load environment variables from .env.local
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
+
 import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
-import * as path from 'path';
 
 // ============================================================================
 // Configuration
@@ -136,41 +140,48 @@ async function verifyEnvironment(): Promise<boolean> {
   return true;
 }
 
-async function executeSQLFile(supabase: any, filePath: string): Promise<void> {
-  const sql = fs.readFileSync(filePath, 'utf-8');
+async function checkIfSchemaFunctionExists(supabase: any): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc('verify_schema_v073');
 
-  // Split SQL into statements (basic split by semicolon, may need refinement)
-  const statements = sql
-    .split(';')
-    .map(s => s.trim())
-    .filter(s => s.length > 0 && !s.startsWith('--'));
-
-  log(`\nExecuting ${statements.length} SQL statements...`, 'blue');
-
-  for (let i = 0; i < statements.length; i++) {
-    const statement = statements[i];
-
-    // Skip comments and empty lines
-    if (!statement || statement.startsWith('--') || statement.length < 5) {
-      continue;
+    // If no error, function exists
+    if (!error) {
+      return true;
     }
 
-    try {
-      const { error } = await supabase.rpc('exec_sql', { sql_query: statement + ';' });
-
-      if (error) {
-        // Try direct execution if RPC fails
-        const { error: directError } = await supabase.from('_').select('*').limit(0);
-
-        if (directError && !directError.message.includes('relation "_" does not exist')) {
-          log(`   Statement ${i + 1}: ${error.message}`, 'yellow');
-        }
-      }
-    } catch (err) {
-      // Silent catch - some statements may not be compatible with client execution
-      // The important ones will be caught by verification
+    // Check if error is about missing function
+    if (error.message.includes('Could not find the function')) {
+      return false;
     }
+
+    // Other errors - function might exist but there's an issue
+    return true;
+  } catch (err) {
+    return false;
   }
+}
+
+function displaySQLInstructions(): void {
+  logSection('⚠️  Schema Verification Function Not Found');
+
+  log('\nThe schema verification function has not been installed in your Supabase database yet.', 'yellow');
+  log('\nTo install it, please follow these steps:', 'cyan');
+  log('\n1. Open the Supabase SQL Editor:', 'bright');
+  log('   https://supabase.com/dashboard/project/_/sql', 'cyan');
+
+  log('\n2. Copy the contents of this file:', 'bright');
+  log(`   ${SQL_VERIFICATION_FILE}`, 'cyan');
+
+  log('\n3. Paste and execute the SQL in the Supabase SQL Editor', 'bright');
+
+  log('\n4. Run this verification script again:', 'bright');
+  log('   npm run predeploy:verify', 'cyan');
+
+  log('\n' + '─'.repeat(80));
+  log('\n💡 This is a one-time setup. After installing the schema verification', 'yellow');
+  log('   function, this script will automatically verify your schema before', 'yellow');
+  log('   each deployment.', 'yellow');
+  log('\n' + '─'.repeat(80) + '\n');
 }
 
 async function verifySchema(supabase: any): Promise<SchemaStatus | null> {
@@ -291,18 +302,18 @@ async function runVerification(): Promise<VerificationResult> {
   // Step 2: Create Supabase client
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!);
 
-  // Step 3: Execute verification SQL (this applies repairs automatically)
-  logSection('🔧 Executing Schema Verification & Repair SQL');
+  // Step 3: Check if schema verification function exists
+  logSection('🔍 Checking Schema Verification Setup');
 
-  try {
-    await executeSQLFile(supabase, SQL_VERIFICATION_FILE);
-    result.repairsApplied.push('Schema verification SQL executed');
-    logCheck('SQL Execution', 'ok', 'Verification and repair SQL executed');
-  } catch (err) {
-    const error = err as Error;
-    result.errors.push(`SQL execution failed: ${error.message}`);
-    logCheck('SQL Execution', 'error', error.message);
+  const functionExists = await checkIfSchemaFunctionExists(supabase);
+
+  if (!functionExists) {
+    displaySQLInstructions();
+    result.errors.push('Schema verification function not installed');
+    return result;
   }
+
+  logCheck('Verification Function', 'ok', 'Schema verification function found');
 
   // Step 4: Verify schema status
   const schemaStatus = await verifySchema(supabase);
@@ -313,25 +324,29 @@ async function runVerification(): Promise<VerificationResult> {
     // Check for missing columns or tables
     Object.entries(schemaStatus.tables).forEach(([tableName, tableStatus]) => {
       if (tableStatus.status === 'missing') {
-        result.repairsApplied.push(`Table created: ${tableName}`);
+        result.errors.push(`Table missing: ${tableName}`);
       } else if (tableStatus.status === 'incomplete') {
-        result.repairsApplied.push(`Table updated: ${tableName} (columns added)`);
+        result.errors.push(`Table incomplete: ${tableName} (missing columns)`);
       }
     });
 
-    // Overall success if schema is healthy or needs only minor repairs
-    result.success = ['healthy', 'needs_repair'].includes(schemaStatus.overall_status);
+    // Overall success if schema is healthy
+    result.success = schemaStatus.overall_status === 'healthy';
   } else {
     result.errors.push('Schema verification function failed');
   }
 
-  // Step 5: Log to admin_logs
-  await logToAdminLogs(supabase, 'schema_verification', {
-    status: result.success ? 'success' : 'failed',
-    repairs_applied: result.repairsApplied.length,
-    errors: result.errors.length,
-    schema_status: schemaStatus?.overall_status || 'unknown',
-  });
+  // Step 5: Log to admin_logs (only if admin_logs table exists)
+  try {
+    await logToAdminLogs(supabase, 'schema_verification', {
+      status: result.success ? 'success' : 'failed',
+      repairs_applied: result.repairsApplied.length,
+      errors: result.errors.length,
+      schema_status: schemaStatus?.overall_status || 'unknown',
+    });
+  } catch (err) {
+    // Silent fail - admin_logs might not exist yet
+  }
 
   return result;
 }
@@ -354,8 +369,14 @@ async function main() {
   if (result.success) {
     process.exit(0);
   } else {
-    log('💡 Tip: Review the errors above and ensure your Supabase database is accessible', 'yellow');
-    process.exit(1);
+    // Check if the error is about missing function
+    if (result.errors.some(e => e.includes('function not installed'))) {
+      // Instructions already displayed, just exit
+      process.exit(1);
+    } else {
+      log('💡 Tip: Review the errors above and ensure your Supabase database is accessible', 'yellow');
+      process.exit(1);
+    }
   }
 }
 

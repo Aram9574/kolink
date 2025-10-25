@@ -28,12 +28,15 @@ This system automatically verifies and repairs the Supabase database schema befo
 **Purpose:** TypeScript script that runs before each deployment.
 
 **Features:**
-- ✅ Executes verification SQL
-- ✅ Checks schema status
-- ✅ Auto-repairs missing tables/columns
+- ✅ Loads environment variables from `.env.local`
+- ✅ Verifies schema verification function is installed
+- ✅ Checks current schema status via RPC call
+- ✅ Reports missing tables/columns
 - ✅ Logs actions to `admin_logs` table
 - ✅ Displays colorful checklist in terminal
 - ✅ Exits with error code if critical issues found
+
+**Note:** This script verifies the schema but does NOT automatically modify your database. All schema modifications must be done through the SQL file in the Supabase SQL Editor.
 
 **Usage:**
 ```bash
@@ -48,9 +51,26 @@ npm run build  # prebuild hook executes verification first
 
 ## 🚀 How It Works
 
-### Automatic Execution (Recommended)
+### First-Time Setup (Required)
 
-The `prebuild` hook in `package.json` ensures verification runs before every build:
+**Before running the verification script for the first time**, you must install the schema verification functions in your Supabase database:
+
+1. **Open Supabase SQL Editor**: https://supabase.com/dashboard/project/_/sql
+2. **Copy the SQL file**: `scripts/supabase_verify_full_schema_v0.7.3.sql`
+3. **Paste and execute** the SQL in the Supabase SQL Editor
+4. **Run verification**: `npm run predeploy:verify`
+
+This is a **one-time setup**. The SQL script creates:
+- Helper functions for schema validation
+- Auto-repair logic for missing columns
+- Schema verification reporting function
+- All necessary tables with RLS policies
+
+---
+
+### Automatic Execution (After Setup)
+
+Once the SQL functions are installed, the `prebuild` hook in `package.json` ensures verification runs before every build:
 
 ```json
 {
@@ -64,9 +84,10 @@ The `prebuild` hook in `package.json` ensures verification runs before every bui
 **Workflow:**
 1. Developer runs `npm run build`
 2. `prebuild` hook runs `predeploy_verify_supabase.ts`
-3. Script verifies schema and applies repairs
-4. If successful (exit code 0): build continues
-5. If failed (exit code 1): build stops, developer must fix issues
+3. Script checks if verification function exists
+4. Script verifies current schema status
+5. If successful (exit code 0): build continues
+6. If failed (exit code 1): build stops, developer must fix issues
 
 ---
 
@@ -145,7 +166,19 @@ No repairs needed
 
 ---
 
-## 🔧 What Gets Verified
+## 🔧 What Gets Verified & Auto-Repaired
+
+### How Auto-Repair Works
+
+When you run the SQL file (`supabase_verify_full_schema_v0.7.3.sql`) in Supabase SQL Editor, it automatically:
+1. Checks for missing columns in existing tables
+2. Adds any missing columns with appropriate defaults
+3. Creates missing tables with full RLS policies
+4. Creates helper functions for ongoing verification
+
+The TypeScript verification script (`predeploy_verify_supabase.ts`) then **reports** the current state but does **not** modify the database.
+
+---
 
 ### Profiles Table
 
@@ -156,7 +189,7 @@ No repairs needed
 - Professional: `company`, `position`, `interests`
 - Settings: `language`, `timezone`
 
-**Auto-Repair:** Missing columns are added automatically with appropriate defaults.
+**Auto-Repair (via SQL):** Missing columns are added automatically when you run the SQL file.
 
 ---
 
@@ -166,7 +199,7 @@ No repairs needed
 - Core: `id`, `prompt`, `generated_text`, `user_id`, `created_at`
 - Extended: `hashtags`, `metadata`, `viral_score`, `style`, `post_embedding`
 
-**Auto-Repair:** Missing columns are added automatically.
+**Auto-Repair (via SQL):** Missing columns are added automatically when you run the SQL file.
 
 ---
 
@@ -177,7 +210,7 @@ No repairs needed
 - `admin_logs` - Admin action audit trail
 - `schedule` - Content scheduling
 
-**Auto-Repair:** If tables don't exist, they are created with:
+**Auto-Repair (via SQL):** If tables don't exist when you run the SQL file, they are created with:
 - Proper column definitions
 - Indexes for performance
 - RLS (Row Level Security) policies
