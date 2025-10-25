@@ -9,7 +9,7 @@ type HomeProps = {
   session: Session | null | undefined;
 };
 
-export default function Home({ session }: HomeProps) {
+export default function Home({ session: _session }: HomeProps) {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}

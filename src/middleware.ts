@@ -20,7 +20,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
+export function middleware(_req: NextRequest) {
   // For now, just pass through all requests
   // Authentication is handled client-side in pages
   return NextResponse.next();

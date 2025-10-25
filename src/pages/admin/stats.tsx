@@ -18,8 +18,6 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loader from "@/components/Loader";
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
   PieChart,

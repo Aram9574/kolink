@@ -136,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             planInfo = foundPlan;
           }
         }
-      } catch (error) {
+      } catch (_error) {
         console.warn("⚠️ Could not retrieve line items, using fallback plan mapping");
       }
 
