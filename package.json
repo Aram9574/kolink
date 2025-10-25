@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "ts-node scripts/predeploy_verify_supabase.ts",
     "build": "next build --turbopack",
     "start": "next start",
+    "predeploy:verify": "ts-node scripts/predeploy_verify_supabase.ts",
+    "schema:check": "ts-node scripts/checkSchema.ts",
     "lint": "next lint --max-warnings 50",
     "lint:fix": "next lint --fix",
     "test": "jest --coverage",
