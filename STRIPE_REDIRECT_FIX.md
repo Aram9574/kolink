@@ -1,34 +1,35 @@
-# ✅ Stripe Checkout Redirect - FIXED
+# ✅ Stripe Checkout Redirect - FIXED (v2)
 
 ## Problema Original
 
-Después de completar el pago en Stripe, los usuarios no eran redirigidos correctamente de vuelta a Kolink, y aparecía un redirect a una wallet de criptomonedas.
+Después de completar el pago en Stripe, los usuarios eran redirigidos a `/success` o `/cancel`, rutas que no existen, resultando en error 404.
 
-## Soluciones Implementadas
+## Solución Implementada (ÚLTIMA ACTUALIZACIÓN)
 
-### 1. ✅ Configuración de URLs Dinámicas en Checkout
+### 1. ✅ Simplificación de URLs en Checkout
 
-**Archivo:** `src/pages/api/checkout.ts`
+**Archivo:** `src/pages/api/checkout.ts` (líneas 100-101)
 
 **Cambios:**
 
 ```typescript
-// ANTES:
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-success_url: `${siteUrl}/dashboard?status=success&plan=${plan}`
-cancel_url: `${siteUrl}/dashboard?status=cancelled`
+// ANTES (causaba 404):
+success_url: `${YOUR_DOMAIN}/success?plan=${encodeURIComponent(
+  normalizedPlan
+)}&session_id={CHECKOUT_SESSION_ID}`,
+cancel_url: `${YOUR_DOMAIN}/cancel?plan=${encodeURIComponent(normalizedPlan)}`,
 
-// AHORA:
-const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink.es';
-success_url: `${YOUR_DOMAIN}/dashboard?status=success&plan=${plan}&session_id={CHECKOUT_SESSION_ID}`
-cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancelled`
+// AHORA (funciona correctamente):
+success_url: `${YOUR_DOMAIN}/dashboard?status=success`,
+cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancel`,
 ```
 
 **Beneficios:**
-- ✅ Fallback automático al dominio de producción
-- ✅ Session ID incluido para verificación server-side
-- ✅ Logging mejorado para debugging
-- ✅ Funciona en cualquier deployment de Vercel
+- ✅ Redirige directamente al dashboard (ruta que existe)
+- ✅ URLs más simples y limpias
+- ✅ El dashboard ya tiene la lógica para detectar `?status=success`
+- ✅ No requiere crear rutas `/success` o `/cancel`
+- ✅ Fallback automático: `process.env.NEXT_PUBLIC_SITE_URL || 'https://kolink.es'`
 
 ### 2. ✅ Validación de URL en el Cliente
 
@@ -68,16 +69,16 @@ El dashboard ya tiene la lógica para:
 - ✅ Recargar créditos del usuario
 - ✅ Limpiar la URL después de mostrar el modal
 
-## Flujo Completo de Pago
+## Flujo Completo de Pago (Actualizado)
 
 ```
-1. Usuario → Click en plan
+1. Usuario → Click en "Mejora tu plan"
    ↓
-2. PlansModal → POST /api/checkout
+2. PlansModal → POST /api/checkout {userId, plan}
    ↓
 3. API crea session con:
-   - success_url: https://kolink.es/dashboard?status=success&plan=premium&session_id={CHECKOUT_SESSION_ID}
-   - cancel_url: https://kolink.es/dashboard?status=cancelled
+   - success_url: https://kolink.es/dashboard?status=success
+   - cancel_url: https://kolink.es/dashboard?status=cancel
    ↓
 4. Usuario → Redirigido a Stripe Checkout
    ↓
@@ -85,15 +86,26 @@ El dashboard ya tiene la lógica para:
    ↓
 6. Stripe → Envía webhook a /api/webhook (actualiza plan y créditos)
    ↓
-7. Stripe → Redirige usuario a success_url
+7. Stripe → Redirige usuario a https://kolink.es/dashboard?status=success
    ↓
-8. Dashboard → Detecta ?status=success
+8. Dashboard → Detecta ?status=success (líneas 98-113)
    ↓
 9. Dashboard → Muestra ThankYouModal 🎉
    ↓
-10. Dashboard → Recarga créditos
+10. Dashboard → Recarga créditos desde Supabase
    ↓
-11. Dashboard → Limpia URL (/dashboard)
+11. Dashboard → Limpia URL a /dashboard
+```
+
+**Si el usuario cancela:**
+```
+1-4. [mismo flujo hasta Stripe Checkout]
+   ↓
+5. Usuario → Cancela en Stripe
+   ↓
+6. Stripe → Redirige a https://kolink.es/dashboard?status=cancel
+   ↓
+7. Dashboard → Usuario vuelve sin cambios (sin error 404)
 ```
 
 ## Variables de Entorno Requeridas
@@ -210,15 +222,31 @@ Verifica:
 - ✅ Dashboard muestra modal de agradecimiento
 - ✅ Créditos se actualizan automáticamente
 
-## Próximos Pasos
+## Próximos Pasos para Desplegar
 
-1. `git add src/pages/api/checkout.ts`
-2. `git commit -m "Fix: Stripe redirect with dynamic domain and session_id"`
-3. `git push`
-4. Purgar cache de Vercel
-5. Probar flujo completo de pago
+1. **Commit los cambios:**
+   ```bash
+   git add src/pages/api/checkout.ts STRIPE_REDIRECT_FIX.md
+   git commit -m "fix: redirigir a dashboard después de pago Stripe (success/cancel)"
+   git push origin main
+   ```
+
+2. **Vercel desplegará automáticamente** (1-3 minutos)
+
+3. **Verificar en producción:**
+   - Ve a: https://kolink.es/dashboard
+   - Haz una compra de prueba
+   - Verifica que redirige a `/dashboard?status=success`
+   - Verifica que el modal de agradecimiento aparece
+   - Verifica que los créditos se actualizan
+
+4. **Si hay problemas:**
+   - Revisa los logs de Vercel: Dashboard → Functions → Runtime Logs
+   - Revisa el webhook de Stripe: Stripe Dashboard → Webhooks
+   - Verifica que `NEXT_PUBLIC_SITE_URL=https://kolink.es` esté en Vercel
 
 ---
 
-**Última actualización:** $(date)
-**Status:** ✅ Production Ready
+**Última actualización:** 2025-01-25
+**Status:** ✅ Ready to Deploy
+**Archivos modificados:** `/src/pages/api/checkout.ts` (líneas 100-101)

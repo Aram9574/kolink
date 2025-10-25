@@ -97,10 +97,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       ],
       // URLs seguras para redirección en dominio propio
-      success_url: `${YOUR_DOMAIN}/success?plan=${encodeURIComponent(
-        normalizedPlan
-      )}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${YOUR_DOMAIN}/cancel?plan=${encodeURIComponent(normalizedPlan)}`,
+      success_url: `${YOUR_DOMAIN}/dashboard?status=success`,
+      cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancel`,
       metadata: { user_id: userId, selected_plan: normalizedPlan },
     };
 
