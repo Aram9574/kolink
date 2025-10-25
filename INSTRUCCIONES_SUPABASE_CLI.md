@@ -85,7 +85,7 @@ kolink/
 supabase login
 
 # Vincular con tu proyecto remoto
-supabase link --project-ref TU_PROJECT_ID
+supabase link --project-ref crdtxyfvbosjiddirtzc
 ```
 
 **¿Dónde encuentro mi PROJECT_ID?**

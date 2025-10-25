@@ -31,7 +31,7 @@ CREATE INDEX IF NOT EXISTS idx_inspiration_posts_embedding ON inspiration_posts
 
 ALTER TABLE inspiration_posts ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -42,8 +42,7 @@ BEGIN
     ON inspiration_posts FOR SELECT
     USING (true);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 -- PASO 8: TABLA SAVED_POSTS (POSTS GUARDADOS POR USUARIOS)
@@ -63,7 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_saved_posts_inspiration_id ON saved_posts(inspira
 
 ALTER TABLE saved_posts ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -75,8 +74,7 @@ BEGIN
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 -- PASO 9: TABLA SAVED_SEARCHES (BÚSQUEDAS GUARDADAS)
@@ -95,7 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_saved_searches_user_id ON saved_searches(user_id)
 
 ALTER TABLE saved_searches ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -107,8 +105,7 @@ BEGIN
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 

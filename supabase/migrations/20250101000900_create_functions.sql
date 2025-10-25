@@ -10,12 +10,12 @@
 
 -- Función para actualizar updated_at automáticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Función para upsert de usage_stats
 CREATE OR REPLACE FUNCTION upsert_usage_stats(
@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION upsert_usage_stats(
   p_posts_increment INT DEFAULT 0,
   p_credits_increment INT DEFAULT 0
 )
-RETURNS VOID AS $
+RETURNS VOID AS $$
 BEGIN
   INSERT INTO usage_stats (user_id, posts_generated, credits_used, last_activity)
   VALUES (p_user_id, p_posts_increment, p_credits_increment, NOW())
@@ -33,15 +33,15 @@ BEGIN
     credits_used = usage_stats.credits_used + p_credits_increment,
     last_activity = NOW();
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para calcular nivel basado en XP
 CREATE OR REPLACE FUNCTION calculate_level(xp_amount INT)
-RETURNS INT AS $
+RETURNS INT AS $$
 BEGIN
   RETURN FLOOR(SQRT(xp_amount / 100.0)) + 1;
 END;
-$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
 -- Función para otorgar XP
 CREATE OR REPLACE FUNCTION grant_xp(
@@ -49,7 +49,7 @@ CREATE OR REPLACE FUNCTION grant_xp(
   p_xp_amount INT,
   p_reason TEXT DEFAULT NULL
 )
-RETURNS TABLE(new_xp INT, new_level INT, level_up BOOLEAN) AS $
+RETURNS TABLE(new_xp INT, new_level INT, level_up BOOLEAN) AS $$
 DECLARE
   v_old_level INT;
   v_new_level INT;
@@ -69,11 +69,11 @@ BEGIN
 
   RETURN QUERY SELECT v_new_xp, v_new_level, (v_new_level > v_old_level);
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Función para actualizar streak
 CREATE OR REPLACE FUNCTION update_streak(p_user_id UUID)
-RETURNS INT AS $
+RETURNS INT AS $$
 DECLARE
   v_last_activity DATE;
   v_current_streak INT;
@@ -101,7 +101,7 @@ BEGIN
 
   RETURN v_new_streak;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Función para búsqueda semántica
 CREATE OR REPLACE FUNCTION search_inspiration_posts(
@@ -120,7 +120,7 @@ RETURNS TABLE (
   metrics JSONB,
   captured_at TIMESTAMPTZ,
   similarity FLOAT
-) AS $
+) AS $$
 BEGIN
   RETURN QUERY
   SELECT
@@ -140,18 +140,18 @@ BEGIN
   ORDER BY ip.embedding <=> query_embedding
   LIMIT match_count;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Función para verificar si es admin
 CREATE OR REPLACE FUNCTION is_admin(p_user_id UUID)
-RETURNS BOOLEAN AS $
+RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM profiles
     WHERE id = p_user_id AND role = 'admin'
   );
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para log de acciones de admin
 CREATE OR REPLACE FUNCTION log_admin_action(
@@ -160,7 +160,7 @@ CREATE OR REPLACE FUNCTION log_admin_action(
   p_target_user_id UUID DEFAULT NULL,
   p_details JSONB DEFAULT '{}'::JSONB
 )
-RETURNS UUID AS $
+RETURNS UUID AS $$
 DECLARE
   v_log_id UUID;
 BEGIN
@@ -177,16 +177,16 @@ BEGIN
 
   RETURN v_log_id;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Función para limpiar notificaciones expiradas
 CREATE OR REPLACE FUNCTION cleanup_expired_notifications()
-RETURNS VOID AS $
+RETURNS VOID AS $$
 BEGIN
   DELETE FROM admin_notifications
   WHERE expires_at < NOW();
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- ============================================================================
 

@@ -45,7 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_posts_embedding ON posts
 -- RLS
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -86,8 +86,7 @@ BEGIN
     ON posts FOR DELETE
     USING (auth.uid() = user_id);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 

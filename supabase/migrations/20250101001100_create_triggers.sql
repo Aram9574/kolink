@@ -45,7 +45,7 @@ CREATE TRIGGER update_saved_searches_updated_at
 
 -- Trigger: otorgar XP al crear post
 CREATE OR REPLACE FUNCTION grant_xp_on_post_create()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 BEGIN
   PERFORM grant_xp(NEW.user_id, 10, 'post_created');
   PERFORM update_streak(NEW.user_id);
@@ -66,7 +66,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trigger_grant_xp_on_post_create ON posts;
 CREATE TRIGGER trigger_grant_xp_on_post_create

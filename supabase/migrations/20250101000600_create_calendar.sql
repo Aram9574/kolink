@@ -58,7 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_calendar_events_user_time ON calendar_events(user
 
 ALTER TABLE calendar_events ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -70,8 +70,7 @@ BEGIN
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 

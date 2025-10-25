@@ -22,7 +22,7 @@
         { "key": "Permissions-Policy", "value": "geolocation=(), microphone=()" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' https://kolink.es https://*.vercel.app; script-src 'self' 'unsafe-inline' https://js.stripe.com; connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co https://kolink.es https://*.vercel.app; img-src 'self' data: https://js.stripe.com; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
+          "value": "default-src 'self' https://kolink.es; script-src 'self' 'unsafe-inline' https://js.stripe.com; connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co https://kolink.es; img-src 'self' data: https://*.supabase.co; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
         }
       ]
     }

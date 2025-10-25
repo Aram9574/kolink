@@ -24,7 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_usage_stats_created_at ON usage_stats(created_at)
 
 ALTER TABLE usage_stats ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -55,8 +55,7 @@ BEGIN
     ON usage_stats FOR INSERT
     WITH CHECK (true);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 

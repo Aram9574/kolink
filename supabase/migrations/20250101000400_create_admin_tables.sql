@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_admin_notifications_created_at ON admin_notificat
 
 ALTER TABLE admin_notifications ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -63,8 +63,7 @@ BEGIN
       )
     );
   END IF;
-END
-$;
+END $$;
 
 -- Habilitar Realtime para notificaciones instantáneas
 ALTER PUBLICATION supabase_realtime ADD TABLE admin_notifications;
@@ -89,7 +88,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON admin_audit_logs(action);
 
 ALTER TABLE admin_audit_logs ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -115,8 +114,7 @@ BEGIN
     ON admin_audit_logs FOR INSERT
     WITH CHECK (true);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 

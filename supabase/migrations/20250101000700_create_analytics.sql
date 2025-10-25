@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_analytics_events_created_at ON analytics_events(c
 
 ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -42,8 +42,7 @@ BEGIN
     ON analytics_events FOR INSERT
     WITH CHECK (true);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 -- PASO 12: TABLA LEAD_INSIGHTS (INSIGHTS DE LEADS)
@@ -63,7 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_lead_insights_score ON lead_insights(score DESC);
 
 ALTER TABLE lead_insights ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -75,8 +74,7 @@ BEGIN
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 

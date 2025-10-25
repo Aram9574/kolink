@@ -53,7 +53,7 @@ CREATE INDEX IF NOT EXISTS idx_inbox_conversation ON inbox_messages(linkedin_con
 
 ALTER TABLE inbox_messages ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -65,8 +65,7 @@ BEGIN
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 -- PASO 14: TABLA USER_ACHIEVEMENTS (LOGROS Y GAMIFICACIÓN)
@@ -98,7 +97,7 @@ CREATE INDEX IF NOT EXISTS idx_achievements_unlocked_at ON user_achievements(unl
 
 ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -119,8 +118,7 @@ BEGIN
     ON user_achievements FOR INSERT
     WITH CHECK (true);
   END IF;
-END
-$;
+END $$;
 
 -- ============================================================================
 

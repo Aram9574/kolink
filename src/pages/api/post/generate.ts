@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { generatePostWithContext } from "@/server/services/writerService";
+import { logGeneration, logError } from "@/lib/logger";
 
 type GenerateRequestBody = {
   prompt?: string;
@@ -48,6 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       metadata: body.metadata,
     });
 
+    // Log successful generation
+    await logGeneration(user.id, result.postId, 1);
+
     return res.status(200).json({
       ok: true,
       postId: result.postId,
@@ -62,6 +66,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const err = error as Error & { code?: string; plan?: string };
 
     if (err.code === "NO_CREDITS") {
+      // Log no credits error
+      await logError(user.id, "Content generation failed: No credits remaining", {
+        error_code: err.code,
+        plan: err.plan,
+      });
+
       return res.status(402).json({
         ok: false,
         error: err.message,
@@ -69,7 +79,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Log general error
     console.error("[api/post/generate] Error:", err);
+    await logError(user.id, "Content generation failed", {
+      error: err.message,
+      prompt_length: body.prompt?.length || 0,
+    });
+
     return res.status(500).json({ ok: false, error: err.message });
   }
 }

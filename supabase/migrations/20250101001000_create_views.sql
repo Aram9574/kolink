@@ -70,7 +70,7 @@ GRANT EXECUTE ON FUNCTION is_admin TO authenticated;
 -- ============================================================================
 
 -- Verificar que todas las tablas se crearon
-DO $
+DO $$
 DECLARE
   table_count INT;
 BEGIN
@@ -89,11 +89,10 @@ BEGIN
   IF table_count < 13 THEN
     RAISE WARNING '⚠️ Faltan % tablas por crear', 13 - table_count;
   END IF;
-END
-$;
+END $$;
 
 -- Verificar extensiones
-DO $
+DO $$
 DECLARE
   ext_count INT;
 BEGIN
@@ -106,11 +105,10 @@ BEGIN
   IF ext_count < 3 THEN
     RAISE WARNING '⚠️ Faltan % extensiones', 3 - ext_count;
   END IF;
-END
-$;
+END $$;
 
 -- Mensaje final
-DO $
+DO $$
 BEGIN
   RAISE NOTICE '🎉 ¡Setup de base de datos completado!';
   RAISE NOTICE '📊 Total de tablas: 13';
@@ -126,8 +124,7 @@ BEGIN
   RAISE NOTICE '';
   RAISE NOTICE '   2. Verificar con:';
   RAISE NOTICE '      SELECT * FROM profiles WHERE role = ''admin'';';
-END
-$;
+END $$;
 
 -- ============================================================================
 -- FIN DEL SETUP
