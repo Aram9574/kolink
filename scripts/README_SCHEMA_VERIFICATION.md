@@ -51,6 +51,26 @@ npm run build  # prebuild hook executes verification first
 
 ## 🚀 How It Works
 
+### CI/CD Behavior
+
+**Important:** The verification script automatically detects CI environments and behaves accordingly:
+
+- **In CI (GitHub Actions, Vercel, etc.):**
+  - If Supabase credentials are NOT configured → **Skips verification** (exits with code 0)
+  - If Supabase credentials ARE configured → Runs full verification
+  - This allows builds to succeed even without database access
+
+- **In Local Development:**
+  - Always requires Supabase credentials
+  - Fails if credentials are missing or schema is invalid
+
+**To enable schema verification in CI:**
+Add these secrets to your GitHub repository settings:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+---
+
 ### First-Time Setup (Required)
 
 **Before running the verification script for the first time**, you must install the schema verification functions in your Supabase database:
