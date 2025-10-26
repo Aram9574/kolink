@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Playwright configuration for Kolink v0.7.3
  * ------------------------------------------
- * • Test directory: ./tests/e2e
+ * • Test directory: ./e2e
  * • Base URL: http://localhost:3000
  * • Browsers: Chromium, Firefox, WebKit
  * • CI-friendly (auto retries, no test.only)
@@ -11,7 +11,7 @@ import { defineConfig, devices } from "@playwright/test";
  */
 
 export default defineConfig({
-  testDir: "./tests/e2e",
+  testDir: "./e2e",
 
   // Run tests in parallel
   fullyParallel: true,

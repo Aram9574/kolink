@@ -15,8 +15,8 @@ test.describe('Landing Page', () => {
     const heading = page.locator('h1').first();
     await expect(heading).toBeVisible();
 
-    // Check for CTA buttons
-    await expect(page.locator('text=Get Started')).toBeVisible();
+    // Check for CTA buttons (in Spanish) - use more specific selector
+    await expect(page.locator('a[href="/signup"]').filter({ hasText: 'Comienza Gratis' }).first()).toBeVisible();
   });
 
   test('should display pricing section', async ({ page }) => {
@@ -28,8 +28,8 @@ test.describe('Landing Page', () => {
   test('should display navigation bar', async ({ page }) => {
     // Check for navbar elements
     await expect(page.locator('nav')).toBeVisible();
-    await expect(page.locator('text=Sign In')).toBeVisible();
-    await expect(page.locator('text=Sign Up')).toBeVisible();
+    await expect(page.locator('nav a[href="/signin"]')).toBeVisible();
+    await expect(page.locator('nav a[href="/signup"]')).toBeVisible();
   });
 
   test('should have working theme toggle', async ({ page }) => {
@@ -58,7 +58,8 @@ test.describe('Landing Page', () => {
   });
 
   test('should navigate to sign up from CTA button', async ({ page }) => {
-    const getStartedButton = page.locator('text=Get Started').first();
+    // Click the first CTA button in the hero section
+    const getStartedButton = page.locator('a[href="/signup"]').first();
     await getStartedButton.click();
 
     await expect(page).toHaveURL(/signup/);

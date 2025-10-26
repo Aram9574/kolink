@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { generatePostWithContext } from "@/server/services/writerService";
 import { logGeneration, logError } from "@/lib/logger";
+import { limiter } from "@/lib/rateLimiter"; // 🚦 Rate limiter agregado
 
 type GenerateRequestBody = {
   prompt?: string;
@@ -16,10 +17,12 @@ type GenerateRequestBody = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // 1️⃣ Validar método
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
   }
 
+  // 2️⃣ Validar autenticación
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ error: "No autorizado" });
@@ -36,11 +39,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
+  // 3️⃣ Aplicar rate limiter antes de generar contenido
+  try {
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+    const { success, reset } = await limiter.limit(ip.toString());
+
+    if (!success) {
+      res.setHeader("Retry-After", Math.ceil(reset / 1000));
+      return res.status(429).json({
+        ok: false,
+        error: "Has alcanzado el límite de generación. Intenta de nuevo en un minuto.",
+      });
+    }
+  } catch (err) {
+    console.error("[RateLimiter] Error:", err);
+    // En caso de fallo del limitador, no bloquea al usuario
+  }
+
+  // 4️⃣ Validar el prompt
   const body = req.body as GenerateRequestBody;
   if (!body.prompt || body.prompt.trim().length < 10) {
     return res.status(400).json({ error: "Prompt inválido. Proporciona más contexto." });
   }
 
+  // 5️⃣ Generar el contenido con IA
   try {
     const result = await generatePostWithContext({
       userId: user.id,
@@ -49,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       metadata: body.metadata,
     });
 
-    // Log successful generation
+    // Registrar la generación exitosa
     await logGeneration(user.id, result.postId, 1);
 
     return res.status(200).json({
@@ -66,7 +88,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const err = error as Error & { code?: string; plan?: string };
 
     if (err.code === "NO_CREDITS") {
-      // Log no credits error
       await logError(user.id, "Content generation failed: No credits remaining", {
         error_code: err.code,
         plan: err.plan,
@@ -79,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Log general error
+    // Log de errores generales
     console.error("[api/post/generate] Error:", err);
     await logError(user.id, "Content generation failed", {
       error: err.message,

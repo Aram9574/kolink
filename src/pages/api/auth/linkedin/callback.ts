@@ -50,52 +50,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const supabase = getSupabaseAdminClient();
 
-    // Check if user exists
-    const { data: existingUser } = await supabase
+    let userId: string;
+
+    // Check if user exists by looking up in profiles table (faster than listUsers)
+    const { data: existingProfile } = await supabase
       .from("profiles")
       .select("id, email")
       .eq("email", email)
       .maybeSingle();
 
-    let userId: string;
-
-    if (existingUser) {
-      // User exists - update with LinkedIn data
-      userId = existingUser.id;
+    if (existingProfile) {
+      // User exists - enrich with LinkedIn data
+      userId = existingProfile.id;
       await enrichProfileFromLinkedIn(userId, profile, tokenResponse);
-
-      // Sign in the user
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: generateTemporaryPassword(email), // Note: This is a placeholder - see below
-      });
-
-      if (signInError) {
-        console.error("[LinkedIn Callback] Sign in error:", signInError);
-        // User exists but can't sign in - might need password reset flow
-        return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/signin?error=signin_failed`);
-      }
     } else {
-      // New user - create account
-      const tempPassword = generateTemporaryPassword(email);
-
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      // New user - create account using admin API
+      const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
         email,
-        password: tempPassword,
-        options: {
-          data: {
-            full_name: `${profile.localizedFirstName} ${profile.localizedLastName}`,
-            linkedin_id: profile.id,
-          },
+        email_confirm: true, // Auto-confirm email for OAuth users
+        user_metadata: {
+          full_name: `${profile.localizedFirstName} ${profile.localizedLastName}`,
+          linkedin_id: profile.id,
         },
       });
 
-      if (signUpError || !authData.user) {
-        console.error("[LinkedIn Callback] Sign up error:", signUpError);
+      if (createUserError || !newUser.user) {
+        console.error("[LinkedIn Callback] Create user error:", createUserError);
         return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/signin?error=signup_failed`);
       }
 
-      userId = authData.user.id;
+      userId = newUser.user.id;
 
       // Create profile with LinkedIn data
       await supabase.from("profiles").insert({
@@ -109,14 +93,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await enrichProfileFromLinkedIn(userId, profile, tokenResponse);
     }
 
+    // Create a session for the user using admin API
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
+      user_id: userId,
+    });
+
+    if (sessionError || !sessionData.session) {
+      console.error("[LinkedIn Callback] Session creation error:", sessionError);
+      return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/signin?error=session_failed`);
+    }
+
     // Clear state cookie
     res.setHeader(
       "Set-Cookie",
       "linkedin_oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
     );
 
-    // Redirect to dashboard with success
-    return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?linkedin=connected`);
+    // Redirect to dashboard with tokens in hash fragment (standard OAuth approach)
+    // The Supabase client will automatically detect and store these
+    const redirectUrl = new URL(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`);
+    redirectUrl.hash = `access_token=${sessionData.session.access_token}&refresh_token=${sessionData.session.refresh_token}&expires_in=${sessionData.session.expires_in}&token_type=bearer`;
+
+    // Add query param to show success message
+    redirectUrl.searchParams.set('linkedin', 'connected');
+
+    return res.redirect(redirectUrl.toString());
   } catch (error) {
     console.error("[LinkedIn Callback] Error:", error);
     return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/signin?error=linkedin_error`);
@@ -137,19 +138,4 @@ function parseCookies(cookieHeader: string): Record<string, string> {
     },
     {} as Record<string, string>
   );
-}
-
-/**
- * Generate a temporary password for LinkedIn users
- * NOTE: In production, consider using Supabase's OAuth providers directly
- * or implement a passwordless flow with magic links
- */
-function generateTemporaryPassword(email: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const crypto = require("crypto");
-  return crypto
-    .createHash("sha256")
-    .update(email + process.env.LINKEDIN_CLIENT_SECRET)
-    .digest("hex")
-    .slice(0, 32);
 }
