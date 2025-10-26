@@ -20,10 +20,22 @@
  *   SUPABASE_SERVICE_ROLE_KEY
  */
 
-// Load environment variables from .env.local
+// Load environment variables from .env.local (skip in CI)
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
+
+const isCI = !!(
+  process.env.CI ||
+  process.env.GITHUB_ACTIONS ||
+  process.env.VERCEL ||
+  process.env.GITLAB_CI ||
+  process.env.CIRCLECI
+);
+
+// Only load .env.local in non-CI environments
+if (!isCI) {
+  dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
+}
 
 import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
@@ -360,6 +372,15 @@ async function main() {
 
   logSection('🚀 Kolink v0.7.3 - Pre-Deploy Schema Verification');
   log('Verifying Supabase schema before deployment...\n', 'cyan');
+
+  // If in CI and no Supabase URL, skip verification with warning
+  if (isCI && !SUPABASE_URL) {
+    log('\n⚠️  Running in CI environment without Supabase credentials', 'yellow');
+    log('Schema verification will be skipped for this build.', 'yellow');
+    log('\nNote: Schema verification runs automatically in production deployments.', 'cyan');
+    log('To enable in CI, add NEXT_PUBLIC_SUPABASE_URL to your CI secrets.\n', 'cyan');
+    process.exit(0); // Exit successfully to allow build to continue
+  }
 
   const result = await runVerification();
 
