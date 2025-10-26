@@ -11,15 +11,21 @@ test.describe('Authentication', () => {
   });
 
   test('should navigate to sign up page', async ({ page }) => {
-    await page.click('text=Sign Up');
+    // Click the navbar signup link specifically
+    await page.locator('nav a[href="/signup"]').click();
+    // Wait for navigation to complete
+    await page.waitForURL('/signup');
     await expect(page).toHaveURL('/signup');
-    await expect(page.locator('h1')).toContainText('Create your account');
+    await expect(page.locator('h1')).toContainText('Crear Cuenta');
   });
 
   test('should navigate to sign in page', async ({ page }) => {
-    await page.click('text=Sign In');
+    // Click the navbar signin link specifically
+    await page.locator('nav a[href="/signin"]').click();
+    // Wait for navigation to complete
+    await page.waitForURL('/signin');
     await expect(page).toHaveURL('/signin');
-    await expect(page.locator('h1')).toContainText('Welcome back');
+    await expect(page.locator('h1')).toContainText('Iniciar Sesión');
   });
 
   test('should display validation for empty sign up form', async ({ page }) => {

@@ -73,6 +73,10 @@ export default function AdminPage() {
       setSession(currentSession);
       if (currentSession) {
         checkAdminAccess();
+      } else {
+        // No session - redirect to signin
+        router.push("/signin");
+        setLoading(false);
       }
     };
     initSession();
