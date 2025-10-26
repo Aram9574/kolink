@@ -93,13 +93,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await enrichProfileFromLinkedIn(userId, profile, tokenResponse);
     }
 
-    // Create a session for the user using admin API
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: userId,
+    // Generate a magic link - Supabase will handle the session automatically
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?linkedin=connected`,
+      },
     });
 
-    if (sessionError || !sessionData.session) {
-      console.error("[LinkedIn Callback] Session creation error:", sessionError);
+    if (linkError || !linkData || !linkData.properties.action_link) {
+      console.error("[LinkedIn Callback] Generate link error:", linkError);
       return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/signin?error=session_failed`);
     }
 
@@ -109,15 +113,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       "linkedin_oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
     );
 
-    // Redirect to dashboard with tokens in hash fragment (standard OAuth approach)
-    // The Supabase client will automatically detect and store these
-    const redirectUrl = new URL(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`);
-    redirectUrl.hash = `access_token=${sessionData.session.access_token}&refresh_token=${sessionData.session.refresh_token}&expires_in=${sessionData.session.expires_in}&token_type=bearer`;
-
-    // Add query param to show success message
-    redirectUrl.searchParams.set('linkedin', 'connected');
-
-    return res.redirect(redirectUrl.toString());
+    // Redirect to the magic link URL - this will automatically set up the session
+    // and then redirect to the dashboard with the linkedin=connected param
+    return res.redirect(linkData.properties.action_link);
   } catch (error) {
     console.error("[LinkedIn Callback] Error:", error);
     return res.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/signin?error=linkedin_error`);
