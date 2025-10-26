@@ -183,6 +183,7 @@ export default function EditorAI({
       {/* Editor */}
       <div className="relative">
         <Textarea
+          name="prompt"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
