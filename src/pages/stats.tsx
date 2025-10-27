@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { BarChart3 } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import Loader from "@/components/Loader";
+import Navbar from "@/components/Navbar";
 
 type StatsProps = {
   session: Session | null | undefined;
@@ -30,8 +31,10 @@ export default function Stats({ session }: StatsProps) {
   }
 
   return (
-    <div className="min-h-screen pb-12">
-      <div className="mx-auto max-w-7xl px-4 pt-8">
+    <>
+      <Navbar session={session} />
+      <div className="min-h-screen bg-slate-50 pb-16 pt-20 lg:pl-64 dark:bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
@@ -51,8 +54,9 @@ export default function Stats({ session }: StatsProps) {
         </motion.header>
 
         {/* Stats Component */}
-        <StatsCard />
+          <StatsCard />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

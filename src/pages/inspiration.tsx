@@ -133,10 +133,10 @@ export default function InspirationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navbar session={session} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="mx-auto max-w-7xl px-4 py-20 lg:pl-64 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
@@ -158,7 +158,7 @@ export default function InspirationPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar por palabras clave, temas, autores..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#F9D65C] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
               <Button type="submit" disabled={searching}>
@@ -172,7 +172,7 @@ export default function InspirationPage() {
               <select
                 value={platformFilter}
                 onChange={(e) => setPlatformFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#F9D65C] focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="">Todas las plataformas</option>
                 <option value="linkedin">LinkedIn</option>
@@ -202,7 +202,7 @@ export default function InspirationPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-[#F9D65C] uppercase">
+                      <span className="text-sm font-medium text-primary uppercase">
                         {post.platform}
                       </span>
                       {post.similarity && post.similarity > 0 && (
@@ -217,7 +217,7 @@ export default function InspirationPage() {
                   </div>
                   <button
                     onClick={() => savePost(post.id)}
-                    className="text-gray-400 hover:text-[#F9D65C] transition-colors"
+                    className="text-gray-400 transition-colors hover:text-primary"
                     title="Guardar en favoritos"
                   >
                     <Bookmark className="w-5 h-5" />

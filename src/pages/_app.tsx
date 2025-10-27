@@ -8,21 +8,23 @@ import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { initPostHog, identifyUser, analytics } from "@/lib/posthog";
-import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
 
 export default function App({ Component, pageProps }: AppProps) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
 
-  // Initialize PostHog
+  // Páginas que no necesitan sidebar (landing, auth)
+  const publicPages = ["/", "/signin", "/signup", "/account-setup"];
+  const showSidebar = session && !publicPages.includes(router.pathname);
+
   useEffect(() => {
     initPostHog();
   }, []);
 
-  // Track page views
   useEffect(() => {
     const handleRouteChange = (url: string) => {
-      const pageName = url.split("?")[0]; // Remove query params
+      const pageName = url.split("?")[0];
       analytics.pageViewed(pageName);
     };
 
@@ -41,7 +43,6 @@ export default function App({ Component, pageProps }: AppProps) {
         const newSession = data.session ?? null;
         setSession(newSession);
 
-        // Identify user in PostHog
         if (newSession?.user) {
           identifyUser(newSession.user.id, {
             email: newSession.user.email,
@@ -58,7 +59,6 @@ export default function App({ Component, pageProps }: AppProps) {
     } = supabaseClient.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
 
-      // Update PostHog identity
       if (newSession?.user) {
         identifyUser(newSession.user.id, {
           email: newSession.user.email,
@@ -75,24 +75,21 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider>
       <NotificationProvider>
-        <Navbar session={session} />
-        <main className="pt-20 min-h-screen">
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              className: "",
-              style: {
-                background: "var(--background)",
-                color: "var(--foreground)",
-                borderRadius: "0.5rem",
-                border: "1px solid var(--border)",
-                fontSize: "14px",
-                padding: "12px 16px",
-              },
-            }}
-          />
-          <Component {...pageProps} session={session} />
-        </main>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: "var(--background)",
+              color: "var(--foreground)",
+              borderRadius: "0.75rem",
+              border: "1px solid var(--border)",
+              fontSize: "14px",
+              padding: "12px 16px",
+            },
+          }}
+        />
+        {showSidebar && <Sidebar session={session} />}
+        <Component {...pageProps} session={session} />
       </NotificationProvider>
     </ThemeProvider>
   );

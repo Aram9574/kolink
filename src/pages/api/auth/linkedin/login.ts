@@ -3,6 +3,12 @@ import { generateLinkedInAuthUrl } from "@/lib/linkedin";
 import { randomBytes } from "crypto";
 
 /**
+ * @deprecated This custom LinkedIn OAuth implementation is deprecated.
+ * The application now uses Supabase Auth's built-in LinkedIn provider.
+ * See docs/linkedin-oauth-migration.md for details.
+ *
+ * This endpoint is kept for backward compatibility but should not be used.
+ *
  * Initiates LinkedIn OAuth2 flow
  * GET /api/auth/linkedin/login
  */

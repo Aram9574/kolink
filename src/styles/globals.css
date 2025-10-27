@@ -9,31 +9,31 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 12%;
-    --primary: 45 96% 67%;
-    --primary-foreground: 0 0% 12%;
-    --secondary: 0 0% 12%;
+    --foreground: 210 33% 9%;
+    --primary: 215 98% 49%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 216 33% 17%;
     --secondary-foreground: 0 0% 100%;
-    --accent: 45 96% 67%;
-    --accent-foreground: 0 0% 12%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --border: 214 32% 91%;
-    --radius: 0.5rem;
+    --accent: 151 72% 44%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 210 60% 97%;
+    --muted-foreground: 215 20% 40%;
+    --border: 214 32% 88%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 0 0% 6%;
+    --background: 216 33% 9%;
     --foreground: 0 0% 100%;
-    --primary: 45 96% 67%;
-    --primary-foreground: 0 0% 12%;
-    --secondary: 0 0% 12%;
+    --primary: 215 98% 49%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 42% 14%;
     --secondary-foreground: 0 0% 100%;
-    --accent: 45 96% 67%;
-    --accent-foreground: 0 0% 12%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 215 16% 57%;
-    --border: 0 0% 17%;
+    --accent: 151 72% 44%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 216 33% 12%;
+    --muted-foreground: 210 40% 70%;
+    --border: 216 33% 18%;
   }
 }
 
@@ -43,11 +43,11 @@
   }
 
   body {
-    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark transition-colors duration-300 font-sans;
+    @apply bg-background-light text-text-light font-sans antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply text-text-light dark:text-text-dark font-semibold;
+    @apply font-semibold text-secondary;
   }
 
   button {

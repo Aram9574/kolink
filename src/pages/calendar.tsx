@@ -25,6 +25,14 @@ type CalendarEvent = {
   status: string;
 };
 
+type BestTimeSlot = {
+  hour: number;
+  dayOfWeek: number;
+  score: number;
+  confidence: "high" | "medium" | "low";
+  sampleSize: number;
+};
+
 export default function CalendarPage() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
@@ -34,6 +42,9 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["linkedin"]);
   const [scheduling, setScheduling] = useState(false);
+  const [bestTimes, setBestTimes] = useState<BestTimeSlot[]>([]);
+  const [patternLoading, setPatternLoading] = useState(true);
+  const [patternMessage, setPatternMessage] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,6 +54,7 @@ export default function CalendarPage() {
       } else {
         setLoading(false);
         loadEvents();
+        fetchBestTimes(session.access_token);
       }
     });
 
@@ -94,6 +106,36 @@ export default function CalendarPage() {
     }
   };
 
+  const fetchBestTimes = async (token: string) => {
+    try {
+      setPatternLoading(true);
+      const response = await fetch("/api/analytics/engagement-pattern", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Engagement pattern request failed");
+      }
+
+      const data = await response.json();
+      if (data.hasData && Array.isArray(data.bestTimes)) {
+        setBestTimes(data.bestTimes);
+        setPatternMessage(null);
+      } else {
+        setBestTimes([]);
+        setPatternMessage(data.message ?? "Comparte más contenido para recibir recomendaciones personalizadas.");
+      }
+    } catch (error) {
+      console.error("Engagement pattern error:", error);
+      setBestTimes([]);
+      setPatternMessage("No pudimos calcular el mejor horario ahora mismo.");
+    } finally {
+      setPatternLoading(false);
+    }
+  };
+
   const handleSchedule = async () => {
     if (!session || selectedPlatforms.length === 0) {
       toast.error("Selecciona al menos una plataforma");
@@ -124,6 +166,7 @@ export default function CalendarPage() {
         setSelectedDate("");
         setSelectedPlatforms(["linkedin"]);
         loadEvents();
+        fetchBestTimes(token);
       } else {
         toast.error(data.error || "Error al programar");
       }
@@ -152,6 +195,13 @@ export default function CalendarPage() {
     });
   };
 
+  const formatBestSlot = (slot: BestTimeSlot) => {
+    const dayNames = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    const hourLabel = `${slot.hour.toString().padStart(2, "0")}:00`;
+    const confidenceCopy = slot.confidence === "high" ? "(alta confianza)" : slot.confidence === "medium" ? "(confianza media)" : "(datos limitados)";
+    return `${dayNames[slot.dayOfWeek]} a las ${hourLabel} ${confidenceCopy}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
@@ -161,10 +211,10 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navbar session={session} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="mx-auto max-w-7xl px-4 py-20 lg:pl-64 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -182,17 +232,23 @@ export default function CalendarPage() {
         </div>
 
         {/* AI Recommendation Banner */}
-        <Card className="mb-8 bg-gradient-to-r from-[#F9D65C]/10 to-transparent border-l-4 border-[#F9D65C]">
+        <Card className="mb-8 bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary">
           <div className="flex items-start gap-4">
-            <Sparkles className="w-6 h-6 text-[#F9D65C] mt-1 flex-shrink-0" />
+            <Sparkles className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
                 Recomendación de IA
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                El mejor momento para publicar es los <strong>martes y jueves entre las 9:00 y 11:00 AM</strong>.
-                Tu audiencia está más activa durante estas franjas horarias.
-              </p>
+              {patternLoading ? (
+                <p className="text-gray-600 dark:text-gray-300 text-sm">Calculando tus mejores horarios...</p>
+              ) : bestTimes.length > 0 ? (
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  Mejores slots detectados: <strong>{formatBestSlot(bestTimes[0])}</strong>
+                  {bestTimes[1] ? ` · ${formatBestSlot(bestTimes[1])}` : ""}
+                </p>
+              ) : (
+                <p className="text-gray-600 dark:text-gray-300 text-sm">{patternMessage}</p>
+              )}
             </div>
           </div>
         </Card>
@@ -218,7 +274,7 @@ export default function CalendarPage() {
               {events.map((event) => (
                 <Card key={event.id} className="flex items-center justify-between">
                   <div className="flex items-start gap-4 flex-1">
-                    <Clock className="w-5 h-5 text-[#F9D65C] mt-1" />
+                    <Clock className="w-5 h-5 text-primary mt-1" />
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <span className="font-semibold text-gray-900 dark:text-white">
@@ -251,7 +307,7 @@ export default function CalendarPage() {
 
                       {/* AI Score */}
                       <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-[#F9D65C]" />
+                        <Sparkles className="w-4 h-4 text-primary" />
                         <span className="text-sm text-gray-600 dark:text-gray-400">
                           AI Score: <strong>{event.aiScore.toFixed(1)}</strong>/100
                         </span>

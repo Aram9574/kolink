@@ -1,179 +1,161 @@
-import { FormEvent, useState, useEffect } from "react";
+import { useState, type FormEvent } from "react";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { supabaseClient } from "@/lib/supabaseClient";
-import { motion } from "framer-motion";
-import { Sparkles, Mail, Lock, Linkedin } from "lucide-react";
 import Button from "@/components/Button";
-import Card from "@/components/Card";
-import { Input } from "@/components/ui/input";
-import toast from "react-hot-toast";
+import { supabaseClient } from "@/lib/supabaseClient";
 
-export default function SignIn() {
+export default function SignInPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Handle OAuth error messages
-    const { error, linkedin } = router.query;
+  const handleLinkedInLogin = async () => {
+    setError(null);
+
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "linkedin_oidc",
+      options: {
+        redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+      },
+    });
+
     if (error) {
-      const errorMessages: Record<string, string> = {
-        linkedin_denied: "Acceso denegado a LinkedIn",
-        missing_code: "Error en la autenticación con LinkedIn",
-        state_mismatch: "Error de seguridad. Intenta de nuevo.",
-        signin_failed: "No se pudo iniciar sesión",
-        signup_failed: "No se pudo crear la cuenta",
-        linkedin_error: "Error al conectar con LinkedIn",
-      };
-      toast.error(errorMessages[error as string] || "Error de autenticación");
+      setError("No se pudo iniciar sesión con LinkedIn. Inténtalo de nuevo.");
     }
-    if (linkedin === "connected") {
-      toast.success("¡Perfil de LinkedIn conectado exitosamente!");
-    }
-  }, [router.query]);
+  };
 
-  const handleSignIn = async (e: FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
-
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setLoading(true);
+    setError(null);
 
-    try {
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error: signInError } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("¡Bienvenido de nuevo!");
-        router.push("/dashboard");
-      }
-    } finally {
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
+      return;
     }
-  };
 
-  const handleLinkedInSignIn = () => {
-    window.location.href = "/api/auth/linkedin/login";
-  };
+    const userId = data.user?.id;
+    if (!userId) {
+      router.push("/dashboard");
+      return;
+    }
+
+    const { data: profileData } = await supabaseClient
+      .from("profiles")
+      .select("features, full_name")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const features = (profileData?.features as Record<string, unknown>) ?? {};
+    const hasCompleted = Boolean((features as { onboarding_completed?: boolean }).onboarding_completed);
+    const hasName = Boolean(profileData?.full_name && profileData.full_name.trim().length > 0);
+
+    router.push(!hasCompleted || !hasName ? "/account-setup" : "/dashboard");
+  }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">KOLINK</span>
-          </Link>
-          <h1 className="text-2xl font-bold mb-2">Iniciar Sesión</h1>
-          <p className="text-muted-foreground">
-            Bienvenido de nuevo a tu espacio creativo
-          </p>
-        </div>
-
-        {/* Form */}
-        <Card>
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="pl-10"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Contraseña
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
-            </Button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white dark:bg-gray-800 px-4 text-muted-foreground">
-                o continúa con
-              </span>
+    <>
+      <Head>
+        <title>Inicia sesión | KOLINK</title>
+      </Head>
+      <main className="flex min-h-screen items-center justify-center bg-white px-4 py-20">
+        <div className="w-full max-w-xl space-y-8 text-center">
+          <div className="space-y-6">
+            <Link href="/" className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-600">
+              K
+            </Link>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold text-slate-900 md:text-4xl">
+                Bienvenido de nuevo a Kolink
+              </h1>
+              <p className="text-sm text-slate-500">
+                Inicia sesión para seguir creando contenido que conecta en LinkedIn.
+              </p>
             </div>
           </div>
 
-          {/* LinkedIn Sign-in Button */}
-          <button
-            onClick={handleLinkedInSignIn}
-            type="button"
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-          >
-            <Linkedin className="w-5 h-5 text-[#0A66C2]" />
-            Continuar con LinkedIn
-          </button>
+          <div className="space-y-6">
+            <Button
+              onClick={handleLinkedInLogin}
+              className="w-full justify-center gap-2 rounded-full bg-[#0A66C2] py-3 text-base font-semibold"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 fill-white">
+                <path d="M20.452 20.452h-3.554v-5.569c0-1.328-.025-3.039-1.852-3.039-1.853 0-2.136 1.445-2.136 2.939v5.669H9.356V9h3.414v1.561h.047c.476-.9 1.637-1.852 3.37-1.852 3.599 0 4.266 2.37 4.266 5.455v6.288ZM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124ZM7.114 20.452H3.56V9h3.555v11.452Z" />
+              </svg>
+              Continuar con LinkedIn
+            </Button>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              ¿No tienes cuenta?{" "}
-              <Link
-                href="/signup"
-                className="font-medium text-primary hover:underline"
-              >
-                Regístrate gratis
+            <div className="flex items-center gap-3 text-xs text-slate-400">
+              <span className="h-px flex-1 bg-slate-200" />
+              o con tu correo
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5 text-left">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  Correo electrónico
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="w-full rounded-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  placeholder="nombre@empresa.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  Contraseña
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="w-full rounded-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  placeholder="Ingresa tu contraseña"
+                />
+              </div>
+
+              {error && (
+                <p className="rounded-2xl bg-red-50 px-4 py-3 text-xs text-red-600">{error}</p>
+              )}
+
+              <Button type="submit" disabled={loading} className="w-full rounded-full py-3 text-base">
+                {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+              </Button>
+            </form>
+
+            <p className="text-xs text-slate-400">
+              ¿Necesitas ayuda? Escríbenos a {" "}
+              <a href="mailto:info@kolink.es" className="text-primary hover:underline">
+                info@kolink.es
+              </a>
+            </p>
+
+            <p className="text-sm text-slate-500">
+              ¿Aún no tienes cuenta?{" "}
+              <Link href="/signup" className="font-semibold text-primary hover:underline">
+                Regístrate
               </Link>
             </p>
           </div>
-        </Card>
-
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          Al iniciar sesión, aceptas nuestros{" "}
-          <Link href="#" className="underline hover:text-primary">
-            Términos de Servicio
-          </Link>{" "}
-          y{" "}
-          <Link href="#" className="underline hover:text-primary">
-            Política de Privacidad
-          </Link>
-        </p>
-      </motion.div>
-    </div>
+        </div>
+      </main>
+    </>
   );
 }

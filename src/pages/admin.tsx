@@ -6,6 +6,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
 import Navbar from "@/components/Navbar";
 import Loader from "@/components/Loader";
+import { ProfileAvatarMenu } from "@/components/ProfileAvatarMenu";
 import {
   Shield,
   Users,
@@ -316,6 +317,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark">
       <Navbar session={session} />
+      <ProfileAvatarMenu />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}

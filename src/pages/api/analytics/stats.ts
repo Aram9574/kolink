@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { limiter } from "@/lib/rateLimiter";
 
 type AnalyticsResponse = {
   totals: {
@@ -50,8 +51,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
+  // Obtener período de tiempo (7, 30, 90, 180 días)
+  const period = parseInt(req.query.period as string) || 30;
+
+  // Rate limiting: 60 consultas de stats cada 60 segundos por usuario
   try {
-    const [profileResult, postAggregate, weekCount, monthCount, lastPostResult, topPostResult] = await Promise.all([
+    const { success, reset } = await limiter.limit(`analytics_stats_${user.id}`);
+
+    if (!success) {
+      res.setHeader("Retry-After", Math.ceil(reset / 1000));
+      return res.status(429).json({
+        error: "Demasiadas consultas de estadísticas. Intenta de nuevo más tarde.",
+        retryAfter: Math.ceil(reset / 1000),
+      });
+    }
+  } catch (error) {
+    console.error("❌ Error en rate limiter:", error);
+    // Continuar sin rate limiting si hay error
+  }
+
+  try {
+    const [profileResult, postAggregate, currentPeriodCount, previousPeriodCount, weekCount, monthCount, lastPostResult, topPostResult, dailyStats] = await Promise.all([
       supabase
         .from("profiles")
         .select("plan, credits, created_at")
@@ -61,6 +81,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from("posts")
         .select("viral_score", { count: "exact", head: true })
         .eq("user_id", user.id),
+      countPostsSince(supabase, user.id, period),
+      countPostsSince(supabase, user.id, period * 2),
       countPostsSince(supabase, user.id, 7),
       countPostsSince(supabase, user.id, 30),
       supabase
@@ -77,6 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .order("viral_score", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      getDailyStats(supabase, user.id, period),
     ]);
 
     const totalPosts = postAggregate.count ?? 0;
@@ -92,6 +115,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const nextSlot = new Date();
     nextSlot.setDate(nextSlot.getDate() + 1);
     nextSlot.setHours(10, 0, 0, 0);
+
+    // Calcular cambios porcentuales
+    const previousCount = previousPeriodCount - currentPeriodCount;
+    const postsChange = previousCount > 0 ? ((currentPeriodCount - previousCount) / previousCount) * 100 : 0;
+    const engagementChange = 0; // Placeholder para futura implementación
 
     const response: AnalyticsResponse = {
       totals: {
@@ -121,7 +149,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         predictedEngagementLift: Math.max(5, Math.round((avgViralScore ?? 60) * 0.15)),
       },
       alerts: buildAlerts(creditsUsed, profile?.credits ?? 0, avgViralScore),
-    };
+      period: {
+        days: period,
+        currentPosts: currentPeriodCount,
+        previousPosts: previousCount,
+        postsChange,
+        engagementChange,
+        dailyStats,
+      },
+    } as any;
 
     return res.status(200).json(response);
   } catch (error) {
@@ -203,4 +239,46 @@ function buildAlerts(creditsUsed: number, creditsRemaining: number, avgScore: nu
     alerts.push("Has utilizado más del 75% de tus créditos del mes.");
   }
   return alerts;
+}
+
+async function getDailyStats(supabase: ReturnType<typeof getSupabaseAdminClient>, userId: string, days: number) {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const { data } = await supabase
+    .from("posts")
+    .select("created_at, viral_score")
+    .eq("user_id", userId)
+    .gte("created_at", since.toISOString())
+    .order("created_at", { ascending: true });
+
+  if (!data) return [];
+
+  // Agrupar por día
+  const dailyMap = new Map<string, { posts: number; engagement: number }>();
+
+  data.forEach((post) => {
+    const date = new Date(post.created_at).toISOString().split('T')[0];
+    const current = dailyMap.get(date) || { posts: 0, engagement: 0 };
+    dailyMap.set(date, {
+      posts: current.posts + 1,
+      engagement: current.engagement + (post.viral_score || 0),
+    });
+  });
+
+  // Convertir a array y rellenar días faltantes
+  const result = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const stats = dailyMap.get(dateStr) || { posts: 0, engagement: 0 };
+    result.push({
+      date: dateStr,
+      posts: stats.posts,
+      engagement: Math.round(stats.engagement),
+    });
+  }
+
+  return result;
 }

@@ -260,52 +260,151 @@ export default function EditorAI({
         )}
       </div>
 
-      {/* Viral Score Badge */}
+      {/* Viral Score Badge with Progress Circle */}
       {viralScore !== undefined && viralScore > 0 && (
         <div
           className={cn(
-            "flex items-center gap-3 p-4 rounded-lg border",
+            "flex items-center gap-4 p-5 rounded-xl border-2",
             viralScore >= 75
-              ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+              ? "bg-gradient-to-br from-green-50 to-green-100 border-green-300 dark:from-green-900/20 dark:to-green-800/20 dark:border-green-700"
               : viralScore >= 50
-                ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
-                : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800"
+                ? "bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300 dark:from-yellow-900/20 dark:to-yellow-800/20 dark:border-yellow-700"
+                : "bg-gradient-to-br from-red-50 to-red-100 border-red-300 dark:from-red-900/20 dark:to-red-800/20 dark:border-red-700"
           )}
         >
-          <TrendingUp className={cn("w-6 h-6", getScoreColor(viralScore))} />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Viral Score
-              </span>
-              <span className={cn("text-2xl font-bold", getScoreColor(viralScore))}>
-                {viralScore.toFixed(0)}/100
+          {/* Circular Progress Gauge */}
+          <div className="relative flex items-center justify-center w-20 h-20 flex-shrink-0">
+            {/* Background Circle */}
+            <svg className="transform -rotate-90 w-20 h-20">
+              <circle
+                cx="40"
+                cy="40"
+                r="32"
+                stroke="currentColor"
+                strokeWidth="6"
+                fill="none"
+                className="text-gray-200 dark:text-gray-700"
+              />
+              {/* Progress Circle */}
+              <circle
+                cx="40"
+                cy="40"
+                r="32"
+                stroke="currentColor"
+                strokeWidth="6"
+                fill="none"
+                strokeDasharray={`${2 * Math.PI * 32}`}
+                strokeDashoffset={`${2 * Math.PI * 32 * (1 - viralScore / 100)}`}
+                className={cn(
+                  "transition-all duration-1000 ease-out",
+                  viralScore >= 75
+                    ? "text-green-500 dark:text-green-400"
+                    : viralScore >= 50
+                      ? "text-yellow-500 dark:text-yellow-400"
+                      : "text-red-500 dark:text-red-400"
+                )}
+                strokeLinecap="round"
+              />
+            </svg>
+            {/* Center Text */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className={cn("text-xl font-bold", getScoreColor(viralScore))}>
+                {viralScore.toFixed(0)}
               </span>
             </div>
-            <p className={cn("text-xs", getScoreColor(viralScore))}>
+          </div>
+
+          {/* Text Content */}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className={cn("w-5 h-5", getScoreColor(viralScore))} />
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                Viral Score
+              </span>
+              {/* Tooltip info icon */}
+              <button
+                type="button"
+                className="group relative"
+                aria-label="Información sobre Viral Score"
+              >
+                <AlertCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition" />
+                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-3 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg shadow-lg z-10">
+                  <p className="font-medium mb-1">¿Qué es el Viral Score?</p>
+                  <p className="text-gray-300">
+                    Métrica que predice el potencial de engagement de tu post basado en estructura,
+                    emociones, storytelling y claridad. Mayor score = mayor probabilidad de viralidad.
+                  </p>
+                  <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                </div>
+              </button>
+            </div>
+            <p className={cn("text-xs font-medium mb-1", getScoreColor(viralScore))}>
               {getScoreLabel(viralScore)}
             </p>
+            {/* Progress Bar Alternative */}
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all duration-1000 ease-out rounded-full",
+                  viralScore >= 75
+                    ? "bg-green-500 dark:bg-green-400"
+                    : viralScore >= 50
+                      ? "bg-yellow-500 dark:bg-yellow-400"
+                      : "bg-red-500 dark:bg-red-400"
+                )}
+                style={{ width: `${viralScore}%` }}
+              ></div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Recommendations */}
+      {/* Recommendations with Tooltips */}
       {recommendations.length > 0 && (
-        <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+        <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                Recomendaciones de IA
-              </h4>
-              <ul className="space-y-1">
+              <div className="flex items-center gap-2 mb-3">
+                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                  Recomendaciones de IA
+                </h4>
+                {/* Tooltip for Recommendations */}
+                <button
+                  type="button"
+                  className="group relative"
+                  aria-label="Información sobre Recomendaciones"
+                >
+                  <AlertCircle className="w-4 h-4 text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition" />
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-72 p-3 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg shadow-lg z-10">
+                    <p className="font-medium mb-1">Cómo usar estas recomendaciones</p>
+                    <p className="text-gray-300">
+                      Nuestra IA analiza tu contenido y sugiere mejoras específicas basadas en patrones de posts
+                      virales. Implementar estas recomendaciones puede aumentar tu engagement hasta un 40%.
+                    </p>
+                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                  </div>
+                </button>
+              </div>
+              <ul className="space-y-2">
                 {recommendations.map((rec, idx) => (
-                  <li key={idx} className="text-xs text-blue-800 dark:text-blue-200 flex items-start gap-2">
-                    <span className="text-blue-400 mt-0.5">•</span>
-                    <span>{rec}</span>
+                  <li
+                    key={idx}
+                    className="flex items-start gap-2 p-2 rounded-lg bg-white/50 dark:bg-blue-950/30 hover:bg-white dark:hover:bg-blue-950/50 transition-colors"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-xs text-blue-900 dark:text-blue-100 font-medium">{rec}</span>
                   </li>
                 ))}
               </ul>
+              <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+                <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Implementar estas sugerencias puede mejorar tu viral score
+                </p>
+              </div>
             </div>
           </div>
         </div>

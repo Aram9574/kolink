@@ -1,4 +1,5 @@
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,17 @@ interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
-  return (
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -26,10 +37,18 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
             onClick={() => onOpenChange(false)}
           />
-          {children}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+          >
+            {children}
+          </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
@@ -41,7 +60,7 @@ export function DialogContent({ children, className }: DialogContentProps) {
       exit={{ opacity: 0, scale: 0.95, y: 20 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-surface-dark p-6 shadow-lg",
+        "relative w-full max-w-lg rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-surface-dark p-6 shadow-lg pointer-events-auto",
         className
       )}
     >

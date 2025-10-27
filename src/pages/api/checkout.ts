@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
+import { limiter } from "@/lib/rateLimiter";
 
 type PlanTier = "basic" | "standard" | "premium";
 
@@ -21,6 +22,23 @@ const priceMap: Record<PlanTier, string | undefined> = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
+  }
+
+  // Rate limiting: 5 intentos de checkout cada 60 segundos por IP
+  try {
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+    const { success, reset } = await limiter.limit(`checkout_${ip.toString()}`);
+
+    if (!success) {
+      res.setHeader("Retry-After", Math.ceil(reset / 1000));
+      return res.status(429).json({
+        error: "Demasiados intentos de checkout. Intenta de nuevo más tarde.",
+        retryAfter: Math.ceil(reset / 1000),
+      });
+    }
+  } catch (error) {
+    console.error("❌ Error en rate limiter:", error);
+    // Continuar sin rate limiting si hay error
   }
 
   if (!supabaseUrl || !supabaseAnonKey) {

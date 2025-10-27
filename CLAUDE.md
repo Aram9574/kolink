@@ -52,10 +52,12 @@ Required environment variables (see `.env.local`):
 - `RESEND_API_KEY` - Resend API key for transactional emails
 - `FROM_EMAIL` - Verified sender email address
 
-**LinkedIn OAuth:**
-- `LINKEDIN_CLIENT_ID` - OAuth client ID from LinkedIn Developer portal
-- `LINKEDIN_CLIENT_SECRET` - OAuth client secret (store securely)
-- `LINKEDIN_REDIRECT_URI` - Callback URL configured in LinkedIn app
+**LinkedIn OAuth (via Supabase Auth):**
+- LinkedIn OAuth is now integrated through Supabase Auth's built-in provider
+- Configure LinkedIn OIDC credentials in Supabase Dashboard > Authentication > Providers
+- No application environment variables needed (credentials stored in Supabase)
+- Supabase callback URL: `https://crdtxyfvbosjiddirtzc.supabase.co/auth/v1/callback`
+- See `docs/linkedin-oauth-migration.md` for setup instructions
 
 **Redis / Messaging:**
 - `REDIS_URL` - Connection URL for Redis/Upstash (cache, queues, pub/sub)
@@ -103,7 +105,11 @@ Located in `src/pages/api/`:
 
 ### Data Flow
 
-1. **Authentication**: Managed by Supabase Auth, session state in `_app.tsx` via `supabaseClient.auth.onAuthStateChange()`
+1. **Authentication**:
+   - **Email/Password**: Managed by Supabase Auth with `signInWithPassword()` and `signUp()`
+   - **LinkedIn OAuth**: Uses Supabase Auth's built-in provider via `signInWithOAuth({ provider: 'linkedin_oidc' })`
+   - Session state in `_app.tsx` via `supabaseClient.auth.onAuthStateChange()`
+   - OAuth flow: User clicks LinkedIn button → Supabase handles OAuth → Auto-redirect to dashboard
 2. **Subscription Flow**:
    - User selects plan in dashboard → `/api/checkout` creates Stripe session
    - Stripe redirects to checkout → User completes payment
@@ -264,6 +270,22 @@ Each plan maps to corresponding Stripe price IDs in environment variables.
 - `/docs/development/phase-4-ui-plan.md` - Complete Phase 4 implementation
 - `/docs/development/phase-5-implementation-summary.md` - Phase 5 progress and roadmap
 - `/docs/development/module-3-4-implementation.md` - Notifications and Email implementation
+- `/docs/linkedin-oauth-migration.md` - LinkedIn OAuth migration to Supabase Auth
 - `/docs/database/usage_stats_migration.sql` - Database migration for analytics
 - `/docs/database/admin_notifications_migration.sql` - Admin notifications table
 - `/docs/database/welcome_email_trigger.sql` - Trigger for welcome emails
+
+## Authentication
+
+### OAuth Providers
+
+**LinkedIn (via Supabase Auth):**
+- Implementation: `supabaseClient.auth.signInWithOAuth({ provider: 'linkedin_oidc' })`
+- Used in: `src/pages/signin.tsx`, `src/pages/signup.tsx`
+- Configuration: Supabase Dashboard > Authentication > Providers > LinkedIn
+- Auto-redirects to `/dashboard` after successful authentication
+
+**Deprecated Custom LinkedIn OAuth:**
+- Old implementation in `/api/auth/linkedin/*` is deprecated
+- Kept for backward compatibility but should not be used
+- See migration docs for details

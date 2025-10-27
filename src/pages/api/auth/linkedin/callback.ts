@@ -4,6 +4,12 @@ import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { enrichProfileFromLinkedIn } from "@/server/services/profileService";
 
 /**
+ * @deprecated This custom LinkedIn OAuth callback is deprecated.
+ * The application now uses Supabase Auth's built-in LinkedIn provider.
+ * See docs/linkedin-oauth-migration.md for details.
+ *
+ * This endpoint is kept for backward compatibility but should not be used.
+ *
  * LinkedIn OAuth2 callback handler
  * GET /api/auth/linkedin/callback?code=...&state=...
  */

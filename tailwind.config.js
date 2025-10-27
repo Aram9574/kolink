@@ -8,37 +8,36 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // KOLINK Brand Colors
         primary: {
-          DEFAULT: "#F9D65C",
-          light: "#FBEAA0",
-          dark: "#F4C81E"
+          DEFAULT: "#0373FE",
+          light: "#2D8CFF",
+          dark: "#0256C4"
         },
         secondary: {
-          DEFAULT: "#1E1E1E",
-          light: "#2A2A2A",
-          dark: "#0F0F0F"
+          DEFAULT: "#0F172A",
+          light: "#1E293B",
+          dark: "#020617"
         },
         background: {
           light: "#FFFFFF",
-          dark: "#0F0F0F"
+          dark: "#020617"
         },
         surface: {
-          light: "#F8F9FA",
-          dark: "#1E1E1E"
+          light: "#F5F6F9",
+          dark: "#131C2E"
         },
         text: {
-          light: "#1E1E1E",
-          dark: "#FFFFFF"
+          light: "#0F172A",
+          dark: "#F8FAFC"
         },
         accent: {
-          DEFAULT: "#F9D65C",
-          gold: "#D4AF37",
-          muted: "#FEF3CD"
+          DEFAULT: "#1BC47D",
+          soft: "#DEF8EC"
         },
+        "accent-muted": "#DEF8EC",
         border: {
-          light: "#E5E7EB",
-          dark: "#2A2A2A"
+          light: "#E2E8F0",
+          dark: "#1E293B"
         }
       },
       fontFamily: {

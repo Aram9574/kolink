@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { generateCacheKey, withCache } from "@/lib/redis";
 import { openai } from "@/lib/openai";
+import { limiter } from "@/lib/rateLimiter";
 
 type SearchRequest = {
   query?: string;
@@ -30,6 +31,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!user) {
     return res.status(401).json({ error: "Sesión inválida" });
+  }
+
+  // Rate limiting: 20 búsquedas cada 60 segundos por usuario
+  try {
+    const { success, reset } = await limiter.limit(`inspiration_search_${user.id}`);
+
+    if (!success) {
+      res.setHeader("Retry-After", Math.ceil(reset / 1000));
+      return res.status(429).json({
+        error: "Demasiadas búsquedas. Intenta de nuevo más tarde.",
+        retryAfter: Math.ceil(reset / 1000),
+      });
+    }
+  } catch (error) {
+    console.error("❌ Error en rate limiter:", error);
+    // Continuar sin rate limiting si hay error
   }
 
   const body = req.body as SearchRequest;

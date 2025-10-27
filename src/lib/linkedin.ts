@@ -1,4 +1,10 @@
 /**
+ * @deprecated This LinkedIn OAuth2 client is deprecated.
+ * The application now uses Supabase Auth's built-in LinkedIn provider.
+ * See docs/linkedin-oauth-migration.md for details.
+ *
+ * This library is kept for backward compatibility but should not be used in new code.
+ *
  * LinkedIn OAuth2 Client
  * Handles authentication flow, token exchange, and profile fetching
  */

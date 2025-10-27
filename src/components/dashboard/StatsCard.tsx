@@ -2,35 +2,48 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { TrendingUp, Zap, Calendar, BarChart3 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import Card from "@/components/Card";
+import { Eye, MessageCircle, Heart, Repeat2, Users, FileText, Zap } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import Loader from "@/components/Loader";
 import { supabaseClient } from "@/lib/supabaseClient";
 
-type Stats = {
-  totalPosts: number;
-  totalCreditsUsed: number;
-  currentCredits: number;
-  plan: string;
-  lastActivity: string | null;
-  postsThisWeek: number;
-  postsThisMonth: number;
-  joinedDate: string;
+type TimePeriod = 7 | 30 | 90 | 180;
+
+type StatsData = {
+  totals: {
+    totalPosts: number;
+    creditsUsed: number;
+    currentCredits: number;
+    plan: string | null;
+  };
+  performance: {
+    avgViralScore: number | null;
+  };
+  period: {
+    currentPosts: number;
+    postsChange: number;
+    engagementChange: number;
+    dailyStats: Array<{
+      date: string;
+      posts: number;
+      engagement: number;
+    }>;
+  };
 };
 
 export default function StatsCard() {
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<TimePeriod>(30);
 
   useEffect(() => {
     loadStats();
-  }, []);
+  }, [period]);
 
   const loadStats = async () => {
     try {
+      setLoading(true);
       const { data: sessionData } = await supabaseClient.auth.getSession();
       const token = sessionData.session?.access_token;
 
@@ -40,7 +53,7 @@ export default function StatsCard() {
         return;
       }
 
-      const response = await fetch("/api/stats", {
+      const response = await fetch(`/api/analytics/stats?period=${period}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -60,179 +73,249 @@ export default function StatsCard() {
     }
   };
 
+  // Función para formatear porcentajes
+  const formatPercentage = (value: number) => {
+    const formatted = Math.abs(value).toFixed(1);
+    return value >= 0 ? `+${formatted}%` : `-${formatted}%`;
+  };
+
   if (loading) {
     return (
-      <Card className="p-8 text-center">
-        <Loader size={32} />
-        <p className="text-sm text-muted-foreground mt-4">Cargando estadísticas...</p>
-      </Card>
+      <div className="flex items-center justify-center py-20">
+        <Loader size={40} />
+      </div>
     );
   }
 
   if (error || !stats) {
     return (
-      <Card className="p-8 text-center">
-        <p className="text-sm text-muted-foreground">{error || "No hay datos disponibles"}</p>
-      </Card>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 text-center">
+        <p className="text-sm text-slate-600 dark:text-slate-400">{error || "No hay datos disponibles"}</p>
+      </div>
     );
   }
 
-  const chartData = [
-    { name: "Esta semana", posts: stats.postsThisWeek },
-    { name: "Este mes", posts: stats.postsThisMonth },
-    { name: "Total", posts: stats.totalPosts },
-  ];
-
-  const daysSinceJoin = Math.floor(
-    (new Date().getTime() - new Date(stats.joinedDate).getTime()) / (1000 * 60 * 60 * 24)
-  );
+  // Preparar datos para los gráficos
+  const chartData = stats.period.dailyStats.map((stat) => ({
+    date: new Date(stat.date).toLocaleDateString("es-ES", { month: "short", day: "numeric" }),
+    posts: stat.posts,
+    engagement: stat.engagement,
+  }));
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Zap className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Posts Generados</p>
-                <p className="text-2xl font-bold">{stats.totalPosts}</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-accent-muted dark:bg-surface-dark">
-                <TrendingUp className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Créditos Usados</p>
-                <p className="text-2xl font-bold">{stats.totalCreditsUsed}</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Calendar className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Esta Semana</p>
-                <p className="text-2xl font-bold">{stats.postsThisWeek}</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-accent-muted dark:bg-surface-dark">
-                <BarChart3 className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Días Activo</p>
-                <p className="text-2xl font-bold">{daysSinceJoin}</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+      {/* Time Period Filters */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex gap-2">
+          {([7, 30, 90, 180] as TimePeriod[]).map((days) => (
+            <button
+              key={days}
+              onClick={() => setPeriod(days)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                period === days
+                  ? "bg-foreground text-background"
+                  : "bg-white dark:bg-slate-800 text-foreground hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
+              }`}
+            >
+              {days} Días
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            Actividad de Publicaciones
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border-light dark:stroke-border-dark" />
-              <XAxis
-                dataKey="name"
-                className="text-xs"
-                stroke="currentColor"
-              />
-              <YAxis
-                className="text-xs"
-                stroke="currentColor"
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "0.5rem",
-                }}
-              />
-              <Bar
-                dataKey="posts"
-                fill="#F9D65C"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </motion.div>
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Posts */}
+        <MetricCard
+          icon={<FileText className="h-4 w-4" />}
+          label="Posts"
+          value={stats.period.currentPosts}
+          change={stats.period.postsChange}
+        />
 
-      {/* Last Activity */}
-      {stats.lastActivity && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Última actividad</p>
-                <p className="text-lg font-medium">
-                  {new Date(stats.lastActivity).toLocaleDateString("es-ES", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground mb-1">Plan actual</p>
-                <p className="text-lg font-semibold capitalize">{stats.plan}</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-      )}
+        {/* Engagements */}
+        <MetricCard
+          icon={<Zap className="h-4 w-4" />}
+          label="Puntuación de Engagement"
+          value={Math.round(stats.performance.avgViralScore || 0)}
+          change={stats.period.engagementChange}
+        />
+
+        {/* Impressions (Placeholder) */}
+        <MetricCard
+          icon={<Eye className="h-4 w-4" />}
+          label="Impresiones"
+          value={0}
+          change={0}
+          isPlaceholder
+        />
+
+        {/* Comments (Placeholder) */}
+        <MetricCard
+          icon={<MessageCircle className="h-4 w-4" />}
+          label="Comentarios"
+          value={0}
+          change={0}
+          isPlaceholder
+        />
+
+        {/* Followers (Placeholder) */}
+        <MetricCard
+          icon={<Users className="h-4 w-4" />}
+          label="Seguidores"
+          value={0}
+          change={0}
+          isPlaceholder
+        />
+
+        {/* Credits Used */}
+        <MetricCard
+          icon={<Zap className="h-4 w-4" />}
+          label="Créditos Usados"
+          value={stats.totals.creditsUsed}
+          change={0}
+        />
+
+        {/* Likes (Placeholder) */}
+        <MetricCard
+          icon={<Heart className="h-4 w-4" />}
+          label="Me gusta"
+          value={0}
+          change={0}
+          isPlaceholder
+        />
+
+        {/* Reposts (Placeholder) */}
+        <MetricCard
+          icon={<Repeat2 className="h-4 w-4" />}
+          label="Compartidos"
+          value={0}
+          change={0}
+          isPlaceholder
+        />
+      </div>
+
+      {/* Trends Section */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4">Tendencias</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Posts Trend */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 transition-colors">
+            <h4 className="text-sm font-medium mb-4 text-slate-600 dark:text-slate-400">Posts</h4>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
+                <XAxis
+                  dataKey="date"
+                  className="text-xs"
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                  stroke="currentColor"
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                  stroke="currentColor"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "0.5rem",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="posts"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Engagement Trend */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 transition-colors">
+            <h4 className="text-sm font-medium mb-4 text-slate-600 dark:text-slate-400">Puntuación de Engagement</h4>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
+                <XAxis
+                  dataKey="date"
+                  className="text-xs"
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                  stroke="currentColor"
+                />
+                <YAxis
+                  className="text-xs"
+                  tick={{ fill: "currentColor", fontSize: 12 }}
+                  stroke="currentColor"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--background))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "0.5rem",
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="engagement"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Metric Card Component
+function MetricCard({
+  icon,
+  label,
+  value,
+  change,
+  isPlaceholder = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  change: number;
+  isPlaceholder?: boolean;
+}) {
+  const formatPercentage = (value: number) => {
+    const formatted = Math.abs(value).toFixed(1);
+    return value >= 0 ? `+${formatted}%` : `-${formatted}%`;
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 transition-colors">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-2">
+          {icon}
+          <span className="text-xs font-medium">{label}</span>
+        </div>
+        {!isPlaceholder && change !== 0 && (
+          <span
+            className={`text-xs font-medium ${
+              change >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {formatPercentage(change)}
+          </span>
+        )}
+        {!isPlaceholder && change === 0 && (
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-500">0.0%</span>
+        )}
+      </div>
+      <div className="flex items-end justify-between">
+        <p className="text-2xl font-bold text-slate-900 dark:text-white">{value}</p>
+      </div>
     </div>
   );
 }

@@ -17,6 +17,8 @@ import {
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loader from "@/components/Loader";
+import Navbar from "@/components/Navbar";
+import { ProfileAvatarMenu } from "@/components/ProfileAvatarMenu";
 import {
   LineChart,
   Line,
@@ -195,8 +197,11 @@ export default function AdminStats({ session }: AdminStatsProps) {
   }
 
   return (
-    <div className="min-h-screen pb-12">
-      <div className="mx-auto max-w-7xl px-4 pt-8">
+    <>
+      <Navbar session={session} />
+      <ProfileAvatarMenu />
+      <div className="min-h-screen bg-slate-50 pb-16 pt-28 dark:bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4">
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: 20 }}
@@ -396,7 +401,8 @@ export default function AdminStats({ session }: AdminStatsProps) {
             </div>
           </Card>
         </motion.div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
