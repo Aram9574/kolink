@@ -28,6 +28,7 @@ type EditorAIProps = {
   recommendations?: string[];
   placeholder?: string;
   className?: string;
+  language?: 'es-ES' | 'en-US' | 'pt-BR';
 };
 
 type SpeechRecognition = {
@@ -65,6 +66,49 @@ declare global {
   }
 }
 
+// Language placeholders
+const LANGUAGE_PLACEHOLDERS = {
+  'es-ES': 'Escribe tu prompt o usa el micrófono...',
+  'en-US': 'Write your prompt or use the microphone...',
+  'pt-BR': 'Escreva seu prompt ou use o microfone...',
+};
+
+const LANGUAGE_LABELS = {
+  'es-ES': {
+    generating: 'Generando...',
+    generate: 'Generar',
+    regenerate: 'Regenerar',
+    copy: 'Copiar',
+    save: 'Guardar',
+    saved: 'Guardado',
+    listening: 'Grabando... Habla claramente',
+    stopRecording: 'Detener grabación',
+    startRecording: 'Iniciar reconocimiento de voz',
+  },
+  'en-US': {
+    generating: 'Generating...',
+    generate: 'Generate',
+    regenerate: 'Regenerate',
+    copy: 'Copy',
+    save: 'Save',
+    saved: 'Saved',
+    listening: 'Recording... Speak clearly',
+    stopRecording: 'Stop recording',
+    startRecording: 'Start voice recognition',
+  },
+  'pt-BR': {
+    generating: 'Gerando...',
+    generate: 'Gerar',
+    regenerate: 'Regenerar',
+    copy: 'Copiar',
+    save: 'Salvar',
+    saved: 'Salvo',
+    listening: 'Gravando... Fale claramente',
+    stopRecording: 'Parar gravação',
+    startRecording: 'Iniciar reconhecimento de voz',
+  },
+};
+
 export default function EditorAI({
   value,
   onChange,
@@ -74,13 +118,17 @@ export default function EditorAI({
   loading = false,
   viralScore,
   recommendations = [],
-  placeholder = "Escribe tu prompt o usa el micrófono...",
+  placeholder,
   className,
+  language = 'es-ES',
 }: EditorAIProps) {
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [saved, setSaved] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const labels = LANGUAGE_LABELS[language];
+  const defaultPlaceholder = placeholder || LANGUAGE_PLACEHOLDERS[language];
 
   useEffect(() => {
     // Check if speech recognition is supported
@@ -91,7 +139,7 @@ export default function EditorAI({
         const recognition = new SpeechRecognitionAPI();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = "es-ES";
+        recognition.lang = language;
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
           let finalTranscript = "";
@@ -127,7 +175,7 @@ export default function EditorAI({
         recognitionRef.current.stop();
       }
     };
-  }, [isListening, onChange, value]);
+  }, [isListening, onChange, value, language]);
 
   const toggleVoiceInput = () => {
     if (!recognitionRef.current) return;
@@ -135,20 +183,22 @@ export default function EditorAI({
     if (isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
-      toast.success("Reconocimiento de voz detenido");
+      toast.success(language === 'es-ES' ? "Reconocimiento de voz detenido" : language === 'en-US' ? "Voice recognition stopped" : "Reconhecimento de voz parado");
     } else {
       recognitionRef.current.start();
       setIsListening(true);
-      toast.success("Escuchando... Habla ahora");
+      toast.success(language === 'es-ES' ? "Escuchando... Habla ahora" : language === 'en-US' ? "Listening... Speak now" : "Ouvindo... Fale agora");
     }
   };
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
-      toast.success("Copiado al portapapeles");
+      const successMsg = language === 'es-ES' ? "Copiado al portapapeles" : language === 'en-US' ? "Copied to clipboard" : "Copiado para área de transferência";
+      toast.success(successMsg);
     } catch {
-      toast.error("Error al copiar");
+      const errorMsg = language === 'es-ES' ? "Error al copiar" : language === 'en-US' ? "Error copying" : "Erro ao copiar";
+      toast.error(errorMsg);
     }
   };
 
@@ -157,10 +207,12 @@ export default function EditorAI({
     try {
       await onSave(value);
       setSaved(true);
-      toast.success("Guardado exitosamente");
+      const successMsg = language === 'es-ES' ? "Guardado exitosamente" : language === 'en-US' ? "Saved successfully" : "Salvo com sucesso";
+      toast.success(successMsg);
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      toast.error("Error al guardar");
+      const errorMsg = language === 'es-ES' ? "Error al guardar" : language === 'en-US' ? "Error saving" : "Erro ao salvar";
+      toast.error(errorMsg);
     }
   };
 
@@ -186,7 +238,7 @@ export default function EditorAI({
           name="prompt"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={defaultPlaceholder}
           className="min-h-[150px] pr-12 resize-none"
           disabled={loading || isListening}
         />
@@ -203,7 +255,7 @@ export default function EditorAI({
                 ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
             )}
-            title={isListening ? "Detener grabación" : "Iniciar reconocimiento de voz"}
+            title={isListening ? labels.stopRecording : labels.startRecording}
           >
             {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
           </button>
@@ -214,7 +266,7 @@ export default function EditorAI({
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={onGenerate} disabled={loading || !value.trim()} className="flex-shrink-0">
           <Sparkles className="w-4 h-4 mr-2" />
-          {loading ? "Generando..." : "Generar"}
+          {loading ? labels.generating : labels.generate}
         </Button>
 
         {onRegenerate && value && (
@@ -225,7 +277,7 @@ export default function EditorAI({
             className="flex-shrink-0"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            Regenerar
+            {labels.regenerate}
           </Button>
         )}
 
@@ -233,7 +285,7 @@ export default function EditorAI({
           <>
             <Button onClick={handleCopy} variant="secondary" className="flex-shrink-0 px-4 py-2 text-xs">
               <Copy className="w-4 h-4 mr-1" />
-              Copiar
+              {labels.copy}
             </Button>
 
             {onSave && (
@@ -246,12 +298,12 @@ export default function EditorAI({
                 {saved ? (
                   <>
                     <CheckCircle2 className="w-4 h-4 mr-1" />
-                    Guardado
+                    {labels.saved}
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-1" />
-                    Guardar
+                    {labels.save}
                   </>
                 )}
               </Button>
@@ -417,7 +469,7 @@ export default function EditorAI({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
           </span>
-          Grabando... Habla claramente
+          {labels.listening}
         </div>
       )}
     </div>

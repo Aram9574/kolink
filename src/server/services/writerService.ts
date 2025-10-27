@@ -9,6 +9,9 @@ type GenerateInput = {
   userId: string;
   prompt: string;
   style?: string;
+  language?: 'es-ES' | 'en-US' | 'pt-BR';
+  toneProfile?: string;
+  preset?: string;
   metadata?: {
     objective?: string;
     audience?: string;
@@ -55,13 +58,26 @@ export async function generatePostWithContext(input: GenerateInput): Promise<Gen
     extraInstructions: payload.metadata?.extraInstructions,
   };
 
+  // Language mapping para el system prompt
+  const languageMap: Record<string, string> = {
+    'es-ES': 'español',
+    'en-US': 'English',
+    'pt-BR': 'português'
+  };
+  const targetLanguage = languageMap[payload.language || 'es-ES'] || 'español';
+
+  // System prompt con idioma especificado
+  const systemContent = `Eres Kolink AI Writer, especializado en contenido para LinkedIn y growth para creadores.
+IMPORTANTE: Debes generar TODO el contenido en ${targetLanguage}. Respeta completamente el idioma ${targetLanguage} en tu respuesta.
+${payload.toneProfile ? `\nTono del usuario: ${payload.toneProfile}` : ''}`;
+
   const systemPrompt = buildGenerationPrompt(payload.prompt, payload.style ?? null, profileContext, promptMetadata);
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
-        content: "Eres Kolink AI Writer, especializado en contenido para LinkedIn y growth para creadores.",
+        content: systemContent,
       },
       { role: "user", content: systemPrompt },
     ],

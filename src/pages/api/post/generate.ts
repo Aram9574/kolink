@@ -7,6 +7,9 @@ import { limiter } from "@/lib/rateLimiter"; // 🚦 Rate limiter agregado
 type GenerateRequestBody = {
   prompt?: string;
   style?: string;
+  language?: 'es-ES' | 'en-US' | 'pt-BR';
+  toneProfile?: string;
+  preset?: string;
   metadata?: {
     objective?: string;
     audience?: string;
@@ -68,6 +71,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       userId: user.id,
       prompt: body.prompt,
       style: body.style,
+      language: body.language || 'es-ES',
+      toneProfile: body.toneProfile,
+      preset: body.preset,
       metadata: body.metadata,
     });
 

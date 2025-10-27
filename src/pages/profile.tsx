@@ -33,6 +33,7 @@ type Profile = {
   created_at: string;
   full_name: string | null;
   features: Record<string, unknown> | null;
+  preferred_language?: string;
 };
 
 type SettingsSection =
@@ -68,6 +69,8 @@ export default function Profile({ session }: ProfileProps) {
   const [linkedInRole, setLinkedInRole] = useState("individual_creator");
   const [topics, setTopics] = useState<string[]>([]);
   const [newTopic, setNewTopic] = useState("");
+  const [preferredLanguage, setPreferredLanguage] = useState("es-ES");
+  const [savingLanguage, setSavingLanguage] = useState(false);
 
   useEffect(() => {
     if (session === undefined) return;
@@ -98,6 +101,7 @@ export default function Profile({ session }: ProfileProps) {
 
       setProfile(data as Profile);
       setWorkspaceName(data.full_name || "DEFAULT");
+      setPreferredLanguage(data.preferred_language || "es-ES");
     } finally {
       setLoading(false);
     }
@@ -111,6 +115,31 @@ export default function Profile({ session }: ProfileProps) {
     if (newTopic.trim()) {
       setTopics([...topics, newTopic.trim()]);
       setNewTopic("");
+    }
+  };
+
+  const handleSaveLanguage = async () => {
+    if (!session?.user) return;
+
+    setSavingLanguage(true);
+    try {
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update({ preferred_language: preferredLanguage })
+        .eq("id", session.user.id);
+
+      if (error) {
+        console.error("Error saving language:", error);
+        toast.error("Error al guardar el idioma");
+      } else {
+        toast.success("Idioma actualizado correctamente");
+        // Update profile state
+        if (profile) {
+          setProfile({ ...profile, preferred_language: preferredLanguage });
+        }
+      }
+    } finally {
+      setSavingLanguage(false);
     }
   };
 
@@ -299,6 +328,61 @@ export default function Profile({ session }: ProfileProps) {
               {/* AI & Language Section */}
               {activeSection === "ai-language" && (
                 <div className="space-y-8">
+                  {/* Language Selector */}
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                      Idioma Preferido
+                    </h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                      Selecciona el idioma para entrada de voz y generación de contenido
+                    </p>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Idioma de EditorAI
+                        </label>
+                        <select
+                          value={preferredLanguage}
+                          onChange={(e) => setPreferredLanguage(e.target.value)}
+                          className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="es-ES">🇪🇸 Español (es-ES)</option>
+                          <option value="en-US">🇺🇸 English (en-US)</option>
+                          <option value="pt-BR">🇧🇷 Português (pt-BR)</option>
+                        </select>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                          Este idioma se usará para reconocimiento de voz y generación de contenido con IA
+                        </p>
+                      </div>
+
+                      {/* Preview */}
+                      <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
+                          Vista Previa
+                        </p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">
+                          {preferredLanguage === "es-ES" && "Escribe tu prompt o usa el micrófono..."}
+                          {preferredLanguage === "en-US" && "Write your prompt or use the microphone..."}
+                          {preferredLanguage === "pt-BR" && "Escreva seu prompt ou use o microfone..."}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button onClick={handleSaveLanguage} disabled={savingLanguage}>
+                          {savingLanguage ? "Guardando..." : "Guardar Idioma"}
+                        </Button>
+                        <Button variant="outline" onClick={() => setPreferredLanguage(profile?.preferred_language || "es-ES")}>
+                          Descartar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-slate-200 dark:border-slate-800"></div>
+
+                  {/* AI Personal */}
                   <div>
                     <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
                       Tu IA Personal
@@ -366,7 +450,7 @@ export default function Profile({ session }: ProfileProps) {
                           type="text"
                           value={newTopic}
                           onChange={(e) => setNewTopic(e.target.value)}
-                          onKeyPress={(e) => e.key === "Enter" && handleAddTopic()}
+                          onKeyDown={(e) => e.key === "Enter" && handleAddTopic()}
                           placeholder="Añadir temas..."
                           className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />

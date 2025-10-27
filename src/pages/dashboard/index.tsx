@@ -86,6 +86,7 @@ export default function Dashboard({ session }: DashboardProps) {
   const [activePreset, setActivePreset] = useState<(typeof PRESET_OPTIONS)[number]["id"]>("insight");
   const [viralScore, setViralScore] = useState<number | undefined>(undefined);
   const [toneProfile, setToneProfile] = useState<string>("");
+  const [preferredLanguage, setPreferredLanguage] = useState<'es-ES' | 'en-US' | 'pt-BR'>('es-ES');
   const { isReady, query } = router;
   const { notifySuccess, notifyError, notifyInfo, checkCreditReminder, setupRealtimeNotifications, cleanupRealtimeNotifications } = useNotifications();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -107,7 +108,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
     const { data, error } = await supabaseClient
       .from("profiles")
-      .select("credits, plan, features, full_name, tone_profile")
+      .select("credits, plan, features, full_name, tone_profile, preferred_language")
       .eq("id", userId)
       .single();
 
@@ -124,6 +125,9 @@ export default function Dashboard({ session }: DashboardProps) {
     }
     if (typeof data?.tone_profile === "string") {
       setToneProfile(data.tone_profile);
+    }
+    if (typeof data?.preferred_language === "string") {
+      setPreferredLanguage(data.preferred_language as 'es-ES' | 'en-US' | 'pt-BR');
     }
 
     const features = (data?.features as Record<string, unknown>) ?? {};
@@ -280,6 +284,7 @@ export default function Dashboard({ session }: DashboardProps) {
           prompt,
           preset: activePreset,
           toneProfile: toneProfile || undefined,
+          language: preferredLanguage,
         }),
       });
 
@@ -486,7 +491,7 @@ export default function Dashboard({ session }: DashboardProps) {
                 loading={loading}
                 viralScore={viralScore}
                 recommendations={recommendations}
-                placeholder="Describe la idea, objetivo o formato que necesitas... También puedes usar el micrófono 🎤"
+                language={preferredLanguage}
               />
 
               <div className="flex flex-wrap gap-3">
