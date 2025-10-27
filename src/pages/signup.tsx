@@ -14,22 +14,6 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  const handleSignUpLinkedIn = async () => {
-    setInfoMessage(null);
-
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-      provider: "linkedin_oidc",
-      options: {
-        redirectTo:
-          typeof window !== "undefined" ? `${window.location.origin}/account-setup` : undefined,
-      },
-    });
-
-    if (error) {
-      toast.error("No se pudo completar el inicio de sesión con LinkedIn. Inténtalo de nuevo.");
-    }
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (password !== confirmPassword) {
@@ -97,22 +81,6 @@ export default function SignUpPage() {
           </div>
 
           <div className="space-y-6">
-            <Button
-              onClick={handleSignUpLinkedIn}
-              className="w-full justify-center gap-2 rounded-full bg-[#0A66C2] py-3 text-base font-semibold"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 fill-white">
-                <path d="M20.452 20.452h-3.554v-5.569c0-1.328-.025-3.039-1.852-3.039-1.853 0-2.136 1.445-2.136 2.939v5.669H9.356V9h3.414v1.561h.047c.476-.9 1.637-1.852 3.37-1.852 3.599 0 4.266 2.37 4.266 5.455v6.288ZM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124ZM7.114 20.452H3.56V9h3.555v11.452Z" />
-              </svg>
-              Registrarme con LinkedIn
-            </Button>
-
-            <div className="flex items-center gap-3 text-xs text-slate-400">
-              <span className="h-px flex-1 bg-slate-200" />
-              o con tu correo
-              <span className="h-px flex-1 bg-slate-200" />
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-5 text-left">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">

@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Fecha: 2025-01-01
 -- Descripción: Crea automáticamente un perfil cuando un usuario se registra
---              mediante cualquier método (email, LinkedIn OAuth, etc.)
+--              mediante cualquier método (email, magic link, etc.)
 -- ============================================================================
 
 -- Función para crear perfil automáticamente
@@ -56,20 +56,6 @@ BEGIN
   )
   ON CONFLICT (id) DO NOTHING;
 
-  -- Si el usuario viene de LinkedIn OAuth, actualizar datos adicionales
-  IF NEW.raw_user_meta_data ? 'provider' AND
-     NEW.raw_user_meta_data->>'provider' = 'linkedin_oidc' THEN
-
-    UPDATE public.profiles
-    SET
-      linkedin_id = NEW.raw_user_meta_data->>'sub',
-      headline = NEW.raw_user_meta_data->>'headline',
-      bio = NEW.raw_user_meta_data->>'summary',
-      linkedin_profile_url = NEW.raw_user_meta_data->>'profile_url',
-      updated_at = NOW()
-    WHERE id = NEW.id;
-  END IF;
-
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -83,12 +69,12 @@ CREATE TRIGGER on_auth_user_created
 
 -- Comentarios
 COMMENT ON FUNCTION handle_new_user() IS
-  'Crea automáticamente un perfil en la tabla profiles cuando un usuario se registra vía email o OAuth';
+  'Crea automáticamente un perfil en la tabla profiles cuando un usuario se registra vía Supabase Auth';
 
 -- Verificación
 DO $$
 BEGIN
   RAISE NOTICE '✅ Trigger de creación automática de perfiles configurado correctamente';
-  RAISE NOTICE '   - Los nuevos usuarios (email + OAuth) tendrán perfil automático';
+  RAISE NOTICE '   - Los nuevos usuarios tendrán perfil automático';
   RAISE NOTICE '   - Plan inicial: free con 10 créditos';
 END $$;

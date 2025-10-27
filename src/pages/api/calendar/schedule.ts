@@ -141,6 +141,13 @@ async function computeRecommendationWithAnalytics(
   return computeDefaultRecommendation(preferredDate, timezone);
 }
 
+type EngagementSlot = {
+  hour: number;
+  dayOfWeek: number;
+  score: number;
+  confidence: "low" | "medium" | "high";
+};
+
 function analyzeBestTimeSlot(posts: Array<{ created_at: string; viral_score: number | null }>) {
   const patternMap = new Map<string, { totalScore: number; count: number }>();
 
@@ -159,7 +166,7 @@ function analyzeBestTimeSlot(posts: Array<{ created_at: string; viral_score: num
     });
   });
 
-  let bestSlot = { hour: 10, dayOfWeek: 2, score: 70, confidence: "low" as const };
+  let bestSlot: EngagementSlot = { hour: 10, dayOfWeek: 2, score: 70, confidence: "low" };
   let maxAvgScore = 0;
 
   patternMap.forEach((value, key) => {

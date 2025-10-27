@@ -264,14 +264,6 @@ max_frequency = "5s"
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `slack`, `spotify`, `workos`, `zoom`.
 
-# LinkedIn OAuth configuration for Kolink
-[auth.external.linkedin_oidc]
-enabled = true
-client_id = "env(LINKEDIN_CLIENT_ID)"
-secret = "env(LINKEDIN_CLIENT_SECRET)"
-redirect_uri = "http://localhost:54321/auth/v1/callback"
-skip_nonce_check = false
-
 [auth.external.apple]
 enabled = false
 client_id = ""

@@ -7,7 +7,6 @@ import type { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { Coins, Sparkles, LogOut, Cog, LifeBuoy, Users } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
-import { cn } from "@/lib/utils";
 
 type NavbarProps = {
   session: Session | null | undefined;
@@ -64,8 +63,6 @@ export default function Navbar({ session }: NavbarProps) {
   const handleCommunity = () => {
     window.open("https://community.kolink.es", "_blank", "noopener,noreferrer");
   };
-
-  const isActive = (path: string) => router.pathname === path;
 
   if (!session) {
     return (

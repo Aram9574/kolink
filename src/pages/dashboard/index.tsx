@@ -21,6 +21,7 @@ import Loader from "@/components/Loader";
 import PlansModal from "@/components/PlansModal";
 import ThankYouModal from "@/components/ThankYouModal";
 import ExportModal from "@/components/export/ExportModal";
+import EditorAI from "@/components/EditorAI";
 import { useNotifications } from "@/contexts/NotificationContext";
 import Navbar from "@/components/Navbar";
 
@@ -83,6 +84,8 @@ export default function Dashboard({ session }: DashboardProps) {
   const [redirecting, setRedirecting] = useState(false);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(TOPIC_OPTIONS.slice(0, 3));
   const [activePreset, setActivePreset] = useState<(typeof PRESET_OPTIONS)[number]["id"]>("insight");
+  const [viralScore, setViralScore] = useState<number | undefined>(undefined);
+  const [toneProfile, setToneProfile] = useState<string>("");
   const { isReady, query } = router;
   const { notifySuccess, notifyError, notifyInfo, checkCreditReminder, setupRealtimeNotifications, cleanupRealtimeNotifications } = useNotifications();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -104,7 +107,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
     const { data, error } = await supabaseClient
       .from("profiles")
-      .select("credits, plan, features, full_name")
+      .select("credits, plan, features, full_name, tone_profile")
       .eq("id", userId)
       .single();
 
@@ -118,6 +121,9 @@ export default function Dashboard({ session }: DashboardProps) {
     setPlan(data?.plan ?? "free");
     if (typeof data?.full_name === "string") {
       setFullName(data.full_name);
+    }
+    if (typeof data?.tone_profile === "string") {
+      setToneProfile(data.tone_profile);
     }
 
     const features = (data?.features as Record<string, unknown>) ?? {};
@@ -273,6 +279,7 @@ export default function Dashboard({ session }: DashboardProps) {
         body: JSON.stringify({
           prompt,
           preset: activePreset,
+          toneProfile: toneProfile || undefined,
         }),
       });
 
@@ -287,6 +294,11 @@ export default function Dashboard({ session }: DashboardProps) {
         }
         await loadCredits();
         return;
+      }
+
+      // Set viral score from API response
+      if (data.viralScore?.score !== undefined) {
+        setViralScore(data.viralScore.score);
       }
 
       if (data.recommendations && Array.isArray(data.recommendations)) {
@@ -460,13 +472,22 @@ export default function Dashboard({ session }: DashboardProps) {
             <Card className="grid gap-6 border-blue-100 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-300">Cuéntale a Kolink AI</p>
-                <textarea
-                  value={prompt}
-                  onChange={(event) => setPrompt(event.target.value)}
-                  placeholder="Describe la idea, objetivo o formato que necesitas..."
-                  className="min-h-[120px] w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                />
+                <p className="text-xs text-slate-400">
+                  {toneProfile
+                    ? `Generaremos contenido con tu tono: ${toneProfile}`
+                    : "Describe la idea, objetivo o formato que necesitas..."}
+                </p>
               </div>
+
+              <EditorAI
+                value={prompt}
+                onChange={setPrompt}
+                onGenerate={handleGenerate}
+                loading={loading}
+                viralScore={viralScore}
+                recommendations={recommendations}
+                placeholder="Describe la idea, objetivo o formato que necesitas... También puedes usar el micrófono 🎤"
+              />
 
               <div className="flex flex-wrap gap-3">
                 {PRESET_OPTIONS.map((preset) => (
@@ -477,7 +498,7 @@ export default function Dashboard({ session }: DashboardProps) {
                     className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
                       activePreset === preset.id
                         ? "border-primary bg-primary text-white shadow-md"
-                        : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary"
+                        : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary dark:border-slate-600 dark:text-slate-300"
                     }`}
                   >
                     {preset.label}
@@ -492,9 +513,8 @@ export default function Dashboard({ session }: DashboardProps) {
                     : "Consejo: sé específico con tu audiencia y CTA"}
                 </div>
                 <div className="flex gap-3">
-                  <Button variant="ghost" onClick={() => setPrompt("")}>Limpiar</Button>
-                  <Button onClick={handleGenerate} disabled={loading} className="px-6">
-                    {loading ? "Generando..." : "Generar post"}
+                  <Button variant="ghost" onClick={() => { setPrompt(""); setViralScore(undefined); setRecommendations([]); }}>
+                    Limpiar
                   </Button>
                 </div>
               </div>
@@ -545,16 +565,26 @@ export default function Dashboard({ session }: DashboardProps) {
               </div>
               {latestPost ? (
                 <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-200">
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                    {new Date(latestPost.created_at).toLocaleString("es-ES", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                      {new Date(latestPost.created_at).toLocaleString("es-ES", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </p>
+                    {latestPost.viral_score && (
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700">
+                        <TrendingUp className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          {latestPost.viral_score.toFixed(0)}/100
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <p className="whitespace-pre-line leading-relaxed line-clamp-6">{latestPost.generated_text}</p>
                   {recommendations.length > 0 && (
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 text-xs text-slate-600">
-                      <p className="mb-2 font-semibold text-slate-800">Sugerencias</p>
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 text-xs text-slate-600 dark:border-blue-700 dark:bg-blue-900/20 dark:text-slate-300">
+                      <p className="mb-2 font-semibold text-slate-800 dark:text-slate-200">Sugerencias</p>
                       <ul className="list-disc space-y-1 pl-5">
                         {recommendations.map((item, index) => (
                           <li key={index}>{item}</li>
@@ -564,7 +594,7 @@ export default function Dashboard({ session }: DashboardProps) {
                   )}
                 </div>
               ) : (
-                <p className="mt-6 text-sm text-slate-500">Aún no has generado publicaciones. Empieza con alguna idea en la parte superior.</p>
+                <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">Aún no has generado publicaciones. Empieza con alguna idea en la parte superior.</p>
               )}
             </Card>
 
@@ -618,13 +648,23 @@ export default function Dashboard({ session }: DashboardProps) {
                 {posts.map((post) => (
                   <Card key={post.id} className="border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="space-y-2">
-                        <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                          {new Date(post.created_at).toLocaleString("es-ES", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
-                        </p>
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                            {new Date(post.created_at).toLocaleString("es-ES", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </p>
+                          {post.viral_score && (
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700">
+                              <TrendingUp className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                {post.viral_score.toFixed(0)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                         <p className="text-sm text-slate-600 dark:text-slate-200 line-clamp-3 whitespace-pre-line">
                           {post.generated_text}
                         </p>

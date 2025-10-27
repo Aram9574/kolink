@@ -1,7 +1,7 @@
 // [Phase 5] Analytics and statistics card component
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Eye, MessageCircle, Heart, Repeat2, Users, FileText, Zap } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import Loader from "@/components/Loader";
@@ -37,11 +37,7 @@ export default function StatsCard() {
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<TimePeriod>(30);
 
-  useEffect(() => {
-    loadStats();
-  }, [period]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       setLoading(true);
       const { data: sessionData } = await supabaseClient.auth.getSession();
@@ -71,13 +67,11 @@ export default function StatsCard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period]);
 
-  // Función para formatear porcentajes
-  const formatPercentage = (value: number) => {
-    const formatted = Math.abs(value).toFixed(1);
-    return value >= 0 ? `+${formatted}%` : `-${formatted}%`;
-  };
+  useEffect(() => {
+    void loadStats();
+  }, [loadStats]);
 
   if (loading) {
     return (
