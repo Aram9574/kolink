@@ -47,10 +47,7 @@ supabaseClient.auth.onAuthStateChange((_event, newSession) => {
 
 Enter the following credentials:
 
-**Client ID:**
-```
-78alxhd6hs6cu0
-```
+**Client ID:** *(configura tu Client ID en Supabase; no lo expongas en el repositorio)*
 
 **Client Secret:** *(obtenlo desde LinkedIn Developer Portal; no lo guardes en el repositorio)*
 
@@ -62,7 +59,7 @@ https://crdtxyfvbosjiddirtzc.supabase.co/auth/v1/callback
 ### Step 3: Update LinkedIn Developer Portal
 
 1. Go to [LinkedIn Developers](https://www.linkedin.com/developers/apps)
-2. Select your app (Client ID: 78alxhd6hs6cu0)
+2. Select your app (usa el Client ID configurado anteriormente)
 3. Navigate to **Auth** section
 4. Update **Authorized redirect URLs** to include:
    ```

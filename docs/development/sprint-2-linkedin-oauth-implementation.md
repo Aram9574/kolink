@@ -185,8 +185,8 @@ Estos pasos requieren acceso a dashboards externos:
 - [ ] Ir a Authentication > Providers
 - [ ] Habilitar "LinkedIn (OIDC)"
 - [ ] Configurar:
-  - Client ID: `78alxhd6hs6cu0`
-  - Client Secret: **(consultar en LinkedIn Developer Portal, no almacenar en texto plano)**
+  - Client ID: **(configura tu Client ID de LinkedIn; no lo incluyas en el repositorio)**
+  - Client Secret: **(obtenlo desde LinkedIn Developer Portal; no lo almacenes en texto plano)**
   - Redirect URL: (automático) `https://crdtxyfvbosjiddirtzc.supabase.co/auth/v1/callback`
 - [ ] Habilitar "Link accounts automatically"
 - [ ] Guardar cambios
@@ -194,7 +194,7 @@ Estos pasos requieren acceso a dashboards externos:
 ### LinkedIn Developer Portal
 
 - [ ] Ir a https://www.linkedin.com/developers/apps
-- [ ] Seleccionar app (Client ID: 78alxhd6hs6cu0)
+- [ ] Seleccionar app (usa el Client ID configurado anteriormente)
 - [ ] Navegar a Auth > Authorized redirect URLs
 - [ ] Añadir: `https://crdtxyfvbosjiddirtzc.supabase.co/auth/v1/callback`
 - [ ] Verificar que estén habilitados los permisos:
