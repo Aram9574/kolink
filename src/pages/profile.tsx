@@ -309,7 +309,7 @@ export default function Profile({ session }: ProfileProps) {
 
                     <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-4 mb-6">
                       <p className="text-sm text-blue-800 dark:text-blue-200">
-                        ℹ️ Cada viernes creamos un nuevo post para cada tema que agregues. Puedes encontrar estos posts en "Auto-Pilot Posts".
+                      ℹ️ Cada viernes creamos un nuevo post para cada tema que agregues. Puedes encontrar estos posts en &quot;Auto-Pilot Posts&quot;.
                       </p>
                     </div>
 
@@ -360,7 +360,7 @@ export default function Profile({ session }: ProfileProps) {
                           ¿Sobre qué temas publicas?
                         </label>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                          Presiona 'Enter' después de añadir cada tema
+                          Presiona &apos;Enter&apos; después de añadir cada tema
                         </p>
                         <input
                           type="text"
