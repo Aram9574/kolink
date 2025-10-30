@@ -1,0 +1,51 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e6]
+          - generic [ref=e9]: KOLINK
+        - button "Escribir Post" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+          - text: Escribir Post
+        - navigation [ref=e14]:
+          - generic [ref=e15]:
+            - link "Panel" [ref=e16] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e17]
+              - text: Panel
+            - link "Ajustes" [ref=e22] [cursor=pointer]:
+              - /url: /profile
+              - img [ref=e23]
+              - text: Ajustes
+            - link "Estadísticas" [ref=e26] [cursor=pointer]:
+              - /url: /stats
+              - img [ref=e27]
+              - text: Estadísticas
+          - generic [ref=e29]:
+            - heading "Creación de Contenido" [level=3] [ref=e30]
+            - link "Generador de Posts" [ref=e32] [cursor=pointer]:
+              - /url: /write
+              - img [ref=e33]
+              - text: Generador de Posts
+          - generic [ref=e36]:
+            - heading "Borradores y Programación" [level=3] [ref=e37]
+            - link "Calendario" [ref=e39] [cursor=pointer]:
+              - /url: /calendar
+              - img [ref=e40]
+              - text: Calendario
+          - generic [ref=e42]:
+            - heading "Inspiración de Contenido" [level=3] [ref=e43]
+            - link "Inspiración" [ref=e45] [cursor=pointer]:
+              - /url: /inspiration
+              - img [ref=e46]
+              - text: Inspiración
+        - paragraph [ref=e49]: v0.4
+    - status "Loading" [ref=e51]
+  - button "Open Next.js Dev Tools" [ref=e57] [cursor=pointer]:
+    - img [ref=e58]
+  - alert [ref=e61]: /write
+```

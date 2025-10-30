@@ -67,8 +67,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (body.query && body.query.trim().length > 0) {
         try {
           // Generate embedding for the search query
+          // Using text-embedding-3-small for consistency with stored embeddings
           const embeddingResponse = await openai.embeddings.create({
-            model: "text-embedding-3-large",
+            model: "text-embedding-3-small",
             input: body.query,
           });
 

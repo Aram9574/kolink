@@ -68,6 +68,15 @@ export default function AdminPage() {
     role: "",
   });
 
+  // Bulk embeddings state
+  const [embeddingLimit, setEmbeddingLimit] = useState(50);
+  const [embeddingInProgress, setEmbeddingInProgress] = useState(false);
+  const [embeddingResult, setEmbeddingResult] = useState<{
+    processed: number;
+    errors: number;
+    total: number;
+  } | null>(null);
+
   useEffect(() => {
     const initSession = async () => {
       const { data: { session: currentSession } } = await supabaseClient.auth.getSession();
@@ -273,6 +282,49 @@ export default function AdminPage() {
     }
   };
 
+  const handleRunBulkEmbeddings = async () => {
+    setEmbeddingInProgress(true);
+    setEmbeddingResult(null);
+
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        toast.error("No session found");
+        return;
+      }
+
+      const response = await fetch("/api/admin/bulk-embeddings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          limit: embeddingLimit,
+          skipExisting: true,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.ok) {
+        setEmbeddingResult({
+          processed: data.processed,
+          errors: data.errors,
+          total: data.total,
+        });
+        toast.success(`Successfully processed ${data.processed} embeddings`);
+      } else {
+        toast.error(data.error || "Failed to generate embeddings");
+      }
+    } catch (error) {
+      console.error("Bulk embeddings error:", error);
+      toast.error("Error generating embeddings");
+    } finally {
+      setEmbeddingInProgress(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -404,6 +456,60 @@ export default function AdminPage() {
               <History className="w-8 h-8 text-green-500 opacity-50" />
             </div>
           </div>
+        </div>
+
+        {/* Bulk Embeddings Tool */}
+        <div className="mb-8 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-6">
+          <h2 className="text-xl font-bold text-text-light dark:text-text-dark mb-4">
+            Bulk Embedding Generator
+          </h2>
+          <p className="text-sm text-muted-light dark:text-muted-dark mb-4">
+            Generate embeddings for inspiration posts to improve semantic search performance
+          </p>
+
+          <div className="flex items-end gap-4 mb-4">
+            <div className="flex-1 max-w-xs">
+              <label className="block text-sm font-medium text-text-light dark:text-text-dark mb-2">
+                Number of posts to process
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="200"
+                value={embeddingLimit}
+                onChange={(e) => setEmbeddingLimit(parseInt(e.target.value) || 50)}
+                className="w-full px-4 py-2 border border-border-light dark:border-border-dark rounded-lg bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark"
+                disabled={embeddingInProgress}
+              />
+            </div>
+
+            <button
+              onClick={handleRunBulkEmbeddings}
+              disabled={embeddingInProgress}
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+            >
+              {embeddingInProgress ? "Processing..." : "Generate Embeddings"}
+            </button>
+          </div>
+
+          {embeddingResult && (
+            <div className="p-4 bg-background-light dark:bg-background-dark rounded-lg">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-green-600">{embeddingResult.processed}</p>
+                  <p className="text-sm text-muted-light dark:text-muted-dark">Processed</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-red-600">{embeddingResult.errors}</p>
+                  <p className="text-sm text-muted-light dark:text-muted-dark">Errors</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-blue-600">{embeddingResult.total}</p>
+                  <p className="text-sm text-muted-light dark:text-muted-dark">Total</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Audit Logs Section */}

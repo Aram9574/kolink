@@ -1,0 +1,92 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e6]
+          - generic [ref=e9]: KOLINK
+        - button "Escribir Post" [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+          - text: Escribir Post
+        - navigation [ref=e14]:
+          - generic [ref=e15]:
+            - link "Panel" [ref=e16]:
+              - /url: /dashboard
+              - img [ref=e17]
+              - text: Panel
+            - link "Ajustes" [ref=e22]:
+              - /url: /profile
+              - img [ref=e23]
+              - text: Ajustes
+            - link "Estadísticas" [ref=e26]:
+              - /url: /stats
+              - img [ref=e27]
+              - text: Estadísticas
+          - generic [ref=e29]:
+            - heading "Creación de Contenido" [level=3] [ref=e30]
+            - link "Generador de Posts" [ref=e32]:
+              - /url: /write
+              - img [ref=e33]
+              - text: Generador de Posts
+          - generic [ref=e36]:
+            - heading "Borradores y Programación" [level=3] [ref=e37]
+            - link "Calendario" [ref=e39]:
+              - /url: /calendar
+              - img [ref=e40]
+              - text: Calendario
+          - generic [ref=e42]:
+            - heading "Inspiración de Contenido" [level=3] [ref=e43]
+            - link "Inspiración" [ref=e45]:
+              - /url: /inspiration
+              - img [ref=e46]
+              - text: Inspiración
+        - paragraph [ref=e49]: v0.4
+    - navigation [ref=e50]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - img [ref=e54]
+          - generic [ref=e59]: "9"
+        - generic [ref=e61]: free
+        - button "Toggle theme" [ref=e62] [cursor=pointer]:
+          - img [ref=e63]
+        - button "ET" [ref=e66] [cursor=pointer]
+    - main [ref=e67]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - heading "Escribe" [level=1] [ref=e71]
+            - paragraph [ref=e72]: Gestiona tus borradores y conviértelos en publicaciones listas para brillar.
+          - button "Nuevo borrador" [ref=e73] [cursor=pointer]:
+            - img [ref=e74]
+            - text: Nuevo borrador
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - button "Todos" [ref=e80] [cursor=pointer]
+              - button "Borradores" [ref=e81] [cursor=pointer]
+              - button "Aprobados" [ref=e82] [cursor=pointer]
+              - button "Programados" [ref=e83] [cursor=pointer]
+              - button "Archivados" [ref=e84] [cursor=pointer]
+            - generic [ref=e86]:
+              - img [ref=e87]
+              - textbox "Buscar borradores por título o contenido" [ref=e90]
+          - article [ref=e92]:
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - generic [ref=e95]: 📝
+                - heading "Escribe sobre tecnología" [level=2] [ref=e96]
+                - generic [ref=e97]: Archivado
+              - paragraph [ref=e98]: "¿Alguna vez te has preguntado cómo la tecnología puede transformar no solo industrias, sino también vidas? Recuerdo hace unos años, cuando un amigo mío, un apasionado de la programación, decidió crear una aplicación para ayudar a personas con discapacidades motrices a comunicarse. Su motivación no solo era técnica; era personal. Su hermano, que había sufrido un accidente, necesitaba una forma más efectiva de interactuar con el mundo. Después de meses de trabajo arduo, lanzó la app y en cuestión de semanas, recibió mensajes de personas que decían que, gracias a su creación, podían expresar sus pensamientos y emociones por primera vez en años. Este momento me enseñó que la tecnología, más allá de ser una herramienta, es un puente que conecta a las personas y mejora sus vidas. Hoy, vivimos en un mundo donde cada pequeño avance puede significar una gran diferencia. Si estás en el campo tecnológico, no subestimes el poder de tu trabajo. Cada línea de código, cada diseño, cada innovación puede ser la clave para cambiar vidas. Así que te pregunto: ¿cómo puedes utilizar tu habilidad para crear un impacto positivo en el mundo? Comparte tus ideas en los comentarios. ¡Hagamos de la tecnología un motor de cambio!"
+              - paragraph [ref=e99]: "Última edición: 29 oct 2025, 11:15"
+            - generic [ref=e100]:
+              - generic [ref=e101]:
+                - img [ref=e102]
+                - text: 29/10/2025
+              - button "Editar" [ref=e104] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e110] [cursor=pointer]:
+    - img [ref=e111]
+  - alert [ref=e116]: /write
+```

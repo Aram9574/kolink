@@ -1,0 +1,200 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: ✅
+      - status [ref=e5]: Contenido generado con éxito
+    - complementary [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e9]
+          - generic [ref=e12]: KOLINK
+        - button "Escribir Post" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+          - text: Escribir Post
+        - navigation [ref=e17]:
+          - generic [ref=e18]:
+            - link "Panel" [ref=e19]:
+              - /url: /dashboard
+              - img [ref=e20]
+              - text: Panel
+            - link "Ajustes" [ref=e25]:
+              - /url: /profile
+              - img [ref=e26]
+              - text: Ajustes
+            - link "Estadísticas" [ref=e29]:
+              - /url: /stats
+              - img [ref=e30]
+              - text: Estadísticas
+          - generic [ref=e32]:
+            - heading "Creación de Contenido" [level=3] [ref=e33]
+            - link "Generador de Posts" [ref=e35]:
+              - /url: /write
+              - img [ref=e36]
+              - text: Generador de Posts
+          - generic [ref=e39]:
+            - heading "Borradores y Programación" [level=3] [ref=e40]
+            - link "Calendario" [ref=e42]:
+              - /url: /calendar
+              - img [ref=e43]
+              - text: Calendario
+          - generic [ref=e45]:
+            - heading "Inspiración de Contenido" [level=3] [ref=e46]
+            - link "Inspiración" [ref=e48]:
+              - /url: /inspiration
+              - img [ref=e49]
+              - text: Inspiración
+        - paragraph [ref=e52]: v0.4
+    - navigation [ref=e53]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - img [ref=e57]
+          - generic [ref=e62]: "5"
+        - generic [ref=e64]: free
+        - button "Toggle theme" [ref=e65] [cursor=pointer]:
+          - img [ref=e66]
+        - button "ET" [ref=e69] [cursor=pointer]
+    - generic [ref=e71]:
+      - banner [ref=e72]:
+        - generic [ref=e73]:
+          - heading "Hey E2E 👋" [level=1] [ref=e74]
+          - paragraph [ref=e75]: ¿Listo para crear contenido que se haga viral?
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - img [ref=e79]
+            - generic [ref=e82]:
+              - paragraph [ref=e83]: Plan actual
+              - paragraph [ref=e84]: free
+          - generic [ref=e85]: "Créditos disponibles: 4"
+          - button "Ver planes" [ref=e86] [cursor=pointer]
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - paragraph [ref=e90]: Cuéntale a Kolink AI
+          - paragraph [ref=e91]: Describe la idea, objetivo o formato que necesitas...
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - textbox "Escribe tu prompt o usa el micrófono..." [ref=e94]
+            - button "Iniciar reconocimiento de voz" [ref=e95] [cursor=pointer]:
+              - img [ref=e96]
+          - generic [ref=e99]:
+            - button "Generar" [disabled]:
+              - img
+              - text: Generar
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - img [ref=e102]
+              - generic [ref=e106]: "87"
+            - generic [ref=e107]:
+              - generic [ref=e108]:
+                - img [ref=e109]
+                - generic [ref=e112]: Viral Score
+                - button "Información sobre Viral Score" [ref=e113] [cursor=pointer]:
+                  - img [ref=e114]
+              - paragraph [ref=e116]: Alto potencial viral
+          - generic [ref=e120]:
+            - img [ref=e122]
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - heading "Recomendaciones de IA" [level=4] [ref=e127]
+                - button "Información sobre Recomendaciones" [ref=e128] [cursor=pointer]:
+                  - img [ref=e129]
+              - list [ref=e131]:
+                - listitem [ref=e132]:
+                  - img [ref=e133]
+                  - generic [ref=e136]: Publicar ahora
+                - listitem [ref=e137]:
+                  - img [ref=e138]
+                  - generic [ref=e141]: Agendar en Calendario IA
+              - paragraph [ref=e143]:
+                - img [ref=e144]
+                - text: Implementar estas sugerencias puede mejorar tu viral score
+        - generic [ref=e147]:
+          - button "Escribe un post de insights del sector" [ref=e148] [cursor=pointer]
+          - button "Crea un post PAS" [ref=e149] [cursor=pointer]
+          - button "Reformula mi último post viral" [ref=e150] [cursor=pointer]
+        - generic [ref=e151]:
+          - generic [ref=e152]: "Consejo: sé específico con tu audiencia y CTA"
+          - button "Limpiar" [ref=e154] [cursor=pointer]
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - paragraph [ref=e158]: Temas frescos
+          - paragraph [ref=e159]: Selecciona los temas sobre los que quieres escribir esta semana
+        - generic [ref=e160]:
+          - button "Inteligencia artificial en salud" [ref=e161] [cursor=pointer]
+          - button "Crecimiento de SaaS B2B" [ref=e162] [cursor=pointer]
+          - button "Storytelling para founders" [ref=e163] [cursor=pointer]
+          - button "Productividad con IA" [ref=e164] [cursor=pointer]
+          - button "Transformación digital" [ref=e165] [cursor=pointer]
+          - button "Estrategia de contenidos" [ref=e166] [cursor=pointer]
+          - button "Marketing de comunidad" [ref=e167] [cursor=pointer]
+        - generic [ref=e168]:
+          - paragraph [ref=e169]: 3 temas seleccionados
+          - button "Confirmar temas" [ref=e170] [cursor=pointer]
+      - generic [ref=e171]:
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - heading "Tu último post" [level=2] [ref=e174]
+            - button "Copiar" [ref=e175] [cursor=pointer]:
+              - img [ref=e176]
+              - text: Copiar
+          - generic [ref=e179]:
+            - generic [ref=e180]:
+              - paragraph [ref=e181]: 29 oct 2025, 11:15
+              - generic [ref=e182]:
+                - img [ref=e183]
+                - generic [ref=e186]: 87/100
+            - paragraph [ref=e187]: "¿Alguna vez te has sentido estancado en tu carrera? Yo también. Hace un par de años, me encontraba en un trabajo que no me apasionaba. Cada día era una lucha por encontrar motivación. Pero un día, decidí hacer algo al respecto. Comencé a dedicar tiempo a aprender nuevas habilidades, a leer libros que me inspiraban y a conectar con personas que admiraba. Fue un proceso gradual, pero cada pequeño paso me llevó a descubrir lo que realmente quería hacer. Hoy, puedo decir que esos momentos de incomodidad fueron mis mejores maestros. Aprendí que el crecimiento personal y profesional no siempre es lineal, y que a veces, es necesario salir de nuestra zona de confort para encontrar nuestro verdadero potencial. Así que, si te sientes estancado, pregúntate: ¿qué habilidades o conexiones te gustaría desarrollar? ¡Nunca es tarde para reinventarte! Comparte en los comentarios tus experiencias o lo que has hecho para salir de un estancamiento. 👇"
+            - generic [ref=e188]:
+              - paragraph [ref=e189]: Sugerencias
+              - list [ref=e190]:
+                - listitem [ref=e191]: Publicar ahora
+                - listitem [ref=e192]: Agendar en Calendario IA
+        - generic [ref=e193]:
+          - heading "Comparte Kolink" [level=2] [ref=e194]
+          - paragraph [ref=e195]: Da acceso a un colega y consigue 15% de comisión de por vida.
+          - generic [ref=e196]: $30 de crédito para ellos · 15% para ti
+          - button "Compartir Kolink" [ref=e197] [cursor=pointer]
+      - generic [ref=e198]:
+        - generic [ref=e199]:
+          - generic [ref=e200]:
+            - paragraph [ref=e201]: Esta semana
+            - paragraph [ref=e202]: "1"
+          - img [ref=e203]
+        - generic [ref=e205]:
+          - generic [ref=e206]:
+            - paragraph [ref=e207]: Este mes
+            - paragraph [ref=e208]: "1"
+          - img [ref=e209]
+        - generic [ref=e212]:
+          - generic [ref=e213]:
+            - paragraph [ref=e214]: Score promedio
+            - paragraph [ref=e215]: "87"
+          - img [ref=e216]
+      - generic [ref=e218]:
+        - generic [ref=e219]:
+          - heading "Historial" [level=2] [ref=e220]
+          - generic [ref=e221]: 1 posts generados
+        - generic [ref=e224]:
+          - generic [ref=e225]:
+            - generic [ref=e226]:
+              - paragraph [ref=e227]: 29 oct 2025, 11:15
+              - generic [ref=e228]:
+                - img [ref=e229]
+                - generic [ref=e232]: "87"
+            - paragraph [ref=e233]: "¿Alguna vez te has sentido estancado en tu carrera? Yo también. Hace un par de años, me encontraba en un trabajo que no me apasionaba. Cada día era una lucha por encontrar motivación. Pero un día, decidí hacer algo al respecto. Comencé a dedicar tiempo a aprender nuevas habilidades, a leer libros que me inspiraban y a conectar con personas que admiraba. Fue un proceso gradual, pero cada pequeño paso me llevó a descubrir lo que realmente quería hacer. Hoy, puedo decir que esos momentos de incomodidad fueron mis mejores maestros. Aprendí que el crecimiento personal y profesional no siempre es lineal, y que a veces, es necesario salir de nuestra zona de confort para encontrar nuestro verdadero potencial. Así que, si te sientes estancado, pregúntate: ¿qué habilidades o conexiones te gustaría desarrollar? ¡Nunca es tarde para reinventarte! Comparte en los comentarios tus experiencias o lo que has hecho para salir de un estancamiento. 👇"
+          - generic [ref=e234]:
+            - button "Exportar" [ref=e235] [cursor=pointer]:
+              - img [ref=e236]
+              - text: Exportar
+            - button "Copiar" [ref=e242] [cursor=pointer]:
+              - img [ref=e243]
+              - text: Copiar
+            - button "Eliminar" [ref=e246] [cursor=pointer]:
+              - img [ref=e247]
+              - text: Eliminar
+  - button "Open Next.js Dev Tools" [ref=e255] [cursor=pointer]:
+    - img [ref=e256]
+  - alert [ref=e261]
+```

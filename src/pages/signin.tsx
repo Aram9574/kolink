@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Button from "@/components/Button";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { analytics } from "@/lib/posthog";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -27,6 +28,9 @@ export default function SignInPage() {
       setLoading(false);
       return;
     }
+
+    // Track successful sign in
+    analytics.signIn("email");
 
     const userId = data.user?.id;
     if (!userId) {

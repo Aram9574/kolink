@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { useState, useEffect, useMemo } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
-import { Coins, Sparkles, LogOut, Cog, LifeBuoy, Users } from "lucide-react";
+import { Coins, Sparkles, LogOut, Cog, LifeBuoy, Users, Trophy, Bell } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 type NavbarProps = {
@@ -16,27 +16,64 @@ export default function Navbar({ session }: NavbarProps) {
   const router = useRouter();
   const [credits, setCredits] = useState<number | null>(null);
   const [plan, setPlan] = useState<string>("free");
+  const [level, setLevel] = useState<number>(1);
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   useEffect(() => {
     if (session?.user) {
       const fetchProfile = async () => {
         const { data, error } = await supabaseClient
           .from("profiles")
-          .select("credits, plan, full_name")
+          .select("credits, plan, level, full_name")
           .eq("id", session.user.id)
           .single();
 
         if (data && !error) {
           setCredits(data.credits || 0);
           setPlan(data.plan || "free");
+          setLevel(data.level || 1);
           setFullName(data.full_name || "");
         }
         setEmail(session.user.email || "");
       };
 
+      const fetchUnreadCount = async () => {
+        const { count, error } = await supabaseClient
+          .from("admin_notifications")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", session.user.id)
+          .eq("read", false);
+
+        if (!error && count !== null) {
+          setUnreadCount(count);
+        }
+      };
+
       fetchProfile();
+      fetchUnreadCount();
+
+      // Subscribe to notification changes for real-time updates
+      const channel = supabaseClient
+        .channel("navbar_notifications")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "admin_notifications",
+            filter: `user_id=eq.${session.user.id}`,
+          },
+          () => {
+            fetchUnreadCount();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabaseClient.removeChannel(channel);
+      };
     }
   }, [session]);
 
@@ -120,6 +157,32 @@ export default function Navbar({ session }: NavbarProps) {
               </span>
             </div>
           )}
+
+          {/* Level Badge */}
+          <Link
+            href="/profile?section=gamification"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-800 hover:scale-105 transition-transform cursor-pointer group"
+            title="Ver mi progreso"
+          >
+            <Trophy className="h-4 w-4 text-yellow-600 dark:text-yellow-400 group-hover:rotate-12 transition-transform" />
+            <span className="text-sm font-bold text-yellow-700 dark:text-yellow-300">
+              Lv {level}
+            </span>
+          </Link>
+
+          {/* Notifications Bell */}
+          <Link
+            href="/inbox"
+            className="relative flex items-center justify-center w-10 h-10 rounded-lg bg-surface-light dark:bg-surface-dark hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            title="Notificaciones"
+          >
+            <Bell className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
 
           {/* Plan Badge */}
           <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded text-xs font-medium bg-surface-light dark:bg-surface-dark">

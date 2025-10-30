@@ -239,7 +239,7 @@ export default function EditorAI({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={defaultPlaceholder}
-          className="min-h-[150px] pr-12 resize-none"
+          className="min-h-[200px] md:min-h-[150px] pr-14 md:pr-12 resize-none text-base"
           disabled={loading || isListening}
         />
 
@@ -250,22 +250,22 @@ export default function EditorAI({
             type="button"
             disabled={loading}
             className={cn(
-              "absolute right-3 top-3 p-2 rounded-lg transition-colors",
+              "absolute right-3 top-3 p-3 md:p-2 rounded-lg transition-colors min-h-[48px] min-w-[48px] md:min-h-0 md:min-w-0 flex items-center justify-center",
               isListening
                 ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
             )}
             title={isListening ? labels.stopRecording : labels.startRecording}
           >
-            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            {isListening ? <MicOff className="w-6 h-6 md:w-5 md:h-5" /> : <Mic className="w-6 h-6 md:w-5 md:h-5" />}
           </button>
         )}
       </div>
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={onGenerate} disabled={loading || !value.trim()} className="flex-shrink-0">
-          <Sparkles className="w-4 h-4 mr-2" />
+        <Button onClick={onGenerate} disabled={loading || !value.trim()} className="flex-shrink-0 min-h-[48px] text-base md:text-sm">
+          <Sparkles className="w-5 h-5 md:w-4 md:h-4 mr-2" />
           {loading ? labels.generating : labels.generate}
         </Button>
 
@@ -274,17 +274,17 @@ export default function EditorAI({
             onClick={onRegenerate}
             variant="secondary"
             disabled={loading}
-            className="flex-shrink-0"
+            className="flex-shrink-0 min-h-[48px] text-base md:text-sm"
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-5 h-5 md:w-4 md:h-4 mr-2" />
             {labels.regenerate}
           </Button>
         )}
 
         {value && (
           <>
-            <Button onClick={handleCopy} variant="secondary" className="flex-shrink-0 px-4 py-2 text-xs">
-              <Copy className="w-4 h-4 mr-1" />
+            <Button onClick={handleCopy} variant="secondary" className="flex-shrink-0 px-5 py-3 md:px-4 md:py-2 text-sm md:text-xs min-h-[48px] md:min-h-0">
+              <Copy className="w-4 h-4 md:w-4 md:h-4 mr-2 md:mr-1" />
               {labels.copy}
             </Button>
 
@@ -293,16 +293,16 @@ export default function EditorAI({
                 onClick={handleSave}
                 variant="secondary"
                 disabled={loading}
-                className="flex-shrink-0 px-4 py-2 text-xs"
+                className="flex-shrink-0 px-5 py-3 md:px-4 md:py-2 text-sm md:text-xs min-h-[48px] md:min-h-0"
               >
                 {saved ? (
                   <>
-                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                    <CheckCircle2 className="w-4 h-4 md:w-4 md:h-4 mr-2 md:mr-1" />
                     {labels.saved}
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 mr-1" />
+                    <Save className="w-4 h-4 md:w-4 md:h-4 mr-2 md:mr-1" />
                     {labels.save}
                   </>
                 )}
@@ -316,7 +316,7 @@ export default function EditorAI({
       {viralScore !== undefined && viralScore > 0 && (
         <div
           className={cn(
-            "flex items-center gap-4 p-5 rounded-xl border-2",
+            "flex items-center gap-4 md:gap-4 p-6 md:p-5 rounded-xl border-2",
             viralScore >= 75
               ? "bg-gradient-to-br from-green-50 to-green-100 border-green-300 dark:from-green-900/20 dark:to-green-800/20 dark:border-green-700"
               : viralScore >= 50
@@ -325,9 +325,18 @@ export default function EditorAI({
           )}
         >
           {/* Circular Progress Gauge */}
-          <div className="relative flex items-center justify-center w-20 h-20 flex-shrink-0">
+          <div className="relative flex items-center justify-center w-24 h-24 md:w-20 md:h-20 flex-shrink-0">
             {/* Background Circle */}
-            <svg className="transform -rotate-90 w-20 h-20">
+            <svg className="transform -rotate-90 w-24 h-24 md:w-20 md:h-20">
+              <circle
+                cx="48"
+                cy="48"
+                r="40"
+                stroke="currentColor"
+                strokeWidth="7"
+                fill="none"
+                className="text-gray-200 dark:text-gray-700 md:hidden"
+              />
               <circle
                 cx="40"
                 cy="40"
@@ -335,9 +344,28 @@ export default function EditorAI({
                 stroke="currentColor"
                 strokeWidth="6"
                 fill="none"
-                className="text-gray-200 dark:text-gray-700"
+                className="text-gray-200 dark:text-gray-700 hidden md:block"
               />
               {/* Progress Circle */}
+              <circle
+                cx="48"
+                cy="48"
+                r="40"
+                stroke="currentColor"
+                strokeWidth="7"
+                fill="none"
+                strokeDasharray={`${2 * Math.PI * 40}`}
+                strokeDashoffset={`${2 * Math.PI * 40 * (1 - viralScore / 100)}`}
+                className={cn(
+                  "transition-all duration-1000 ease-out md:hidden",
+                  viralScore >= 75
+                    ? "text-green-500 dark:text-green-400"
+                    : viralScore >= 50
+                      ? "text-yellow-500 dark:text-yellow-400"
+                      : "text-red-500 dark:text-red-400"
+                )}
+                strokeLinecap="round"
+              />
               <circle
                 cx="40"
                 cy="40"
@@ -348,7 +376,7 @@ export default function EditorAI({
                 strokeDasharray={`${2 * Math.PI * 32}`}
                 strokeDashoffset={`${2 * Math.PI * 32 * (1 - viralScore / 100)}`}
                 className={cn(
-                  "transition-all duration-1000 ease-out",
+                  "transition-all duration-1000 ease-out hidden md:block",
                   viralScore >= 75
                     ? "text-green-500 dark:text-green-400"
                     : viralScore >= 50
@@ -360,7 +388,7 @@ export default function EditorAI({
             </svg>
             {/* Center Text */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className={cn("text-xl font-bold", getScoreColor(viralScore))}>
+              <span className={cn("text-2xl md:text-xl font-bold", getScoreColor(viralScore))}>
                 {viralScore.toFixed(0)}
               </span>
             </div>
@@ -368,9 +396,9 @@ export default function EditorAI({
 
           {/* Text Content */}
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className={cn("w-5 h-5", getScoreColor(viralScore))} />
-              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+            <div className="flex items-center gap-2 mb-2 md:mb-1">
+              <TrendingUp className={cn("w-6 h-6 md:w-5 md:h-5", getScoreColor(viralScore))} />
+              <span className="text-base md:text-sm font-semibold text-gray-800 dark:text-gray-200">
                 Viral Score
               </span>
               {/* Tooltip info icon */}
@@ -390,11 +418,11 @@ export default function EditorAI({
                 </div>
               </button>
             </div>
-            <p className={cn("text-xs font-medium mb-1", getScoreColor(viralScore))}>
+            <p className={cn("text-sm md:text-xs font-medium mb-2 md:mb-1", getScoreColor(viralScore))}>
               {getScoreLabel(viralScore)}
             </p>
             {/* Progress Bar Alternative */}
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 md:h-2 overflow-hidden">
               <div
                 className={cn(
                   "h-full transition-all duration-1000 ease-out rounded-full",
@@ -413,14 +441,14 @@ export default function EditorAI({
 
       {/* Recommendations with Tooltips */}
       {recommendations.length > 0 && (
-        <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <div className="p-6 md:p-5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800">
+          <div className="flex items-start gap-4 md:gap-3">
+            <div className="flex-shrink-0 w-12 h-12 md:w-10 md:h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+              <Sparkles className="w-6 h-6 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+              <div className="flex items-center gap-2 mb-4 md:mb-3">
+                <h4 className="text-base md:text-sm font-semibold text-blue-900 dark:text-blue-100">
                   Recomendaciones de IA
                 </h4>
                 {/* Tooltip for Recommendations */}
@@ -440,20 +468,20 @@ export default function EditorAI({
                   </div>
                 </button>
               </div>
-              <ul className="space-y-2">
+              <ul className="space-y-3 md:space-y-2">
                 {recommendations.map((rec, idx) => (
                   <li
                     key={idx}
-                    className="flex items-start gap-2 p-2 rounded-lg bg-white/50 dark:bg-blue-950/30 hover:bg-white dark:hover:bg-blue-950/50 transition-colors"
+                    className="flex items-start gap-3 md:gap-2 p-3 md:p-2 rounded-lg bg-white/50 dark:bg-blue-950/30 hover:bg-white dark:hover:bg-blue-950/50 transition-colors"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                    <span className="text-xs text-blue-900 dark:text-blue-100 font-medium">{rec}</span>
+                    <CheckCircle2 className="w-5 h-5 md:w-4 md:h-4 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm md:text-xs text-blue-900 dark:text-blue-100 font-medium">{rec}</span>
                   </li>
                 ))}
               </ul>
-              <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
-                <p className="text-xs text-blue-700 dark:text-blue-300 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
+              <div className="mt-4 md:mt-3 pt-4 md:pt-3 border-t border-blue-200 dark:border-blue-700">
+                <p className="text-sm md:text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2 md:gap-1">
+                  <TrendingUp className="w-4 h-4 md:w-3 md:h-3" />
                   Implementar estas sugerencias puede mejorar tu viral score
                 </p>
               </div>

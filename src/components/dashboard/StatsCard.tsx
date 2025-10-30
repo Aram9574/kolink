@@ -96,6 +96,41 @@ export default function StatsCard() {
     engagement: stat.engagement,
   }));
 
+  // Simple forecasting usando regresión lineal
+  const calculateForecast = (data: number[], days: number = 7) => {
+    if (data.length < 2) return { trend: "stable", prediction: 0 };
+
+    // Regresión lineal simple
+    const n = data.length;
+    const xValues = Array.from({ length: n }, (_, i) => i);
+    const xMean = xValues.reduce((a, b) => a + b, 0) / n;
+    const yMean = data.reduce((a, b) => a + b, 0) / n;
+
+    let numerator = 0;
+    let denominator = 0;
+    for (let i = 0; i < n; i++) {
+      numerator += (xValues[i] - xMean) * (data[i] - yMean);
+      denominator += (xValues[i] - xMean) ** 2;
+    }
+
+    const slope = denominator !== 0 ? numerator / denominator : 0;
+    const intercept = yMean - slope * xMean;
+
+    // Predicción para los próximos días
+    const prediction = slope * (n + days) + intercept;
+
+    // Determinar tendencia
+    const trend = slope > 0.1 ? "up" : slope < -0.1 ? "down" : "stable";
+
+    return { trend, prediction: Math.max(0, Math.round(prediction)), slope };
+  };
+
+  const postsData = stats.period.dailyStats.map((s) => s.posts);
+  const engagementData = stats.period.dailyStats.map((s) => s.engagement);
+
+  const postsForecast = calculateForecast(postsData);
+  const engagementForecast = calculateForecast(engagementData);
+
   return (
     <div className="space-y-6">
       {/* Time Period Filters */}
@@ -263,6 +298,113 @@ export default function StatsCard() {
             </ResponsiveContainer>
           </div>
         </div>
+      </div>
+
+      {/* Forecasting & Trends Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Posts Forecast */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+            Proyección de Posts (próximos 7 días)
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600 dark:text-slate-400">Tendencia actual:</span>
+              <div className="flex items-center gap-2">
+                {postsForecast.trend === "up" && (
+                  <span className="text-green-600 dark:text-green-400 font-medium">📈 Creciente</span>
+                )}
+                {postsForecast.trend === "down" && (
+                  <span className="text-red-600 dark:text-red-400 font-medium">📉 Decreciente</span>
+                )}
+                {postsForecast.trend === "stable" && (
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">➡️ Estable</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600 dark:text-slate-400">Posts proyectados:</span>
+              <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                {postsForecast.prediction}
+              </span>
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-500">
+              Basado en tu actividad de los últimos {period} días
+            </div>
+          </div>
+        </div>
+
+        {/* Engagement Forecast */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+            Proyección de Engagement (próximos 7 días)
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600 dark:text-slate-400">Tendencia actual:</span>
+              <div className="flex items-center gap-2">
+                {engagementForecast.trend === "up" && (
+                  <span className="text-green-600 dark:text-green-400 font-medium">📈 Mejorando</span>
+                )}
+                {engagementForecast.trend === "down" && (
+                  <span className="text-red-600 dark:text-red-400 font-medium">📉 Bajando</span>
+                )}
+                {engagementForecast.trend === "stable" && (
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">➡️ Estable</span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-600 dark:text-slate-400">Score proyectado:</span>
+              <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                {engagementForecast.prediction}
+              </span>
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-500">
+              Basado en tu rendimiento de los últimos {period} días
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Insights Section */}
+      <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 p-6">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          Insights Automáticos
+        </h3>
+        <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+          {postsForecast.trend === "up" && (
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 dark:text-green-400">✓</span>
+              <span>¡Excelente! Estás generando más contenido. Mantén este ritmo.</span>
+            </li>
+          )}
+          {postsForecast.trend === "down" && (
+            <li className="flex items-start gap-2">
+              <span className="text-yellow-600 dark:text-yellow-400">⚠</span>
+              <span>Tu actividad ha disminuido. Considera establecer un objetivo diario de posts.</span>
+            </li>
+          )}
+          {engagementForecast.trend === "up" && (
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 dark:text-green-400">✓</span>
+              <span>Tu engagement está mejorando. Tu audiencia está respondiendo bien.</span>
+            </li>
+          )}
+          {stats.performance.avgViralScore && stats.performance.avgViralScore > 70 && (
+            <li className="flex items-start gap-2">
+              <span className="text-purple-600 dark:text-purple-400">⭐</span>
+              <span>Score promedio excelente ({Math.round(stats.performance.avgViralScore)}/100). ¡Sigue así!</span>
+            </li>
+          )}
+          {stats.totals.currentCredits < 10 && (
+            <li className="flex items-start gap-2">
+              <span className="text-red-600 dark:text-red-400">!</span>
+              <span>Créditos bajos ({stats.totals.currentCredits}). Considera renovar tu plan.</span>
+            </li>
+          )}
+        </ul>
       </div>
     </div>
   );

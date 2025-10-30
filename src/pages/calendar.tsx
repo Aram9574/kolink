@@ -216,38 +216,38 @@ export default function CalendarPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-20 lg:pl-64 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0 mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Calendario de Publicaciones
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
+            <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">
               Programa tus posts en los mejores momentos con IA
             </p>
           </div>
-          <Button onClick={() => setShowScheduleModal(true)}>
-            <CalendarIcon className="w-5 h-5 mr-2" />
+          <Button onClick={() => setShowScheduleModal(true)} className="min-h-[48px] w-full md:w-auto">
+            <CalendarIcon className="w-5 h-5 md:w-4 md:h-4 mr-2" />
             Programar Post
           </Button>
         </div>
 
         {/* AI Recommendation Banner */}
-        <Card className="mb-8 bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary">
+        <Card className="mb-8 bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary p-5 md:p-6">
           <div className="flex items-start gap-4">
-            <Sparkles className="w-6 h-6 text-primary mt-1 flex-shrink-0" />
+            <Sparkles className="w-8 h-8 md:w-6 md:h-6 text-primary mt-1 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-base md:text-sm font-semibold text-gray-900 dark:text-white mb-2 md:mb-1">
                 Recomendación de IA
               </h3>
               {patternLoading ? (
-                <p className="text-gray-600 dark:text-gray-300 text-sm">Calculando tus mejores horarios...</p>
+                <p className="text-gray-600 dark:text-gray-300 text-base md:text-sm">Calculando tus mejores horarios...</p>
               ) : bestTimes.length > 0 ? (
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                <p className="text-gray-600 dark:text-gray-300 text-base md:text-sm">
                   Mejores slots detectados: <strong>{formatBestSlot(bestTimes[0])}</strong>
                   {bestTimes[1] ? ` · ${formatBestSlot(bestTimes[1])}` : ""}
                 </p>
               ) : (
-                <p className="text-gray-600 dark:text-gray-300 text-sm">{patternMessage}</p>
+                <p className="text-gray-600 dark:text-gray-300 text-base md:text-sm">{patternMessage}</p>
               )}
             </div>
           </div>
@@ -255,33 +255,33 @@ export default function CalendarPage() {
 
         {/* Upcoming Events */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Próximas Publicaciones
           </h2>
 
           {events.length === 0 ? (
-            <Card className="text-center py-12">
-              <CalendarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
+            <Card className="text-center py-12 p-6">
+              <CalendarIcon className="w-16 h-16 md:w-12 md:h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg mb-2">
                 No hay publicaciones programadas
               </p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm">
+              <p className="text-gray-400 dark:text-gray-500 text-base md:text-sm">
                 Programa tu primer post para comenzar
               </p>
             </Card>
           ) : (
             <div className="space-y-4">
               {events.map((event) => (
-                <Card key={event.id} className="flex items-center justify-between">
+                <Card key={event.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 md:p-6">
                   <div className="flex items-start gap-4 flex-1">
-                    <Clock className="w-5 h-5 text-primary mt-1" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-semibold text-gray-900 dark:text-white">
+                    <Clock className="w-6 h-6 md:w-5 md:h-5 text-primary mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-3 mb-2">
+                        <span className="font-semibold text-gray-900 dark:text-white text-base md:text-sm">
                           {formatDate(event.scheduledAt)}
                         </span>
                         <span
-                          className={`text-xs px-2 py-1 rounded ${
+                          className={`text-sm md:text-xs px-3 py-1.5 md:px-2 md:py-1 rounded ${
                             event.status === "scheduled"
                               ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
                               : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
@@ -292,37 +292,37 @@ export default function CalendarPage() {
                       </div>
 
                       {/* Platforms */}
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center flex-wrap gap-2 mb-3 md:mb-2">
                         {event.platforms.map((platform) => (
                           <span
                             key={platform}
-                            className="text-xs flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded"
+                            className="text-sm md:text-xs flex items-center gap-1.5 md:gap-1 px-3 py-1.5 md:px-2 md:py-1 bg-gray-100 dark:bg-gray-700 rounded"
                           >
-                            {platform === "linkedin" && <Linkedin className="w-3 h-3" />}
-                            {platform === "twitter" && <Twitter className="w-3 h-3" />}
+                            {platform === "linkedin" && <Linkedin className="w-4 h-4 md:w-3 md:h-3" />}
+                            {platform === "twitter" && <Twitter className="w-4 h-4 md:w-3 md:h-3" />}
                             {platform}
                           </span>
                         ))}
                       </div>
 
                       {/* AI Score */}
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-primary" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-5 h-5 md:w-4 md:h-4 text-primary" />
+                        <span className="text-base md:text-sm text-gray-600 dark:text-gray-400">
                           AI Score: <strong>{event.aiScore.toFixed(1)}</strong>/100
                         </span>
                       </div>
 
                       {/* Recommendation Factors */}
                       {event.recommendationReason?.factors && (
-                        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="mt-2 text-sm md:text-xs text-gray-500 dark:text-gray-400">
                           {event.recommendationReason.factors[0]}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <Button variant="secondary" className="px-4 py-2 text-xs">
+                  <Button variant="secondary" className="min-h-[48px] md:min-h-0 w-full md:w-auto px-4 py-2 text-base md:text-xs">
                     Editar
                   </Button>
                 </Card>
@@ -334,70 +334,70 @@ export default function CalendarPage() {
         {/* Schedule Modal */}
         {showScheduleModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="max-w-md w-full">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <Card className="max-w-md w-full p-6 md:p-8">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6 md:mb-4">
                 Programar Publicación
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-6 md:space-y-4">
                 {/* Date/Time */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-base md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Fecha y Hora (opcional)
                   </label>
                   <input
                     type="datetime-local"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-4 md:py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-base md:text-xs text-gray-500 dark:text-gray-400 mt-2 md:mt-1">
                     Deja en blanco para usar la recomendación de IA
                   </p>
                 </div>
 
                 {/* Platforms */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-base md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 md:mb-2">
                     Plataformas
                   </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="space-y-4 md:space-y-2">
+                    <label className="flex items-center gap-3 md:gap-2 cursor-pointer min-h-[44px] md:min-h-0">
                       <input
                         type="checkbox"
                         checked={selectedPlatforms.includes("linkedin")}
                         onChange={() => togglePlatform("linkedin")}
-                        className="rounded"
+                        className="rounded w-5 h-5 md:w-4 md:h-4"
                       />
-                      <Linkedin className="w-4 h-4" />
-                      <span className="text-gray-700 dark:text-gray-300">LinkedIn</span>
+                      <Linkedin className="w-5 h-5 md:w-4 md:h-4" />
+                      <span className="text-base md:text-sm text-gray-700 dark:text-gray-300">LinkedIn</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-3 md:gap-2 cursor-pointer min-h-[44px] md:min-h-0">
                       <input
                         type="checkbox"
                         checked={selectedPlatforms.includes("twitter")}
                         onChange={() => togglePlatform("twitter")}
-                        className="rounded"
+                        className="rounded w-5 h-5 md:w-4 md:h-4"
                       />
-                      <Twitter className="w-4 h-4" />
-                      <span className="text-gray-700 dark:text-gray-300">Twitter</span>
+                      <Twitter className="w-5 h-5 md:w-4 md:h-4" />
+                      <span className="text-base md:text-sm text-gray-700 dark:text-gray-300">Twitter</span>
                     </label>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Button
                     onClick={handleSchedule}
                     disabled={scheduling}
-                    className="flex-1"
+                    className="flex-1 min-h-[48px]"
                   >
                     {scheduling ? "Programando..." : "Programar"}
                   </Button>
                   <Button
                     variant="secondary"
                     onClick={() => setShowScheduleModal(false)}
-                    className="flex-1"
+                    className="flex-1 min-h-[48px]"
                   >
                     Cancelar
                   </Button>

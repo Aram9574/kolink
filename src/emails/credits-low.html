@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Créditos bajos - Kolink</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      padding: 40px 30px;
+      text-align: center;
+      color: white;
+    }
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 10px 0;
+    }
+    .header-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .content {
+      padding: 40px 30px;
+      color: #333333;
+      line-height: 1.6;
+    }
+    .content h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1E1E1E;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .content p {
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+    .warning-badge {
+      background-color: #fef3c7;
+      color: #92400e;
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-weight: 600;
+      display: inline-block;
+      margin: 20px 0;
+      font-size: 18px;
+      border: 2px solid #fbbf24;
+    }
+    .credits-display {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      margin: 30px 0;
+      border: 3px solid #fbbf24;
+    }
+    .credits-number {
+      font-size: 56px;
+      font-weight: 700;
+      color: #92400e;
+      margin: 10px 0;
+    }
+    .credits-label {
+      font-size: 16px;
+      color: #78350f;
+      margin: 0;
+    }
+    .cta-button {
+      display: inline-block;
+      padding: 16px 40px;
+      background-color: #F9D65C;
+      color: #1E1E1E;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+      box-shadow: 0 4px 6px rgba(249, 214, 92, 0.3);
+    }
+    .cta-button:hover {
+      background-color: #E8C84E;
+    }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin: 30px 0;
+    }
+    .plan-card {
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #e5e7eb;
+      transition: border-color 0.3s;
+    }
+    .plan-card:hover {
+      border-color: #F9D65C;
+    }
+    .plan-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1E1E1E;
+      margin: 0 0 8px 0;
+    }
+    .plan-price {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1E1E1E;
+      margin: 5px 0;
+    }
+    .plan-credits {
+      font-size: 14px;
+      color: #666666;
+      margin: 0 0 10px 0;
+    }
+    .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0 0;
+    }
+    .plan-features li {
+      font-size: 14px;
+      color: #555555;
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+    }
+    .plan-features li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: 700;
+    }
+    .info-box {
+      background-color: #FFF9E6;
+      border-left: 4px solid #fbbf24;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 4px;
+    }
+    .info-box p {
+      margin: 0;
+      font-size: 14px;
+      color: #666666;
+    }
+    .footer {
+      background-color: #1E1E1E;
+      color: #ffffff;
+      padding: 30px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .footer a {
+      color: #F9D65C;
+      text-decoration: none;
+    }
+    .usage-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 25px 0;
+    }
+    .stat-box {
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1E1E1E;
+      margin: 0 0 5px 0;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: #666666;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">⚠️</div>
+      <h1 class="logo">KOLINK</h1>
+      <p style="margin: 0; font-size: 16px; opacity: 0.9;">Alerta de créditos</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <h1>Tus créditos están por agotarse</h1>
+
+      <p>Hola {{userName}},</p>
+
+      <p>
+        Queremos avisarte que tu saldo de créditos está llegando a su límite.
+      </p>
+
+      <div class="credits-display">
+        <p class="credits-label">Te quedan</p>
+        <p class="credits-number">{{creditsRemaining}}</p>
+        <p class="credits-label">créditos disponibles</p>
+      </div>
+
+      <div class="warning-badge">
+        ⏰ Recarga ahora para seguir generando contenido
+      </div>
+
+      <!-- Usage Stats -->
+      <div class="usage-stats">
+        <div class="stat-box">
+          <p class="stat-number">{{postsThisMonth}}</p>
+          <p class="stat-label">Posts este mes</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-number">{{creditsUsed}}</p>
+          <p class="stat-label">Créditos utilizados</p>
+        </div>
+      </div>
+
+      <p>
+        Con solo {{creditsRemaining}} créditos, podrías quedarte sin acceso a la generación de contenido pronto. ¡No dejes que eso suceda!
+      </p>
+
+      <p style="text-align: center;">
+        <a href="{{upgradeUrl}}" class="cta-button">
+          Recargar créditos ahora
+        </a>
+      </p>
+
+      <!-- Plans Info -->
+      <h3 style="font-size: 20px; color: #1E1E1E; margin-top: 40px; margin-bottom: 20px;">
+        💎 Nuestros planes
+      </h3>
+
+      <div class="plans-grid">
+        <div class="plan-card">
+          <p class="plan-name">Basic</p>
+          <p class="plan-price">$9<span style="font-size: 14px; font-weight: 400; color: #666666;">/mes</span></p>
+          <p class="plan-credits">50 créditos mensuales</p>
+          <ul class="plan-features">
+            <li>Generación IA básica</li>
+            <li>Historial de posts</li>
+            <li>Exportación simple</li>
+          </ul>
+        </div>
+
+        <div class="plan-card" style="border-color: #F9D65C; background: linear-gradient(to bottom, #ffffff, #FFFBF0);">
+          <p class="plan-name">Standard ⭐ Recomendado</p>
+          <p class="plan-price">$19<span style="font-size: 14px; font-weight: 400; color: #666666;">/mes</span></p>
+          <p class="plan-credits">150 créditos mensuales</p>
+          <ul class="plan-features">
+            <li>Todo de Basic</li>
+            <li>Análisis de viral score</li>
+            <li>Calendario de publicación</li>
+            <li>Búsqueda de inspiración</li>
+          </ul>
+        </div>
+
+        <div class="plan-card">
+          <p class="plan-name">Premium</p>
+          <p class="plan-price">$29<span style="font-size: 14px; font-weight: 400; color: #666666;">/mes</span></p>
+          <p class="plan-credits">300 créditos mensuales</p>
+          <ul class="plan-features">
+            <li>Todo de Standard</li>
+            <li>Analytics predictivos</li>
+            <li>Soporte prioritario</li>
+            <li>API access</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <p>
+          💡 <strong>Consejo:</strong> Los planes superiores incluyen más créditos y funcionalidades avanzadas que te ayudarán a maximizar tu impacto en redes sociales. Puedes cambiar de plan en cualquier momento.
+        </p>
+      </div>
+
+      <p style="margin-top: 30px; font-size: 15px; color: #666666;">
+        <strong>¿Por qué recargar ahora?</strong>
+      </p>
+      <ul style="color: #666666; font-size: 14px; line-height: 1.8;">
+        <li>Mantén tu calendario de contenido activo sin interrupciones</li>
+        <li>Aprovecha el impulso de tu estrategia actual</li>
+        <li>Acceso inmediato a todas las funcionalidades premium</li>
+        <li>Soporte continuo de nuestro equipo</li>
+      </ul>
+
+      <p style="margin-top: 30px; font-size: 14px; color: #888888;">
+        Si tienes alguna pregunta sobre los planes o necesitas ayuda para elegir el adecuado, nuestro equipo está disponible para asesorarte.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p style="margin: 0 0 10px 0;">
+        © 2025 Kolink. Todos los derechos reservados.
+      </p>
+      <p style="margin: 0;">
+        <a href="{{siteUrl}}">Visitar sitio web</a> |
+        <a href="{{dashboardUrl}}">Mi dashboard</a> |
+        <a href="{{upgradeUrl}}">Ver planes</a>
+      </p>
+      <p style="margin: 15px 0 0 0; font-size: 12px; color: #999999;">
+        Este es un recordatorio automático. Puedes gestionar tus notificaciones en tu perfil.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

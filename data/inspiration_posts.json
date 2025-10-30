@@ -1,0 +1,752 @@
+[
+  {
+    "platform": "linkedin",
+    "author": "Simon Sinek",
+    "title": "The Infinite Game",
+    "content": "Leaders who play the infinite game don't compete to win. They compete to keep playing. They build organizations that outlast them. They create cultures where people feel safe to take risks, to fail, and to learn. The goal isn't to beat the competition. The goal is to outlast the competition.",
+    "summary": "Leadership requires long-term thinking and building lasting organizations",
+    "metrics": {
+      "likes": 15234,
+      "comments": 892,
+      "shares": 3401,
+      "viralScore": 87
+    },
+    "tags": ["leadership", "business", "strategy", "culture"],
+    "source_url": "https://linkedin.com/posts/example-1"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Brené Brown",
+    "title": "Vulnerability in Leadership",
+    "content": "Vulnerability is not weakness. It's our most accurate measure of courage. Leaders who show vulnerability create psychological safety. They admit mistakes, ask for help, and say 'I don't know.' This opens the door for innovation, collaboration, and trust.",
+    "summary": "Vulnerable leadership builds trust and enables innovation",
+    "metrics": {
+      "likes": 12890,
+      "comments": 654,
+      "shares": 2876,
+      "viralScore": 84
+    },
+    "tags": ["leadership", "vulnerability", "trust", "culture"],
+    "source_url": "https://linkedin.com/posts/example-2"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Seth Godin",
+    "title": "The Practice",
+    "content": "Ship your work. Don't wait for permission. Don't wait for perfect. The practice is about showing up every day and doing the work. Professionals ship. Amateurs wait for inspiration. Your job is to create, to ship, to repeat. The world needs your contribution.",
+    "summary": "Consistent shipping and practice leads to mastery",
+    "metrics": {
+      "likes": 18234,
+      "comments": 1023,
+      "shares": 4521,
+      "viralScore": 91
+    },
+    "tags": ["creativity", "productivity", "entrepreneurship", "mindset"],
+    "source_url": "https://linkedin.com/posts/example-3"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Adam Grant",
+    "title": "Rethinking",
+    "content": "Smart people don't just think. They rethink. They question their assumptions. They actively seek out information that contradicts their beliefs. Intelligence is not about being right. It's about being less wrong over time. Be a scientist of your own life.",
+    "summary": "Intellectual humility and rethinking lead to better decisions",
+    "metrics": {
+      "likes": 14567,
+      "comments": 789,
+      "shares": 3234,
+      "viralScore": 86
+    },
+    "tags": ["psychology", "learning", "growth", "mindset"],
+    "source_url": "https://linkedin.com/posts/example-4"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Gary Vaynerchuk",
+    "title": "Document, Don't Create",
+    "content": "Stop overthinking your content. Document your journey instead of creating fake perfection. People connect with authenticity, not production value. Your phone is enough. Your story is enough. Start now. The best time to plant a tree was 20 years ago. The second best time is today.",
+    "summary": "Authentic documentation beats polished creation",
+    "metrics": {
+      "likes": 21234,
+      "comments": 1456,
+      "shares": 5678,
+      "viralScore": 93
+    },
+    "tags": ["content", "marketing", "authenticity", "socialmedia"],
+    "source_url": "https://linkedin.com/posts/example-5"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Reid Hoffman",
+    "title": "Blitzscaling",
+    "content": "Speed matters in startups. But speed without direction is just chaos. Blitzscaling is about rapidly scaling while accepting uncertainty and imperfection. You prioritize speed over efficiency when the cost of moving slowly is higher than the cost of making mistakes. Know when to blitzscale and when to optimize.",
+    "summary": "Strategic rapid scaling requires knowing when to prioritize speed",
+    "metrics": {
+      "likes": 9876,
+      "comments": 543,
+      "shares": 2345,
+      "viralScore": 81
+    },
+    "tags": ["startups", "scaling", "strategy", "entrepreneurship"],
+    "source_url": "https://linkedin.com/posts/example-6"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Naval Ravikant",
+    "title": "Specific Knowledge",
+    "content": "Specific knowledge is knowledge that you cannot be trained for. It's learned through apprenticeship or self-teaching, often highly technical or creative. It's unique to you and your interests. Build specific knowledge. It's how you become irreplaceable in a world of automation.",
+    "summary": "Unique, self-taught knowledge makes you irreplaceable",
+    "metrics": {
+      "likes": 16789,
+      "comments": 892,
+      "shares": 4123,
+      "viralScore": 88
+    },
+    "tags": ["career", "learning", "ai", "future"],
+    "source_url": "https://linkedin.com/posts/example-7"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Sahil Bloom",
+    "title": "Compound Growth",
+    "content": "Small improvements compound. 1% better every day = 37x better in a year. This applies to everything: skills, relationships, health, wealth. Most people overestimate what they can do in a day and underestimate what they can do in a year. Focus on the daily 1%. Trust the process.",
+    "summary": "Daily incremental improvements lead to exponential growth",
+    "metrics": {
+      "likes": 13456,
+      "comments": 678,
+      "shares": 3456,
+      "viralScore": 85
+    },
+    "tags": ["growth", "habits", "productivity", "mindset"],
+    "source_url": "https://linkedin.com/posts/example-8"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Patrick Bet-David",
+    "title": "Resourcefulness",
+    "content": "It's not about resources. It's about resourcefulness. The biggest companies started in garages. The best products started with constraints. Lack of money, time, or connections is an excuse. The question is: are you resourceful enough? Your limitations force creativity.",
+    "summary": "Resourcefulness matters more than resources",
+    "metrics": {
+      "likes": 11234,
+      "comments": 567,
+      "shares": 2789,
+      "viralScore": 82
+    },
+    "tags": ["entrepreneurship", "mindset", "business", "motivation"],
+    "source_url": "https://linkedin.com/posts/example-9"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Tim Ferriss",
+    "title": "Fear Setting",
+    "content": "We don't fear failure. We fear the unknown. Try fear-setting instead of goal-setting. Define your fears in detail. What's the worst that could happen? What could you do to prevent it? What could you do to repair it? Most fears evaporate under scrutiny. Take the leap.",
+    "summary": "Analyzing fears in detail reveals they're often manageable",
+    "metrics": {
+      "likes": 14890,
+      "comments": 734,
+      "shares": 3678,
+      "viralScore": 87
+    },
+    "tags": ["mindset", "fear", "risk", "growth"],
+    "source_url": "https://linkedin.com/posts/example-10"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Alex Hormozi",
+    "title": "Value Equation",
+    "content": "Value = (Dream Outcome × Perceived Likelihood) / (Time Delay × Effort & Sacrifice). To increase value: Make the outcome more desirable. Make success more certain. Make it faster. Make it easier. This is how you build $100M offers. Focus on these 4 variables.",
+    "summary": "The value equation explains how to create irresistible offers",
+    "metrics": {
+      "likes": 17890,
+      "comments": 945,
+      "shares": 4567,
+      "viralScore": 90
+    },
+    "tags": ["sales", "marketing", "value", "business"],
+    "source_url": "https://linkedin.com/posts/example-11"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Lenny Rachitsky",
+    "title": "Product-Market Fit",
+    "content": "You know you have product-market fit when you can't keep up with demand. When customers are telling their friends without you asking. When you're struggling to support all the users signing up. Until then, nothing else matters. Talk to users. Iterate fast. Find the fit.",
+    "summary": "Product-market fit is unmistakable when you achieve it",
+    "metrics": {
+      "likes": 10234,
+      "comments": 512,
+      "shares": 2456,
+      "viralScore": 83
+    },
+    "tags": ["product", "startups", "pmf", "growth"],
+    "source_url": "https://linkedin.com/posts/example-12"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Amy Porterfield",
+    "title": "Email List First",
+    "content": "Your email list is your most valuable asset. Social media platforms can disappear overnight. Algorithms change. But your email list is yours forever. Build it from day one. Serve your list. They're your warmest audience. Email isn't dead. It's more powerful than ever.",
+    "summary": "Email lists provide ownership and control over your audience",
+    "metrics": {
+      "likes": 8765,
+      "comments": 432,
+      "shares": 1987,
+      "viralScore": 79
+    },
+    "tags": ["marketing", "email", "audience", "business"],
+    "source_url": "https://linkedin.com/posts/example-13"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Daniel Pink",
+    "title": "Drive and Motivation",
+    "content": "Money is a terrible long-term motivator. What drives us: Autonomy - the desire to direct our lives. Mastery - the urge to get better. Purpose - the yearning to do something meaningful. Build these into your work. Build these into your team. That's how you win.",
+    "summary": "Intrinsic motivation comes from autonomy, mastery, and purpose",
+    "metrics": {
+      "likes": 12345,
+      "comments": 623,
+      "shares": 2987,
+      "viralScore": 84
+    },
+    "tags": ["motivation", "leadership", "management", "culture"],
+    "source_url": "https://linkedin.com/posts/example-14"
+  },
+  {
+    "platform": "linkedin",
+    "author": "James Clear",
+    "title": "Atomic Habits",
+    "content": "You don't rise to the level of your goals. You fall to the level of your systems. Habits are the compound interest of self-improvement. Focus on: Cue (make it obvious), Craving (make it attractive), Response (make it easy), Reward (make it satisfying). Small changes, remarkable results.",
+    "summary": "Systems and habits matter more than goals",
+    "metrics": {
+      "likes": 19876,
+      "comments": 1123,
+      "shares": 5234,
+      "viralScore": 92
+    },
+    "tags": ["habits", "productivity", "growth", "systems"],
+    "source_url": "https://linkedin.com/posts/example-15"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Nir Eyal",
+    "title": "Indistractable",
+    "content": "Distraction is not about technology. It's about internal triggers - boredom, anxiety, stress. To become indistractable: Master internal triggers. Make time for traction. Hack back external triggers. Prevent distraction with pacts. Your attention is your most valuable asset. Protect it.",
+    "summary": "Managing internal triggers is key to avoiding distraction",
+    "metrics": {
+      "likes": 11567,
+      "comments": 589,
+      "shares": 2765,
+      "viralScore": 83
+    },
+    "tags": ["productivity", "focus", "attention", "habits"],
+    "source_url": "https://linkedin.com/posts/example-16"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Cal Newport",
+    "title": "Deep Work",
+    "content": "Shallow work is everywhere. Emails, meetings, social media. Deep work is rare and valuable. The ability to focus without distraction on cognitively demanding tasks is becoming the superpower of the 21st century. Schedule deep work blocks. Protect them fiercely. This is how you produce exceptional results.",
+    "summary": "Deep, focused work is increasingly rare and valuable",
+    "metrics": {
+      "likes": 15678,
+      "comments": 823,
+      "shares": 3987,
+      "viralScore": 88
+    },
+    "tags": ["productivity", "focus", "work", "performance"],
+    "source_url": "https://linkedin.com/posts/example-17"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Sara Blakely",
+    "title": "Fail Forward",
+    "content": "My dad used to ask at dinner: 'What did you fail at today?' He taught me that failure is not trying, not the outcome. I failed my way to success. Every rejection, every closed door, was data. Spanx happened because I failed at so many things first. Embrace failure. It's feedback.",
+    "summary": "Failure is valuable feedback, not something to fear",
+    "metrics": {
+      "likes": 13234,
+      "comments": 712,
+      "shares": 3345,
+      "viralScore": 85
+    },
+    "tags": ["entrepreneurship", "failure", "resilience", "mindset"],
+    "source_url": "https://linkedin.com/posts/example-18"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Paul Graham",
+    "title": "Do Things That Don't Scale",
+    "content": "Early stage startups should do things that don't scale. Recruit users manually. Make your product perfect for a small group. Provide ridiculous levels of service. These unscalable things teach you what users really want. Then you can scale the right things. Start small, learn deep.",
+    "summary": "Manual, unscalable actions early provide crucial learning",
+    "metrics": {
+      "likes": 9876,
+      "comments": 498,
+      "shares": 2234,
+      "viralScore": 81
+    },
+    "tags": ["startups", "growth", "strategy", "learning"],
+    "source_url": "https://linkedin.com/posts/example-19"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Angela Duckworth",
+    "title": "Grit Over Talent",
+    "content": "Grit matters more than talent. Passion + perseverance = success. Talent is overrated. Effort counts twice. Effort builds skill. Effort makes skill productive. The grittiest people aren't necessarily the most talented. They're the most committed. Fall down seven times, stand up eight.",
+    "summary": "Perseverance and effort outperform natural talent",
+    "metrics": {
+      "likes": 14321,
+      "comments": 687,
+      "shares": 3456,
+      "viralScore": 86
+    },
+    "tags": ["mindset", "perseverance", "success", "growth"],
+    "source_url": "https://linkedin.com/posts/example-20"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Ryan Holiday",
+    "title": "The Obstacle Is The Way",
+    "content": "What stands in the way becomes the way. Every obstacle is an opportunity. Marcus Aurelius: 'The impediment to action advances action.' Your competition isn't preparing for hard times. You can. Turn every setback into a setup for a comeback. Practice Stoic resilience.",
+    "summary": "Obstacles can be transformed into opportunities through mindset",
+    "metrics": {
+      "likes": 16543,
+      "comments": 834,
+      "shares": 4123,
+      "viralScore": 89
+    },
+    "tags": ["stoicism", "resilience", "philosophy", "mindset"],
+    "source_url": "https://linkedin.com/posts/example-21"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Sheryl Sandberg",
+    "title": "Lean In",
+    "content": "Leadership is not about being perfect. It's about being authentic. Women, lean in to your ambitions. Sit at the table. Speak up. Don't leave before you leave. The data is clear: diverse teams outperform. But we need more women in leadership roles. Be ambitious. The world needs your leadership.",
+    "summary": "Authentic leadership and ambition drive diversity and performance",
+    "metrics": {
+      "likes": 11890,
+      "comments": 654,
+      "shares": 2876,
+      "viralScore": 83
+    },
+    "tags": ["leadership", "diversity", "women", "career"],
+    "source_url": "https://linkedin.com/posts/example-22"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Marc Andreessen",
+    "title": "Software Eating World",
+    "content": "Software is eating the world. Every company is becoming a software company. The best companies are built on technology moats. But technology alone isn't enough. You need distribution. You need a business model. You need to solve real problems. Build software. Build businesses.",
+    "summary": "Software transformation requires both technology and business acumen",
+    "metrics": {
+      "likes": 8765,
+      "comments": 445,
+      "shares": 2123,
+      "viralScore": 80
+    },
+    "tags": ["technology", "software", "startups", "business"],
+    "source_url": "https://linkedin.com/posts/example-23"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Tony Robbins",
+    "title": "States vs Stories",
+    "content": "The quality of your life is the quality of your emotional state. You can't control what happens to you. But you can control your state. Change your physiology. Change your focus. Change your language. Your story about what happened matters more than what actually happened. Choose better stories.",
+    "summary": "Emotional states and narratives shape life quality more than events",
+    "metrics": {
+      "likes": 17890,
+      "comments": 923,
+      "shares": 4567,
+      "viralScore": 90
+    },
+    "tags": ["mindset", "psychology", "performance", "motivation"],
+    "source_url": "https://linkedin.com/posts/example-24"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Whitney Wolfe Herd",
+    "title": "Build For Women First",
+    "content": "Bumble succeeded because we built for women first. Make women feel safe, respected, empowered. Then men benefit too. This principle applies beyond dating apps. Design for the underserved. Solve real problems. Listen to feedback. Build communities, not just products. Women make or break products.",
+    "summary": "Designing for underserved users creates better products for everyone",
+    "metrics": {
+      "likes": 10234,
+      "comments": 567,
+      "shares": 2456,
+      "viralScore": 82
+    },
+    "tags": ["product", "design", "women", "entrepreneurship"],
+    "source_url": "https://linkedin.com/posts/example-25"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Naval Ravikant",
+    "title": "Leverage",
+    "content": "Fortunes require leverage. Labor and capital are old leverage. Code and media are new leverage. They have no marginal cost of replication. Build products that scale. Build an audience. These scale without permission. This is how individuals compete with institutions.",
+    "summary": "Modern leverage comes from code and media with zero marginal cost",
+    "metrics": {
+      "likes": 15678,
+      "comments": 812,
+      "shares": 3890,
+      "viralScore": 88
+    },
+    "tags": ["business", "leverage", "wealth", "strategy"],
+    "source_url": "https://linkedin.com/posts/example-26"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Chamath Palihapitiya",
+    "title": "Compounding Capital",
+    "content": "Get rich slowly. Compound returns beat lottery tickets every time. Find asymmetric bets - limited downside, unlimited upside. Invest in: yourself first, then great businesses, then real estate, then crypto if you must. But mostly: invest in skills. Human capital compounds fastest.",
+    "summary": "Strategic long-term investing in skills and assets builds wealth",
+    "metrics": {
+      "likes": 13456,
+      "comments": 698,
+      "shares": 3234,
+      "viralScore": 85
+    },
+    "tags": ["investing", "wealth", "finance", "career"],
+    "source_url": "https://linkedin.com/posts/example-27"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Peter Thiel",
+    "title": "Zero to One",
+    "content": "Competition is for losers. Monopoly is for winners. Going from 1 to n is copying. Going from 0 to 1 is creating. Create something 10x better, not 10% better. Build a monopoly. Vertical progress, not horizontal. The best businesses are secrets waiting to be discovered. Think different.",
+    "summary": "Create monopolies by building 10x better solutions, not incremental improvements",
+    "metrics": {
+      "likes": 14567,
+      "comments": 756,
+      "shares": 3567,
+      "viralScore": 87
+    },
+    "tags": ["startups", "innovation", "strategy", "monopoly"],
+    "source_url": "https://linkedin.com/posts/example-28"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Esther Perel",
+    "title": "Relationship Intelligence",
+    "content": "Quality of relationships = quality of life. At work and at home. Invest in: curiosity over judgment, connection over correction, empathy over advice. The best leaders have high relationship intelligence. They create safety. They foster belonging. They see the human first.",
+    "summary": "Relationship quality determines life quality through curiosity and empathy",
+    "metrics": {
+      "likes": 12345,
+      "comments": 634,
+      "shares": 2987,
+      "viralScore": 84
+    },
+    "tags": ["relationships", "leadership", "empathy", "culture"],
+    "source_url": "https://linkedin.com/posts/example-29"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Scott Galloway",
+    "title": "Algebra of Happiness",
+    "content": "Happiness = Reality - Expectations. Lower expectations? No. Raise reality. Success accelerates. The formula: Find your talent intersection. Apply it consistently. Invest in relationships. Take care of your body. Money helps, but relationships matter more. And for god's sake, compound your efforts.",
+    "summary": "Happiness comes from raising reality through talent, consistency, and relationships",
+    "metrics": {
+      "likes": 16789,
+      "comments": 876,
+      "shares": 4123,
+      "viralScore": 89
+    },
+    "tags": ["happiness", "success", "life", "philosophy"],
+    "source_url": "https://linkedin.com/posts/example-30"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Melanie Perkins",
+    "title": "Mission Driven",
+    "content": "Canva's mission: empower the world to design. Not 'build design software.' The mission guides every decision. Product, hiring, strategy. Mission-driven companies attract mission-driven people. They persevere through hard times. They think decades, not quarters. What's your mission?",
+    "summary": "Clear mission statements guide decisions and attract aligned talent",
+    "metrics": {
+      "likes": 9876,
+      "comments": 512,
+      "shares": 2345,
+      "viralScore": 81
+    },
+    "tags": ["mission", "leadership", "startups", "purpose"],
+    "source_url": "https://linkedin.com/posts/example-31"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Andrew Chen",
+    "title": "Cold Start Problem",
+    "content": "Every network has a cold start problem. Zero users = zero value. Solution: Find the atomic network - the smallest viable network. Get early adopters. Create immediate value. Then expand. Uber started with one city. Facebook started with one college. Start small. Start atomic.",
+    "summary": "Network effects begin by creating value for smallest viable group",
+    "metrics": {
+      "likes": 11234,
+      "comments": 589,
+      "shares": 2678,
+      "viralScore": 83
+    },
+    "tags": ["growth", "networks", "startups", "strategy"],
+    "source_url": "https://linkedin.com/posts/example-32"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Kat Cole",
+    "title": "Leadership Through Service",
+    "content": "I went from Hooters waitress to president of Cinnabon by age 32. How? Serve everyone like they're the CEO. Solve problems nobody asked you to solve. Raise your hand for the hard projects. Leadership is service. Ego is the enemy. Humility + hard work + help others = upward trajectory.",
+    "summary": "Service-minded leadership and solving hard problems drives career growth",
+    "metrics": {
+      "likes": 13456,
+      "comments": 712,
+      "shares": 3234,
+      "viralScore": 85
+    },
+    "tags": ["leadership", "career", "service", "growth"],
+    "source_url": "https://linkedin.com/posts/example-33"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Nassim Taleb",
+    "title": "Antifragile",
+    "content": "Fragile things break under stress. Robust things resist stress. Antifragile things get stronger from stress. Build antifragile systems: multiple income streams, diverse skills, strong relationships. Embrace volatility. Take small risks often. This is how you thrive in uncertainty.",
+    "summary": "Antifragile systems grow stronger from volatility and stress",
+    "metrics": {
+      "likes": 14567,
+      "comments": 745,
+      "shares": 3567,
+      "viralScore": 87
+    },
+    "tags": ["resilience", "risk", "philosophy", "systems"],
+    "source_url": "https://linkedin.com/posts/example-34"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Chris Voss",
+    "title": "Never Split the Difference",
+    "content": "Negotiation is not about compromise. It's about collaboration. Use tactical empathy: label emotions, mirror words, ask calibrated questions. 'How am I supposed to do that?' is more powerful than 'No.' Make the other side feel understood. Then guide them to your solution.",
+    "summary": "Tactical empathy in negotiation beats compromise",
+    "metrics": {
+      "likes": 12890,
+      "comments": 678,
+      "shares": 3098,
+      "viralScore": 84
+    },
+    "tags": ["negotiation", "communication", "business", "psychology"],
+    "source_url": "https://linkedin.com/posts/example-35"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Balaji Srinivasan",
+    "title": "Network State",
+    "content": "The future is digital-first communities. Build online, materialize offline. Start with values, attract aligned people, create economic value, gain recognition. The nation state is not the final form of human organization. Network states will compete with nation states. The future is opt-in.",
+    "summary": "Digital-first communities are evolving into new forms of governance",
+    "metrics": {
+      "likes": 8765,
+      "comments": 489,
+      "shares": 2123,
+      "viralScore": 79
+    },
+    "tags": ["future", "technology", "crypto", "governance"],
+    "source_url": "https://linkedin.com/posts/example-36"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Gretchen Rubin",
+    "title": "Know Yourself",
+    "content": "Self-knowledge is the foundation of happiness. Are you a morning person or night owl? Lark or owl? Marathoner or sprinter? Simplicity lover or abundance lover? The better you know yourself, the better you can design your life. Stop fighting your nature. Work with it.",
+    "summary": "Understanding your nature enables better life design",
+    "metrics": {
+      "likes": 11234,
+      "comments": 567,
+      "shares": 2678,
+      "viralScore": 82
+    },
+    "tags": ["happiness", "self-knowledge", "habits", "psychology"],
+    "source_url": "https://linkedin.com/posts/example-37"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Ray Dalio",
+    "title": "Principles",
+    "content": "Life is a series of choices followed by consequences. The quality of your life depends on the quality of your decisions. Write down your principles. When you face a situation, consult your principles. Evolve them. Share them. Principles = algorithms for decision making. Codify wisdom.",
+    "summary": "Written principles improve decision quality through systematization",
+    "metrics": {
+      "likes": 15678,
+      "comments": 823,
+      "shares": 3876,
+      "viralScore": 88
+    },
+    "tags": ["principles", "decision-making", "life", "wisdom"],
+    "source_url": "https://linkedin.com/posts/example-38"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Oprah Winfrey",
+    "title": "Intentional Living",
+    "content": "What I know for sure: You become what you believe. Your life is defined by your intention. Wake up with purpose. End the day with gratitude. The key to realizing a dream is to focus not on success but significance. What's your why? Live it daily.",
+    "summary": "Intentional daily practice of purpose and gratitude shapes life",
+    "metrics": {
+      "likes": 18234,
+      "comments": 945,
+      "shares": 4567,
+      "viralScore": 91
+    },
+    "tags": ["purpose", "mindset", "gratitude", "intention"],
+    "source_url": "https://linkedin.com/posts/example-39"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Sam Altman",
+    "title": "AI and The Future",
+    "content": "AI will change everything. The question is not if, but how fast. Learn to work with AI, not against it. The future belongs to those who can: think critically, communicate clearly, solve novel problems, work with AI tools. Don't fear AI. Learn to leverage it. It's a tool, not a replacement.",
+    "summary": "AI is inevitable; success requires learning to leverage it",
+    "metrics": {
+      "likes": 16789,
+      "comments": 912,
+      "shares": 4234,
+      "viralScore": 89
+    },
+    "tags": ["ai", "future", "technology", "career"],
+    "source_url": "https://linkedin.com/posts/example-40"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Brené Brown",
+    "title": "Dare to Lead",
+    "content": "Daring leadership is a collection of skills. Rumble with vulnerability. Live into our values. Brave trust. Learn to rise. These are learnable. Leadership is not about titles or org charts. It's about taking responsibility for finding potential in people and processes. Anyone can lead.",
+    "summary": "Leadership is learnable through vulnerability, values, and trust",
+    "metrics": {
+      "likes": 14321,
+      "comments": 734,
+      "shares": 3456,
+      "viralScore": 86
+    },
+    "tags": ["leadership", "courage", "vulnerability", "development"],
+    "source_url": "https://linkedin.com/posts/example-41"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Mark Cuban",
+    "title": "Sales Cures All",
+    "content": "In business, sales cure all. No matter how good your product, without sales you have nothing. Everyone in your company should know how to sell. And the CEO should be the best salesperson. Learn to sell. Learn to negotiate. Learn to close. It's the most valuable business skill.",
+    "summary": "Sales ability is the most critical business skill at all levels",
+    "metrics": {
+      "likes": 13567,
+      "comments": 689,
+      "shares": 3234,
+      "viralScore": 85
+    },
+    "tags": ["sales", "business", "entrepreneurship", "skills"],
+    "source_url": "https://linkedin.com/posts/example-42"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Arianna Huffington",
+    "title": "Thrive",
+    "content": "Burnout is not a badge of honor. Success is not just money and power. True success includes: well-being, wisdom, wonder, giving. Sleep is a performance enhancer, not time wasted. Take breaks. Disconnect to reconnect. You can't serve from an empty vessel. Prioritize your health.",
+    "summary": "True success includes wellbeing, not just professional achievement",
+    "metrics": {
+      "likes": 15234,
+      "comments": 812,
+      "shares": 3789,
+      "viralScore": 87
+    },
+    "tags": ["wellbeing", "health", "success", "burnout"],
+    "source_url": "https://linkedin.com/posts/example-43"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Eric Ries",
+    "title": "Lean Startup",
+    "content": "Build-Measure-Learn. The fundamental activity of a startup is to turn ideas into products, measure customer response, learn whether to pivot or persevere. Minimize total time through the loop. Every startup is a series of experiments. Fail fast, learn faster. Validated learning > vanity metrics.",
+    "summary": "Rapid experimentation and learning beats lengthy planning",
+    "metrics": {
+      "likes": 10234,
+      "comments": 534,
+      "shares": 2456,
+      "viralScore": 82
+    },
+    "tags": ["startups", "lean", "experimentation", "learning"],
+    "source_url": "https://linkedin.com/posts/example-44"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Malcolm Gladwell",
+    "title": "10,000 Hours",
+    "content": "Mastery requires 10,000 hours of deliberate practice. But it's not just time. It's quality practice: pushing beyond comfort zone, immediate feedback, repetition with reflection. Talent matters less than sustained, focused effort. The good news: mastery is accessible to anyone willing to put in the work.",
+    "summary": "Mastery comes from 10,000 hours of deliberate, focused practice",
+    "metrics": {
+      "likes": 12890,
+      "comments": 654,
+      "shares": 3098,
+      "viralScore": 84
+    },
+    "tags": ["mastery", "practice", "learning", "skill"],
+    "source_url": "https://linkedin.com/posts/example-45"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Susan Cain",
+    "title": "Quiet Power",
+    "content": "Introverts have superpowers. Deep thinking. Careful preparation. Listening. Creating. One-on-one connection. The world rewards extroversion, but introverts built half of Silicon Valley. You don't need to be the loudest to be effective. Use your quiet strengths. The world needs both types.",
+    "summary": "Introversion brings unique strengths in thinking, listening, and creating",
+    "metrics": {
+      "likes": 14567,
+      "comments": 723,
+      "shares": 3456,
+      "viralScore": 86
+    },
+    "tags": ["personality", "introvert", "strengths", "diversity"],
+    "source_url": "https://linkedin.com/posts/example-46"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Elon Musk",
+    "title": "First Principles Thinking",
+    "content": "Reasoning from first principles: Break down problems to fundamental truths. Build up from there. Don't reason by analogy - that's just copying. Ask: what are we sure is true? What has to exist? Then work forward. This is how you innovate. This is how you solve impossible problems.",
+    "summary": "First principles thinking enables breakthrough innovation",
+    "metrics": {
+      "likes": 21234,
+      "comments": 1123,
+      "shares": 5678,
+      "viralScore": 93
+    },
+    "tags": ["innovation", "thinking", "problemsolving", "physics"],
+    "source_url": "https://linkedin.com/posts/example-47"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Daniel Kahneman",
+    "title": "Thinking Fast and Slow",
+    "content": "We have two systems: System 1 (fast, intuitive) and System 2 (slow, deliberate). Most decisions are System 1. But System 1 is full of biases. For important decisions: slow down, engage System 2, challenge your assumptions. Awareness of biases doesn't eliminate them. Systems do.",
+    "summary": "Awareness of cognitive systems and biases improves decision quality",
+    "metrics": {
+      "likes": 13456,
+      "comments": 712,
+      "shares": 3234,
+      "viralScore": 85
+    },
+    "tags": ["psychology", "decision-making", "bias", "thinking"],
+    "source_url": "https://linkedin.com/posts/example-48"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Seth Godin",
+    "title": "This is Marketing",
+    "content": "Marketing is not advertising. It's serving people by creating change. It's empathy and connection. It's 'people like us do things like this.' Find your smallest viable audience. Serve them so well they can't imagine life without you. Build trust. Earn permission. Create tribes.",
+    "summary": "Marketing is service through empathy, trust, and community building",
+    "metrics": {
+      "likes": 16789,
+      "comments": 845,
+      "shares": 4123,
+      "viralScore": 88
+    },
+    "tags": ["marketing", "empathy", "community", "trust"],
+    "source_url": "https://linkedin.com/posts/example-49"
+  },
+  {
+    "platform": "linkedin",
+    "author": "Reed Hastings",
+    "title": "No Rules Rules",
+    "content": "Netflix culture: Freedom and Responsibility. High talent density. Candor. Minimal rules. We don't have vacation policies. We don't track hours. We fire adequate performers. We pay top of market. Context, not control. This only works with A players. Hire slow, fire fast.",
+    "summary": "Radical freedom works with high talent density and candor",
+    "metrics": {
+      "likes": 11890,
+      "comments": 623,
+      "shares": 2876,
+      "viralScore": 83
+    },
+    "tags": ["culture", "management", "netflix", "freedom"],
+    "source_url": "https://linkedin.com/posts/example-50"
+  }
+]

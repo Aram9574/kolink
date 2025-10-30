@@ -66,11 +66,11 @@ export function resetUser() {
 // Event tracking helpers
 export const analytics = {
   // Auth events
-  signIn: (method: "email" | "linkedin") => {
+  signIn: (method: "email" | "google" | "github") => {
     trackEvent("user_signed_in", { method });
   },
 
-  signUp: (method: "email" | "linkedin") => {
+  signUp: (method: "email" | "google" | "github") => {
     trackEvent("user_signed_up", { method });
   },
 
@@ -136,7 +136,7 @@ export const analytics = {
   },
 
   // Export events
-  postExported: (method: "linkedin" | "txt" | "md") => {
+  postExported: (method: "txt" | "md" | "clipboard") => {
     trackEvent("post_exported", { method });
   },
 
@@ -167,11 +167,6 @@ export const analytics = {
       platform_count: platforms.length,
       ai_score: aiScore,
     });
-  },
-
-  // LinkedIn OAuth
-  linkedinConnected: () => {
-    trackEvent("linkedin_account_connected");
   },
 
   // Page views

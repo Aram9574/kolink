@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import Button from "@/components/Button";
 import { supabaseClient } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
+import { analytics } from "@/lib/posthog";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -47,6 +48,9 @@ export default function SignUpPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ user: { id: data.user.id, email: data.user.email } }),
         }).catch(() => undefined);
+
+        // Track successful sign up
+        analytics.signUp("email");
       }
 
       if (data.session) {

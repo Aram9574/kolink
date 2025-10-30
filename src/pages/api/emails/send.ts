@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { resend, FROM_EMAIL } from "@/lib/resend";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { rateLimit, RATE_LIMIT_CONFIGS } from "@/lib/rateLimit";
 import fs from "fs/promises";
 import path from "path";
 
-type EmailType = "welcome" | "weekly";
+type EmailType = "welcome" | "weekly" | "reset-password" | "payment-successful" | "credits-low";
 
 interface EmailParams {
   to: string;
@@ -106,12 +107,104 @@ async function sendWeeklyEmail(to: string, data: Record<string, unknown>) {
 }
 
 /**
+ * Sends reset password email
+ */
+async function sendResetPasswordEmail(to: string, data: Record<string, unknown>) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
+
+  const emailData = {
+    userName: data.userName || "Usuario",
+    userEmail: to,
+    resetUrl: data.resetUrl || `${siteUrl}/reset-password`,
+    expiryMinutes: data.expiryMinutes || 60,
+    siteUrl,
+    ...data,
+  };
+
+  const html = await loadEmailTemplate("reset-password", emailData);
+
+  const result = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "Restablece tu contraseña - Kolink 🔐",
+    html,
+  });
+
+  return result;
+}
+
+/**
+ * Sends payment successful email
+ */
+async function sendPaymentSuccessfulEmail(to: string, data: Record<string, unknown>) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
+
+  const emailData = {
+    userName: data.userName || "Usuario",
+    planName: data.planName || "Basic",
+    creditsAdded: data.creditsAdded || 0,
+    paymentMethod: data.paymentMethod || "Tarjeta",
+    transactionDate: data.transactionDate || new Date().toLocaleDateString("es-ES"),
+    amount: data.amount || "0.00",
+    currency: data.currency || "USD",
+    invoiceNumber: data.invoiceNumber || "N/A",
+    dashboardUrl: `${siteUrl}/dashboard`,
+    siteUrl,
+    ...data,
+  };
+
+  const html = await loadEmailTemplate("payment-successful", emailData);
+
+  const result = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "¡Pago exitoso! Tu plan está activo 🎉",
+    html,
+  });
+
+  return result;
+}
+
+/**
+ * Sends credits low warning email
+ */
+async function sendCreditsLowEmail(to: string, data: Record<string, unknown>) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
+
+  const emailData = {
+    userName: data.userName || "Usuario",
+    creditsRemaining: data.creditsRemaining || 0,
+    postsThisMonth: data.postsThisMonth || 0,
+    creditsUsed: data.creditsUsed || 0,
+    upgradeUrl: `${siteUrl}/dashboard#plans`,
+    dashboardUrl: `${siteUrl}/dashboard`,
+    siteUrl,
+    ...data,
+  };
+
+  const html = await loadEmailTemplate("credits-low", emailData);
+
+  const result = await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: "⚠️ Tus créditos de Kolink están por agotarse",
+    html,
+  });
+
+  return result;
+}
+
+/**
  * Main API handler
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  // Apply rate limiting (AUTH config: 5 requests per 5 minutes)
+  const rateLimitResult = await rateLimit(req, res, RATE_LIMIT_CONFIGS.AUTH);
+  if (!rateLimitResult.allowed) return;
 
   try {
     // Verify authentication
@@ -133,8 +226,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Missing required fields: to, type" });
     }
 
-    if (!["welcome", "weekly"].includes(type)) {
-      return res.status(400).json({ error: "Invalid email type. Must be 'welcome' or 'weekly'" });
+    const validTypes = ["welcome", "weekly", "reset-password", "payment-successful", "credits-low"];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        error: "Invalid email type",
+        validTypes,
+        received: type
+      });
     }
 
     let result;
@@ -145,6 +243,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         break;
       case "weekly":
         result = await sendWeeklyEmail(to, data || {});
+        break;
+      case "reset-password":
+        result = await sendResetPasswordEmail(to, data || {});
+        break;
+      case "payment-successful":
+        result = await sendPaymentSuccessfulEmail(to, data || {});
+        break;
+      case "credits-low":
+        result = await sendCreditsLowEmail(to, data || {});
         break;
       default:
         return res.status(400).json({ error: "Invalid email type" });

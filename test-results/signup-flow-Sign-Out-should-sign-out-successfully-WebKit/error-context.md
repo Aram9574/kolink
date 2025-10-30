@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - link "KOLINK v0.4" [ref=e5]:
+          - /url: /
+          - img [ref=e6]
+          - generic [ref=e9]: KOLINK v0.4
+        - generic [ref=e10]:
+          - button "Toggle theme" [ref=e11] [cursor=pointer]:
+            - img [ref=e12]
+          - link "Iniciar sesión" [ref=e14]:
+            - /url: /signin
+          - link "Comienza Gratis" [ref=e15]:
+            - /url: /signup
+    - generic [ref=e17]:
+      - banner [ref=e18]:
+        - generic [ref=e19]:
+          - heading "Hey creador 👋" [level=1] [ref=e20]
+          - paragraph [ref=e21]: ¿Listo para crear contenido que se haga viral?
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - img [ref=e25]
+            - generic [ref=e28]:
+              - paragraph [ref=e29]: Plan actual
+              - paragraph [ref=e30]: Free
+          - generic [ref=e31]: "Créditos disponibles: —"
+          - button "Ver planes" [ref=e32] [cursor=pointer]
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - paragraph [ref=e36]: Cuéntale a Kolink AI
+          - paragraph [ref=e37]: Describe la idea, objetivo o formato que necesitas...
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - textbox "Escribe tu prompt o usa el micrófono..." [ref=e40]
+            - button "Iniciar reconocimiento de voz" [ref=e41] [cursor=pointer]:
+              - img [ref=e42]
+          - generic [ref=e45]:
+            - button "Generar" [disabled]:
+              - img
+              - text: Generar
+        - generic [ref=e46]:
+          - button "Escribe un post de insights del sector" [ref=e47] [cursor=pointer]
+          - button "Crea un post PAS" [ref=e48] [cursor=pointer]
+          - button "Reformula mi último post viral" [ref=e49] [cursor=pointer]
+        - generic [ref=e50]:
+          - generic [ref=e51]: "Consejo: sé específico con tu audiencia y CTA"
+          - button "Limpiar" [ref=e53] [cursor=pointer]
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: Temas frescos
+          - paragraph [ref=e58]: Selecciona los temas sobre los que quieres escribir esta semana
+        - generic [ref=e59]:
+          - button "Inteligencia artificial en salud" [ref=e60] [cursor=pointer]
+          - button "Crecimiento de SaaS B2B" [ref=e61] [cursor=pointer]
+          - button "Storytelling para founders" [ref=e62] [cursor=pointer]
+          - button "Productividad con IA" [ref=e63] [cursor=pointer]
+          - button "Transformación digital" [ref=e64] [cursor=pointer]
+          - button "Estrategia de contenidos" [ref=e65] [cursor=pointer]
+          - button "Marketing de comunidad" [ref=e66] [cursor=pointer]
+        - generic [ref=e67]:
+          - paragraph [ref=e68]: 3 temas seleccionados
+          - button "Confirmar temas" [ref=e69] [cursor=pointer]
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - heading "Tu último post" [level=2] [ref=e73]
+          - paragraph [ref=e74]: Aún no has generado publicaciones. Empieza con alguna idea en la parte superior.
+        - generic [ref=e75]:
+          - heading "Comparte Kolink" [level=2] [ref=e76]
+          - paragraph [ref=e77]: Da acceso a un colega y consigue 15% de comisión de por vida.
+          - generic [ref=e78]: $30 de crédito para ellos · 15% para ti
+          - button "Compartir Kolink" [ref=e79] [cursor=pointer]
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - paragraph [ref=e83]: Esta semana
+            - paragraph [ref=e84]: "0"
+          - img [ref=e85]
+        - generic [ref=e87]:
+          - generic [ref=e88]:
+            - paragraph [ref=e89]: Este mes
+            - paragraph [ref=e90]: "0"
+          - img [ref=e91]
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - paragraph [ref=e96]: Score promedio
+            - paragraph [ref=e97]: "0"
+          - img [ref=e98]
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - heading "Historial" [level=2] [ref=e102]
+          - generic [ref=e103]: 0 posts generados
+        - generic [ref=e104]: No hay publicaciones aún. Genera tu primer post para poblar este espacio.
+  - button "Open Next.js Dev Tools" [ref=e110] [cursor=pointer]:
+    - img [ref=e111]
+  - alert [ref=e116]
+```

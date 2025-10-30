@@ -6,6 +6,7 @@ import Card from "@/components/Card";
 import Loader from "@/components/Loader";
 import { supabaseClient } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
+import { analytics, resetUser } from "@/lib/posthog";
 
 type ProfileRecord = {
   full_name: string | null;
@@ -101,6 +102,10 @@ export default function AccountSetupPage() {
   };
 
   const handleLogout = async () => {
+    // Track sign out event
+    analytics.signOut();
+    resetUser();
+
     await supabaseClient.auth.signOut();
     router.replace("/signin");
   };

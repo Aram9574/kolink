@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit, RATE_LIMIT_CONFIGS } from "@/lib/rateLimit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -8,6 +9,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
   }
+
+  // Apply rate limiting (AUTH config: 5 requests per 5 minutes)
+  const rateLimitResult = await rateLimit(req, res, RATE_LIMIT_CONFIGS.AUTH);
+  if (!rateLimitResult.allowed) return;
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

@@ -11,6 +11,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export type AuthenticatedUser = {
   email: string;
@@ -41,58 +42,79 @@ export const test = base.extend<{
   user: AuthenticatedUser;
 }>({
   authenticatedPage: async ({ page }: { page: Page }, use) => {
-    // Create Supabase client
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Create test user (or sign in if exists)
-    let authResponse = await supabase.auth.signUp({
-      email: TEST_USER.email,
-      password: TEST_USER.password,
-      options: {
-        data: {
-          full_name: TEST_USER.name,
-        },
-        emailRedirectTo: undefined, // Skip email confirmation
+    // Create admin Supabase client for user creation (bypasses email confirmation)
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
     });
 
-    // If user already exists, sign in instead
-    if (authResponse.error?.message?.includes("already registered")) {
-      authResponse = await supabase.auth.signInWithPassword({
+    // Create test user using admin client (or skip if exists)
+    const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+      email_confirm: true, // Auto-confirm email for tests
+      user_metadata: {
+        full_name: TEST_USER.name,
+      },
+    });
+
+    // Ignore "already registered" errors - user exists from previous test run
+    if (createError && !createError.message.toLowerCase().includes("already been registered")) {
+      throw new Error(`Failed to create test user: ${createError.message}`);
+    }
+
+    // Sign in with regular client to get a valid session
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+    });
+
+    if (signInError || !authData.session) {
+      throw new Error(`Auth sign in failed: ${signInError?.message}`);
+    }
+
+    const { session } = authData;
+
+    // Ensure profile exists with onboarding completed
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .upsert({
+        id: authData.user.id,
         email: TEST_USER.email,
-        password: TEST_USER.password,
-      });
+        full_name: TEST_USER.name,
+        features: { onboarding_completed: true },
+        credits: 10, // Give test user some credits
+      }, { onConflict: "id" });
+
+    if (profileError) {
+      console.warn(`Warning: Failed to create profile: ${profileError.message}`);
     }
 
-    if (authResponse.error || !authResponse.data.session) {
-      throw new Error(`Auth setup failed: ${authResponse.error?.message}`);
-    }
-
-    const { session } = authResponse.data;
+    // Extract the project reference from the Supabase URL for localStorage key
+    const projectRef = supabaseUrl.split("//")[1]?.split(".")[0];
+    const storageKey = `sb-${projectRef}-auth-token`;
 
     // Inject session into browser storage
     await page.goto("/");
     await page.evaluate(
-      ({ session }) => {
+      ({ session, storageKey }) => {
         // Inject Supabase session into localStorage
-        const supabaseSession = {
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
-          expires_in: session.expires_in,
-          token_type: session.token_type,
-          user: session.user,
-        };
-
         localStorage.setItem(
-          `sb-${process.env.NEXT_PUBLIC_SUPABASE_URL?.split("//")[1]?.split(".")[0]}-auth-token`,
-          JSON.stringify(supabaseSession)
+          storageKey,
+          JSON.stringify(session)
         );
       },
-      { session }
+      { session, storageKey }
     );
 
     // Reload to apply session
     await page.reload();
+
+    // Wait for authentication to be recognized
+    await page.waitForTimeout(1000);
 
     await use(page);
 
@@ -101,39 +123,63 @@ export const test = base.extend<{
   },
 
   user: async ({}, use) => {
-    // Create Supabase client
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Create or sign in test user
-    let authResponse = await supabase.auth.signUp({
-      email: TEST_USER.email,
-      password: TEST_USER.password,
-      options: {
-        data: {
-          full_name: TEST_USER.name,
-        },
+    // Create admin client for user creation
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
     });
 
-    if (authResponse.error?.message?.includes("already registered")) {
-      authResponse = await supabase.auth.signInWithPassword({
-        email: TEST_USER.email,
-        password: TEST_USER.password,
-      });
-    }
-
-    if (authResponse.error || !authResponse.data.session) {
-      throw new Error(`User fixture failed: ${authResponse.error?.message}`);
-    }
-
-    const userData: AuthenticatedUser = {
+    // Create test user using admin client (or skip if exists)
+    const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: TEST_USER.email,
       password: TEST_USER.password,
-      userId: authResponse.data.user!.id,
-      accessToken: authResponse.data.session.access_token,
+      email_confirm: true,
+      user_metadata: {
+        full_name: TEST_USER.name,
+      },
+    });
+
+    // Ignore "already registered" errors - user exists from previous test run
+    if (createError && !createError.message.toLowerCase().includes("already been registered")) {
+      throw new Error(`Failed to create test user: ${createError.message}`);
+    }
+
+    // Sign in with regular client to get session
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+    });
+
+    if (signInError || !authData.session) {
+      throw new Error(`User fixture sign in failed: ${signInError?.message}`);
+    }
+
+    // Ensure profile exists with onboarding completed
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .upsert({
+        id: authData.user.id,
+        email: TEST_USER.email,
+        full_name: TEST_USER.name,
+        features: { onboarding_completed: true },
+        credits: 10, // Give test user some credits
+      }, { onConflict: "id" });
+
+    if (profileError) {
+      console.warn(`Warning: Failed to create profile: ${profileError.message}`);
+    }
+
+    const userDataResult: AuthenticatedUser = {
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+      userId: authData.user!.id,
+      accessToken: authData.session.access_token,
     };
 
-    await use(userData);
+    await use(userDataResult);
 
     // Cleanup
     await supabase.auth.signOut();
@@ -144,15 +190,19 @@ export const test = base.extend<{
  * Helper: Create a new user for testing
  */
 export async function createTestUser(email: string, password: string, name: string) {
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
-    options: {
-      data: {
-        full_name: name,
-      },
+    email_confirm: true,
+    user_metadata: {
+      full_name: name,
     },
   });
 
@@ -160,10 +210,17 @@ export async function createTestUser(email: string, password: string, name: stri
     throw new Error(`Failed to create test user: ${error.message}`);
   }
 
+  // Sign in to get access token
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const { data: authData } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
   return {
     userId: data.user!.id,
     email,
-    accessToken: data.session!.access_token,
+    accessToken: authData?.session?.access_token || "",
   };
 }
 
@@ -171,12 +228,14 @@ export async function createTestUser(email: string, password: string, name: stri
  * Helper: Delete a test user
  */
 export async function deleteTestUser(userId: string) {
-  const supabase = createClient(
-    supabaseUrl,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey
-  );
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 
-  const { error } = await supabase.auth.admin.deleteUser(userId);
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
   if (error) {
     console.warn(`Failed to delete test user ${userId}:`, error.message);
@@ -187,12 +246,14 @@ export async function deleteTestUser(userId: string) {
  * Helper: Give credits to test user
  */
 export async function giveCreditsToUser(userId: string, credits: number) {
-  const supabase = createClient(
-    supabaseUrl,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey
-  );
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from("profiles")
     .update({ credits })
     .eq("id", userId);

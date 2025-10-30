@@ -37,7 +37,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const body = req.body as SaveRequest;
 
   try {
-    if (body.type === "post") {
+    // If inspirationPostId is present, save as post (for backwards compatibility)
+    if ("inspirationPostId" in body || body.type === "post") {
+      // Check if already saved
+      const { data: existing } = await supabase
+        .from("saved_posts")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("inspiration_post_id", body.inspirationPostId)
+        .maybeSingle();
+
+      if (existing) {
+        return res.status(200).json({ ok: true, type: "post", message: "Post ya estaba guardado" });
+      }
+
       const { error } = await supabase.from("saved_posts").insert({
         user_id: user.id,
         inspiration_post_id: body.inspirationPostId,
@@ -52,6 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ ok: true, type: "post" });
     }
 
+    // Otherwise, save as search
     const { error } = await supabase.from("saved_searches").insert({
       user_id: user.id,
       name: body.name,

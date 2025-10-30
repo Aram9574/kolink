@@ -1,4 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+
+/**
+ * Load environment variables from .env.local
+ * This ensures Supabase credentials are available in test context
+ */
+dotenv.config({ path: path.resolve(__dirname, ".env.local") });
 
 /**
  * Playwright configuration for Kolink v0.7.3

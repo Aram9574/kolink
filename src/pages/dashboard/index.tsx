@@ -24,6 +24,7 @@ import ExportModal from "@/components/export/ExportModal";
 import EditorAI from "@/components/EditorAI";
 import { useNotifications } from "@/contexts/NotificationContext";
 import Navbar from "@/components/Navbar";
+import { analytics } from "@/lib/posthog";
 
 const TOPIC_OPTIONS = [
   "Inteligencia artificial en salud",
@@ -323,6 +324,13 @@ export default function Dashboard({ session }: DashboardProps) {
         viral_score: data.viralScore?.score ?? null,
       };
 
+      // Track post generation
+      analytics.postGenerated(
+        prompt,
+        newPost.viral_score ?? undefined,
+        data.remainingCredits
+      );
+
       setPosts((current) => [newPost, ...current]);
 
       try {
@@ -444,15 +452,15 @@ export default function Dashboard({ session }: DashboardProps) {
       <div className="min-h-screen bg-slate-50 pb-20 pt-20 lg:pl-64 dark:bg-slate-950">
         <div className="mx-auto max-w-6xl space-y-10 px-4 sm:px-6 lg:px-8">
           <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div>
+            <div className="space-y-3">
               <h1 className="text-3xl font-semibold text-slate-900 dark:text-white md:text-4xl">
                 Hey {firstName} 👋
               </h1>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-300">
+              <p className="text-base text-slate-500 dark:text-slate-300 md:text-sm">
                 ¿Listo para crear contenido que se haga viral?
               </p>
             </div>
-            <Card className="w-full max-w-xs border-blue-100 bg-white p-5 shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <Card className="w-full md:max-w-xs border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
               <div className="flex items-center gap-3">
                 <div className="rounded-full bg-blue-50 p-3 text-blue-600">
                   <Sparkles className="h-5 w-5" />
@@ -464,10 +472,10 @@ export default function Dashboard({ session }: DashboardProps) {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 rounded-2xl bg-blue-50/60 px-4 py-3 text-sm font-semibold text-blue-700">
+              <div className="mt-4 rounded-2xl bg-blue-50/60 px-4 py-3 text-base font-semibold text-blue-700">
                 Créditos disponibles: {credits ?? "—"}
               </div>
-              <Button variant="outline" className="mt-4 w-full" onClick={() => setShowPlansModal(true)}>
+              <Button variant="outline" className="mt-4 w-full min-h-[48px]" onClick={() => setShowPlansModal(true)}>
                 Ver planes
               </Button>
             </Card>
@@ -494,13 +502,13 @@ export default function Dashboard({ session }: DashboardProps) {
                 language={preferredLanguage}
               />
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 md:gap-2">
                 {PRESET_OPTIONS.map((preset) => (
                   <button
                     key={preset.id}
                     type="button"
                     onClick={() => setActivePreset(preset.id)}
-                    className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                    className={`rounded-full border px-5 py-3 md:px-4 md:py-2 text-sm md:text-xs font-semibold transition min-h-[48px] md:min-h-0 ${
                       activePreset === preset.id
                         ? "border-primary bg-primary text-white shadow-md"
                         : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary dark:border-slate-600 dark:text-slate-300"
@@ -512,13 +520,13 @@ export default function Dashboard({ session }: DashboardProps) {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-xs text-slate-400">
+                <div className="text-sm md:text-xs text-slate-400">
                   {activePreset === "repurpose"
                     ? "Usaremos tu último post con mejor desempeño"
                     : "Consejo: sé específico con tu audiencia y CTA"}
                 </div>
                 <div className="flex gap-3">
-                  <Button variant="ghost" onClick={() => { setPrompt(""); setViralScore(undefined); setRecommendations([]); }}>
+                  <Button variant="ghost" className="min-h-[48px]" onClick={() => { setPrompt(""); setViralScore(undefined); setRecommendations([]); }}>
                     Limpiar
                   </Button>
                 </div>
@@ -540,7 +548,7 @@ export default function Dashboard({ session }: DashboardProps) {
                       key={topic}
                       type="button"
                       onClick={() => toggleTopic(topic)}
-                      className={`rounded-full border px-4 py-2 text-sm transition ${
+                      className={`rounded-full border px-5 py-3 md:px-4 md:py-2 text-sm md:text-sm transition min-h-[48px] md:min-h-0 ${
                         active
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary"
@@ -552,8 +560,8 @@ export default function Dashboard({ session }: DashboardProps) {
                 })}
               </div>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-slate-400">{selectedTopics.length} temas seleccionados</p>
-                <Button variant="outline" className="px-6">Confirmar temas</Button>
+                <p className="text-sm md:text-xs text-slate-400">{selectedTopics.length} temas seleccionados</p>
+                <Button variant="outline" className="px-6 min-h-[48px]">Confirmar temas</Button>
               </div>
             </Card>
           </motion.section>
@@ -611,31 +619,31 @@ export default function Dashboard({ session }: DashboardProps) {
               <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-xs font-semibold text-green-600">
                 $30 de crédito para ellos · 15% para ti
               </div>
-              <Button variant="outline" className="mt-6 w-full" onClick={() => router.push("/profile")}>Compartir Kolink</Button>
+              <Button variant="outline" className="mt-6 w-full min-h-[48px]" onClick={() => router.push("/profile")}>Compartir Kolink</Button>
             </Card>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-3">
-            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+          <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 md:p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Esta semana</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{postsThisWeek}</p>
+                <p className="mt-3 text-3xl md:text-2xl font-semibold text-slate-900 dark:text-white">{postsThisWeek}</p>
               </div>
-              <Activity className="h-8 w-8 text-blue-500" />
+              <Activity className="h-10 w-10 md:h-8 md:w-8 text-blue-500" />
             </Card>
-            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 md:p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Este mes</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{postsThisMonth}</p>
+                <p className="mt-3 text-3xl md:text-2xl font-semibold text-slate-900 dark:text-white">{postsThisMonth}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-500" />
+              <TrendingUp className="h-10 w-10 md:h-8 md:w-8 text-blue-500" />
             </Card>
-            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 md:p-6 shadow-md dark:border-slate-700 dark:bg-slate-900 sm:col-span-2 md:col-span-1">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Score promedio</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{averageViralScore}</p>
+                <p className="mt-3 text-3xl md:text-2xl font-semibold text-slate-900 dark:text-white">{averageViralScore}</p>
               </div>
-              <BarChart3 className="h-8 w-8 text-blue-500" />
+              <BarChart3 className="h-10 w-10 md:h-8 md:w-8 text-blue-500" />
             </Card>
           </section>
 
@@ -674,24 +682,24 @@ export default function Dashboard({ session }: DashboardProps) {
                           {post.generated_text}
                         </p>
                       </div>
-                      <div className="flex flex-shrink-0 items-center gap-2">
+                      <div className="flex flex-shrink-0 flex-wrap sm:flex-nowrap items-center gap-2">
                         <button
                           onClick={() => handleExport(post.generated_text, post.prompt)}
-                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                          className="rounded-xl border border-slate-200 px-4 py-3 md:px-3 md:py-2 text-sm md:text-xs text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 min-h-[44px] md:min-h-0 flex items-center justify-center"
                         >
-                          <Share2 className="mr-1 h-3.5 w-3.5" /> Exportar
+                          <Share2 className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5" /> <span>Exportar</span>
                         </button>
                         <button
                           onClick={() => handleCopy(post.generated_text, post.id)}
-                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                          className="rounded-xl border border-slate-200 px-4 py-3 md:px-3 md:py-2 text-sm md:text-xs text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 min-h-[44px] md:min-h-0 flex items-center justify-center"
                         >
-                          {copiedId === post.id ? <Check className="mr-1 h-3.5 w-3.5 text-primary" /> : <Copy className="mr-1 h-3.5 w-3.5" />} Copiar
+                          {copiedId === post.id ? <Check className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5 text-primary" /> : <Copy className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5" />} <span>Copiar</span>
                         </button>
                         <button
                           onClick={() => handleDelete(post.id)}
-                          className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-500 transition hover:bg-red-50 dark:border-red-600/50 dark:hover:bg-red-950"
+                          className="rounded-xl border border-red-200 px-4 py-3 md:px-3 md:py-2 text-sm md:text-xs text-red-500 transition hover:bg-red-50 dark:border-red-600/50 dark:hover:bg-red-950 min-h-[44px] md:min-h-0 flex items-center justify-center"
                         >
-                          <Trash2 className="mr-1 h-3.5 w-3.5" /> Eliminar
+                          <Trash2 className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5" /> <span>Eliminar</span>
                         </button>
                       </div>
                     </div>

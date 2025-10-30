@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { repurposePost } from "@/server/services/writerService";
+import { aiGenerationLimiter } from "@/lib/rateLimiter";
 
 type RepurposeRequestBody = {
   postId?: string;
@@ -28,6 +29,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (userError || !user) {
     return res.status(401).json({ error: "Sesión inválida" });
+  }
+
+  // Rate limiting: 10 requests per minute (same as generation)
+  try {
+    const { success, reset } = await aiGenerationLimiter.limit(`repurpose_${user.id}`);
+
+    if (!success) {
+      res.setHeader("Retry-After", Math.ceil(reset / 1000));
+      return res.status(429).json({
+        error: "Demasiados intentos de repurposing. Intenta de nuevo más tarde.",
+        retryAfter: Math.ceil(reset / 1000),
+      });
+    }
+  } catch (error) {
+    console.error("❌ Error en rate limiter:", error);
+    // Continue without rate limiting if error
   }
 
   const body = req.body as RepurposeRequestBody;
