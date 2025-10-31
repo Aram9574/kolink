@@ -63,6 +63,22 @@ export function resetUser() {
   posthog.reset();
 }
 
+export function setAnalyticsOptInState(enabled: boolean) {
+  if (typeof window === "undefined") return;
+  if (!posthogInitialized) {
+    if (enabled) {
+      initPostHog();
+    }
+    return;
+  }
+
+  if (enabled) {
+    posthog.opt_in_capturing();
+  } else {
+    posthog.opt_out_capturing();
+  }
+}
+
 // Event tracking helpers
 export const analytics = {
   // Auth events

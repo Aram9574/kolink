@@ -36,6 +36,8 @@ type InspirationPost = {
   id: string;
   platform: string;
   author: string;
+  author_url?: string;
+  author_profile_image?: string;
   title?: string;
   content: string;
   summary?: string;
@@ -44,9 +46,14 @@ type InspirationPost = {
     likes?: number;
     shares?: number;
     comments?: number;
+    views?: number;
   };
   capturedAt: string;
   similarity?: number;
+  original_url?: string;
+  language?: string;
+  country?: string;
+  sector?: string;
 };
 
 type SavedSearchFilters = {
@@ -58,6 +65,9 @@ type SavedSearchFilters = {
   minLikes?: number;
   period?: string;
   hashtags?: string[];
+  language?: string;
+  sector?: string;
+  country?: string;
 };
 
 type SavedSearch = {
@@ -77,6 +87,9 @@ type RuntimeFilters = {
   period?: string;
   hashtags?: string[];
   sort?: "recent" | "top";
+  language?: string;
+  sector?: string;
+  country?: string;
 };
 
 const defaultMinLikes = 0;
@@ -107,6 +120,43 @@ const platformOptions = [
   { id: "linkedin", label: "LinkedIn" },
   { id: "twitter", label: "Twitter/X" },
   { id: "instagram", label: "Instagram" },
+];
+
+const languageOptions = [
+  { id: "", label: "Todos los idiomas" },
+  { id: "es", label: "Español" },
+  { id: "en", label: "English" },
+  { id: "fr", label: "Français" },
+  { id: "de", label: "Deutsch" },
+  { id: "it", label: "Italiano" },
+  { id: "pt", label: "Português" },
+];
+
+const sectorOptions = [
+  { id: "", label: "Todos los sectores" },
+  { id: "tech", label: "Tecnología" },
+  { id: "marketing", label: "Marketing" },
+  { id: "sales", label: "Ventas" },
+  { id: "leadership", label: "Liderazgo" },
+  { id: "productivity", label: "Productividad" },
+  { id: "entrepreneurship", label: "Emprendimiento" },
+  { id: "finance", label: "Finanzas" },
+  { id: "health", label: "Salud" },
+  { id: "education", label: "Educación" },
+];
+
+const countryOptions = [
+  { id: "", label: "Todos los países" },
+  { id: "US", label: "Estados Unidos" },
+  { id: "ES", label: "España" },
+  { id: "MX", label: "México" },
+  { id: "AR", label: "Argentina" },
+  { id: "CO", label: "Colombia" },
+  { id: "CL", label: "Chile" },
+  { id: "PE", label: "Perú" },
+  { id: "GB", label: "Reino Unido" },
+  { id: "FR", label: "Francia" },
+  { id: "DE", label: "Alemania" },
 ];
 
 const sanitizeHashtagsArray = (hashtags?: string[]) =>
@@ -154,6 +204,9 @@ export default function InspirationPage() {
   const [minLikes, setMinLikes] = useState(defaultMinLikes);
   const [timeRange, setTimeRange] = useState("");
   const [hashtagsInput, setHashtagsInput] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("");
+  const [selectedSector, setSelectedSector] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
   const [results, setResults] = useState<InspirationPost[]>([]);
   const [resultsCount, setResultsCount] = useState(0);
   const [sortOption, setSortOption] = useState<"recent" | "top">("recent");
@@ -889,6 +942,69 @@ export default function InspirationPage() {
                         {option.label}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                {/* Advanced Filters Section */}
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">
+                    Filtros Avanzados
+                  </p>
+
+                  <div className="space-y-4">
+                    {/* Language Filter */}
+                    <div>
+                      <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                        Idioma
+                      </p>
+                      <select
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                      >
+                        {languageOptions.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Sector Filter */}
+                    <div>
+                      <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                        Sector
+                      </p>
+                      <select
+                        value={selectedSector}
+                        onChange={(e) => setSelectedSector(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                      >
+                        {sectorOptions.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Country Filter */}
+                    <div>
+                      <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">
+                        País
+                      </p>
+                      <select
+                        value={selectedCountry}
+                        onChange={(e) => setSelectedCountry(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                      >
+                        {countryOptions.map((option) => (
+                          <option key={option.id} value={option.id}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 

@@ -7,6 +7,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { Coins, Sparkles, LogOut, Cog, LifeBuoy, Users, Trophy, Bell } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 type NavbarProps = {
   session: Session | null | undefined;
@@ -94,7 +95,7 @@ export default function Navbar({ session }: NavbarProps) {
   };
 
   const handleSupport = () => {
-    window.location.href = "mailto:info@kolink.es";
+    router.push("/support");
   };
 
   const handleCommunity = () => {
@@ -114,6 +115,7 @@ export default function Navbar({ session }: NavbarProps) {
 
           <div className="flex items-center gap-4">
             <ThemeToggle />
+            <LanguageSwitcher />
             <Link
               href="/signin"
               className="text-sm font-medium text-text-light dark:text-text-dark hover:text-primary transition-colors"
@@ -190,6 +192,7 @@ export default function Navbar({ session }: NavbarProps) {
           </div>
 
           <ThemeToggle />
+          <LanguageSwitcher />
 
           {/* Profile Avatar Menu */}
           <div className="group relative">

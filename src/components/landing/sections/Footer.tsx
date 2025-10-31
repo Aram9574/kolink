@@ -110,29 +110,29 @@ export function Footer() {
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-white">Legal</h3>
             <ul className="space-y-3">
               <li>
-                <a href="/legal/privacy" className="transition hover:text-blue-400">
+                <Link href="/legal/privacidad" className="transition hover:text-blue-400">
                   Política de Privacidad
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/legal/terms" className="transition hover:text-blue-400">
+                <Link href="/legal/terms" className="transition hover:text-blue-400">
                   Términos de Servicio
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/legal/cookies" className="transition hover:text-blue-400">
+                <Link href="/legal/cookies" className="transition hover:text-blue-400">
                   Política de Cookies
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/legal/refund" className="transition hover:text-blue-400">
+                <Link href="/legal/refund" className="transition hover:text-blue-400">
                   Política de Reembolso
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/legal/gdpr" className="transition hover:text-blue-400">
+                <Link href="/legal/gdpr" className="transition hover:text-blue-400">
                   GDPR
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

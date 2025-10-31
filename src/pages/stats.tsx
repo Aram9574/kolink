@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { Session } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import { BarChart3 } from "lucide-react";
-import StatsCard from "@/components/dashboard/StatsCard";
+import EnhancedStatsCard from "@/components/dashboard/EnhancedStatsCard";
 import Loader from "@/components/Loader";
 import Navbar from "@/components/Navbar";
 
@@ -54,7 +54,7 @@ export default function Stats({ session }: StatsProps) {
         </motion.header>
 
         {/* Stats Component */}
-          <StatsCard />
+          <EnhancedStatsCard />
         </div>
       </div>
     </>

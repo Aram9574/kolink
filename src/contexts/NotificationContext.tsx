@@ -37,36 +37,44 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setMounted(true);
   }, []);
 
+  const baseStyle = {
+    borderRadius: "12px",
+    background: "var(--background)",
+    color: "var(--foreground)",
+    border: "1px solid var(--border)",
+    fontSize: "14px",
+    padding: "12px 16px",
+  } as const;
+
   const notifySuccess = (message: string) => {
     toast.success(message, {
-      duration: 3000,
+      duration: 3200,
       icon: "✅",
+      style: baseStyle,
     });
   };
 
   const notifyError = (message: string) => {
     toast.error(message, {
-      duration: 4000,
-      icon: "❌",
+      duration: 3800,
+      icon: "⛔",
+      style: baseStyle,
     });
   };
 
   const notifyInfo = (message: string) => {
     toast(message, {
-      duration: 3000,
+      duration: 3200,
       icon: "ℹ️",
+      style: baseStyle,
     });
   };
 
   const notifyWarning = (message: string) => {
     toast(message, {
-      duration: 4000,
+      duration: 3600,
       icon: "⚠️",
-      style: {
-        background: "var(--background)",
-        color: "var(--foreground)",
-        border: "1px solid #F9D65C",
-      },
+      style: { ...baseStyle, border: "1px solid #F9D65C" },
     });
   };
 

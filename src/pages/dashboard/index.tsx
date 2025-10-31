@@ -28,6 +28,7 @@ import { analytics } from "@/lib/posthog";
 import { ViralScoreTooltip } from "@/components/dashboard/ViralScoreTooltip";
 import { PostPreviewModal } from "@/components/dashboard/PostPreviewModal";
 import { PromptSuggestions } from "@/components/dashboard/PromptSuggestions";
+import { ContentControls } from "@/components/dashboard/ContentControls";
 
 const TOPIC_OPTIONS = [
   "Inteligencia artificial en salud",
@@ -92,8 +93,10 @@ export default function Dashboard({ session }: DashboardProps) {
   const [selectedTopics, setSelectedTopics] = useState<string[]>(TOPIC_OPTIONS.slice(0, 3));
   const [activePreset, setActivePreset] = useState<(typeof PRESET_OPTIONS)[number]["id"]>("insight");
   const [viralScore, setViralScore] = useState<number | undefined>(undefined);
-  const [toneProfile, setToneProfile] = useState<string>("");
+  const [toneProfile, setToneProfile] = useState<string>("professional");
   const [preferredLanguage, setPreferredLanguage] = useState<'es-ES' | 'en-US' | 'pt-BR'>('es-ES');
+  const [formality, setFormality] = useState<number>(50);
+  const [length, setLength] = useState<number>(200);
   const { isReady, query } = router;
   const { notifySuccess, notifyError, notifyInfo, checkCreditReminder, setupRealtimeNotifications, cleanupRealtimeNotifications } = useNotifications();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -165,9 +168,10 @@ export default function Dashboard({ session }: DashboardProps) {
   }, [userId, setupRealtimeNotifications, cleanupRealtimeNotifications]);
 
   useEffect(() => {
+    const timeoutId = redirectTimeoutRef.current;
     return () => {
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
     };
   }, []);
@@ -310,6 +314,8 @@ export default function Dashboard({ session }: DashboardProps) {
           preset: activePreset,
           toneProfile: toneProfile || undefined,
           language: preferredLanguage,
+          formality,
+          length,
         }),
         signal: controller.signal,
       });
@@ -583,6 +589,16 @@ export default function Dashboard({ session }: DashboardProps) {
                   </div>
                 </div>
               )}
+
+              {/* Content Controls */}
+              <ContentControls
+                tone={toneProfile}
+                onToneChange={setToneProfile}
+                formality={formality}
+                onFormalityChange={setFormality}
+                length={length}
+                onLengthChange={setLength}
+              />
 
               <EditorAI
                 value={prompt}

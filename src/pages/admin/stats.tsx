@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
@@ -66,6 +66,27 @@ export default function AdminStats({ session }: AdminStatsProps) {
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [userGrowth, setUserGrowth] = useState<UserGrowth[]>([]);
   const [planDistribution, setPlanDistribution] = useState<PlanDistribution[]>([]);
+  const [accessLogged, setAccessLogged] = useState(false);
+
+  const recordAdminAccess = useCallback(async (action: string, metadata?: Record<string, unknown>) => {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return;
+
+    try {
+      await fetch("/api/admin/log-access", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action, metadata }),
+      });
+      setAccessLogged(true);
+    } catch (error) {
+      console.error("Failed to log admin access:", error);
+    }
+  }, []);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -98,10 +119,13 @@ export default function AdminStats({ session }: AdminStatsProps) {
 
       setIsAdmin(true);
       loadStats();
+      if (!accessLogged) {
+        recordAdminAccess("admin_dashboard_access", { route: router.asPath });
+      }
     }
 
     checkAdminRole();
-  }, [session, router]);
+  }, [session, router, accessLogged, recordAdminAccess]);
 
   // Load global statistics
   const loadStats = async () => {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Shield, Key, Copy, CheckCircle, AlertTriangle } from "lucide-react";
+import Image from "next/image";
 import Button from "@/components/Button";
 import { supabaseClient } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
@@ -15,7 +16,6 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
   const [step, setStep] = useState<"intro" | "scan" | "verify" | "complete">("intro");
   const [loading, setLoading] = useState(false);
   const [secret, setSecret] = useState("");
-  const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [qrCodeData, setQrCodeData] = useState("");
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [verificationCode, setVerificationCode] = useState("");
@@ -43,7 +43,6 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
 
       if (result.success) {
         setSecret(result.data.secret);
-        setQrCodeUrl(result.data.qrCodeUrl);
         setBackupCodes(result.data.backupCodes);
 
         // Generate QR code image
@@ -217,7 +216,14 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
           {qrCodeData && (
             <div className="flex justify-center">
               <div className="rounded-2xl border-4 border-slate-200 bg-white p-4">
-                <img src={qrCodeData} alt="QR Code" className="h-64 w-64" />
+                <Image
+                  src={qrCodeData}
+                  alt="Código QR de Kolink"
+                  width={256}
+                  height={256}
+                  className="h-64 w-64"
+                  priority
+                />
               </div>
             </div>
           )}

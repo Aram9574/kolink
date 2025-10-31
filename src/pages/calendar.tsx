@@ -25,6 +25,13 @@ type CalendarEvent = {
   status: string;
 };
 
+type Post = {
+  id: string;
+  generated_text: string;
+  created_at: string;
+  viral_score?: number;
+};
+
 type BestTimeSlot = {
   hour: number;
   dayOfWeek: number;
@@ -45,6 +52,9 @@ export default function CalendarPage() {
   const [bestTimes, setBestTimes] = useState<BestTimeSlot[]>([]);
   const [patternLoading, setPatternLoading] = useState(true);
   const [patternMessage, setPatternMessage] = useState<string | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [selectedPost, setSelectedPost] = useState<string | null>(null);
+  const [loadingPosts, setLoadingPosts] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -136,9 +146,36 @@ export default function CalendarPage() {
     }
   };
 
+  const loadPosts = async () => {
+    if (!session?.user) return;
+
+    setLoadingPosts(true);
+    try {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("id, generated_text, created_at, viral_score")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      console.error("Error loading posts:", error);
+      toast.error("Error al cargar posts");
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
   const handleSchedule = async () => {
     if (!session || selectedPlatforms.length === 0) {
       toast.error("Selecciona al menos una plataforma");
+      return;
+    }
+
+    if (!selectedPost) {
+      toast.error("Selecciona un post para programar");
       return;
     }
 
@@ -152,6 +189,7 @@ export default function CalendarPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          postId: selectedPost,
           datetime: selectedDate || undefined,
           platforms: selectedPlatforms,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -164,6 +202,7 @@ export default function CalendarPage() {
         toast.success("Evento programado exitosamente");
         setShowScheduleModal(false);
         setSelectedDate("");
+        setSelectedPost(null);
         setSelectedPlatforms(["linkedin"]);
         loadEvents();
         fetchBestTimes(token);
@@ -176,6 +215,11 @@ export default function CalendarPage() {
     } finally {
       setScheduling(false);
     }
+  };
+
+  const handleOpenScheduleModal = () => {
+    setShowScheduleModal(true);
+    loadPosts();
   };
 
   const togglePlatform = (platform: string) => {
@@ -225,7 +269,7 @@ export default function CalendarPage() {
               Programa tus posts en los mejores momentos con IA
             </p>
           </div>
-          <Button onClick={() => setShowScheduleModal(true)} className="min-h-[48px] w-full md:w-auto">
+          <Button onClick={handleOpenScheduleModal} className="min-h-[48px] w-full md:w-auto">
             <CalendarIcon className="w-5 h-5 md:w-4 md:h-4 mr-2" />
             Programar Post
           </Button>
@@ -261,13 +305,47 @@ export default function CalendarPage() {
 
           {events.length === 0 ? (
             <Card className="text-center py-12 p-6">
-              <CalendarIcon className="w-16 h-16 md:w-12 md:h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg mb-2">
-                No hay publicaciones programadas
-              </p>
-              <p className="text-gray-400 dark:text-gray-500 text-base md:text-sm">
-                Programa tu primer post para comenzar
-              </p>
+              <div className="max-w-md mx-auto">
+                <CalendarIcon className="w-16 h-16 md:w-12 md:h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg mb-2 font-semibold">
+                  No hay publicaciones programadas
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-base md:text-sm mb-6">
+                  Crea contenido primero o programa publicaciones existentes
+                </p>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    onClick={() => router.push("/dashboard")}
+                    className="min-h-[48px] flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    Generar Post con IA
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={handleOpenScheduleModal}
+                    className="min-h-[48px] flex items-center justify-center gap-2"
+                  >
+                    <CalendarIcon className="w-5 h-5" />
+                    Ver Mis Posts
+                  </Button>
+                </div>
+
+                {/* Helpful Tips */}
+                <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 text-left">
+                  <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                    💡 ¿Cómo empezar?
+                  </h4>
+                  <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
+                    <li>1. Genera contenido en el Dashboard</li>
+                    <li>2. Guarda los posts que más te gusten</li>
+                    <li>3. Vuelve aquí para programarlos</li>
+                    <li>4. La IA te sugerirá los mejores horarios</li>
+                  </ul>
+                </div>
+              </div>
             </Card>
           ) : (
             <div className="space-y-4">
@@ -334,12 +412,64 @@ export default function CalendarPage() {
         {/* Schedule Modal */}
         {showScheduleModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="max-w-md w-full p-6 md:p-8">
+            <Card className="max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto">
               <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6 md:mb-4">
                 Programar Publicación
               </h2>
 
               <div className="space-y-6 md:space-y-4">
+                {/* Post Selection */}
+                <div>
+                  <label className="block text-base md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Selecciona un Post
+                  </label>
+                  {loadingPosts ? (
+                    <div className="text-center py-4">
+                      <Loader size={24} />
+                      <p className="text-sm text-gray-500 mt-2">Cargando posts...</p>
+                    </div>
+                  ) : posts.length === 0 ? (
+                    <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                      <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500 dark:text-gray-400 mb-2">No tienes posts guardados</p>
+                      <Button
+                        variant="secondary"
+                        onClick={() => router.push("/dashboard")}
+                        className="mt-2"
+                      >
+                        Crear Post Ahora
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {posts.map((post) => (
+                        <button
+                          key={post.id}
+                          onClick={() => setSelectedPost(post.id)}
+                          className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                            selectedPost === post.id
+                              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                          }`}
+                        >
+                          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 mb-2">
+                            {post.generated_text}
+                          </p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                            <span>{new Date(post.created_at).toLocaleDateString('es-ES')}</span>
+                            {post.viral_score && (
+                              <span className="flex items-center gap-1">
+                                <Sparkles className="w-3 h-3" />
+                                {post.viral_score.toFixed(0)}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Date/Time */}
                 <div>
                   <label className="block text-base md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

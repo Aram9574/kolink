@@ -7,20 +7,21 @@ import { supabaseClient } from "@/lib/supabaseClient";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
-import { initPostHog, identifyUser, analytics } from "@/lib/posthog";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { ConsentProvider } from "@/contexts/ConsentContext";
+import { identifyUser, analytics } from "@/lib/posthog";
 import Sidebar from "@/components/Sidebar";
+import FeedbackButton from "@/components/support/FeedbackButton";
+import OnboardingTour from "@/components/onboarding/OnboardingTour";
+import CookieBanner from "@/components/compliance/CookieBanner";
 
 export default function App({ Component, pageProps }: AppProps) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
 
   // Páginas que no necesitan sidebar (landing, auth)
-  const publicPages = ["/", "/signin", "/signup", "/account-setup"];
+  const publicPages = ["/", "/signin", "/signup", "/account-setup", "/forgot-password", "/reset-password"];
   const showSidebar = session && !publicPages.includes(router.pathname);
-
-  useEffect(() => {
-    initPostHog();
-  }, []);
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
@@ -72,25 +73,34 @@ export default function App({ Component, pageProps }: AppProps) {
     };
   }, []);
 
+  const userId = session?.user?.id ?? null;
+
   return (
     <ThemeProvider>
-      <NotificationProvider>
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            style: {
-              background: "var(--background)",
-              color: "var(--foreground)",
-              borderRadius: "0.75rem",
-              border: "1px solid var(--border)",
-              fontSize: "14px",
-              padding: "12px 16px",
-            },
-          }}
-        />
-        {showSidebar && <Sidebar session={session} />}
-        <Component {...pageProps} session={session} />
-      </NotificationProvider>
+      <ConsentProvider>
+        <LanguageProvider userId={userId}>
+          <NotificationProvider>
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                style: {
+                  background: "var(--background)",
+                  color: "var(--foreground)",
+                  borderRadius: "0.75rem",
+                  border: "1px solid var(--border)",
+                  fontSize: "14px",
+                  padding: "12px 16px",
+                },
+              }}
+            />
+            {showSidebar && <Sidebar session={session} />}
+            <Component {...pageProps} session={session} />
+            <OnboardingTour userId={userId} />
+            <FeedbackButton />
+            <CookieBanner />
+          </NotificationProvider>
+        </LanguageProvider>
+      </ConsentProvider>
     </ThemeProvider>
   );
 }

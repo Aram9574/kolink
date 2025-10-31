@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   FilePenLine,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -50,6 +51,11 @@ export default function Sidebar({ session }: SidebarProps) {
       name: "Estadísticas",
       icon: BarChart3,
       href: "/stats",
+    },
+    {
+      name: "Centro de ayuda",
+      icon: LifeBuoy,
+      href: "/support",
     },
   ];
 

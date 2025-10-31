@@ -26,6 +26,10 @@ import Button from "@/components/Button";
 import Loader from "@/components/Loader";
 import toast from "react-hot-toast";
 import Navbar from "@/components/Navbar";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import CookieSettingsCard from "@/components/compliance/CookieSettingsCard";
+import Link from "next/link";
 
 type ProfileProps = {
   session: Session | null | undefined;
@@ -40,6 +44,7 @@ type Profile = {
   full_name: string | null;
   features: Record<string, unknown> | null;
   preferred_language?: string;
+  timezone?: string;
   // Gamificación
   xp?: number;
   level?: number;
@@ -99,9 +104,10 @@ export default function Profile({ session }: ProfileProps) {
   const [newTopic, setNewTopic] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState("es-ES");
   const [savingLanguage, setSavingLanguage] = useState(false);
+  const [timezone, setTimezone] = useState("UTC");
+  const [savingTimezone, setSavingTimezone] = useState(false);
   const [toneProfile, setToneProfile] = useState<string>("");
   const [tonePreset, setTonePreset] = useState<string>("profesional");
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [notificationPrefs, setNotificationPrefs] = useState({
     email_notifications: true,
     credit_reminders: true,
@@ -110,6 +116,8 @@ export default function Profile({ session }: ProfileProps) {
   });
   const [savingSettings, setSavingSettings] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+  const [disconnectingLinkedIn, setDisconnectingLinkedIn] = useState(false);
 
   useEffect(() => {
     if (session === undefined) return;
@@ -151,6 +159,7 @@ export default function Profile({ session }: ProfileProps) {
       setProfile(data as Profile);
       setWorkspaceName(data.full_name || "DEFAULT");
       setPreferredLanguage(data.preferred_language || "es-ES");
+      setTimezone(data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
       setToneProfile(data.tone_profile || "");
       setAnalyticsEnabled(data.analytics_enabled !== false);
       if (data.notification_preferences) {
@@ -217,6 +226,30 @@ export default function Profile({ session }: ProfileProps) {
     }
   };
 
+  const handleSaveTimezone = async () => {
+    if (!session?.user) return;
+
+    setSavingTimezone(true);
+    try {
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update({ timezone })
+        .eq("id", session.user.id);
+
+      if (error) {
+        console.error("Error saving timezone:", error);
+        toast.error("Error al guardar la zona horaria");
+      } else {
+        toast.success("Zona horaria actualizada correctamente");
+        if (profile) {
+          setProfile({ ...profile, timezone });
+        }
+      }
+    } finally {
+      setSavingTimezone(false);
+    }
+  };
+
   const handleSaveToneProfile = async () => {
     if (!session?.user) return;
 
@@ -231,26 +264,6 @@ export default function Profile({ session }: ProfileProps) {
         toast.error("Error al guardar el estilo de escritura");
       } else {
         toast.success("Estilo de escritura guardado");
-      }
-    } finally {
-      setSavingSettings(false);
-    }
-  };
-
-  const handleSaveAnalyticsPrefs = async () => {
-    if (!session?.user) return;
-
-    setSavingSettings(true);
-    try {
-      const { error } = await supabaseClient
-        .from("profiles")
-        .update({ analytics_enabled: analyticsEnabled })
-        .eq("id", session.user.id);
-
-      if (error) {
-        toast.error("Error al guardar preferencias de analytics");
-      } else {
-        toast.success("Preferencias de analytics actualizadas");
       }
     } finally {
       setSavingSettings(false);
@@ -310,6 +323,43 @@ export default function Profile({ session }: ProfileProps) {
       toast.error("Error al exportar datos");
     } finally {
       setExportingData(false);
+    }
+  };
+
+  const handleDisconnectLinkedIn = async () => {
+    if (!session?.user) return;
+
+    setDisconnectingLinkedIn(true);
+    try {
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update({
+          linkedin_profile_url: null,
+          headline: null,
+          bio: null,
+          expertise: null,
+        })
+        .eq("id", session.user.id);
+
+      if (error) {
+        console.error("Error disconnecting LinkedIn:", error);
+        toast.error("Error al desconectar LinkedIn");
+      } else {
+        toast.success("LinkedIn desconectado correctamente");
+        setProfile({
+          ...profile!,
+          linkedin_profile_url: undefined,
+          headline: undefined,
+          bio: undefined,
+          expertise: undefined,
+        });
+        setShowDisconnectModal(false);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error al desconectar LinkedIn");
+    } finally {
+      setDisconnectingLinkedIn(false);
     }
   };
 
@@ -432,6 +482,100 @@ export default function Profile({ session }: ProfileProps) {
                           Guardar Cambios
                         </Button>
                         <Button variant="outline" className="min-h-[48px] w-full sm:w-auto">
+                          Descartar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-slate-200 dark:border-slate-800"></div>
+
+                  {/* Timezone Selector */}
+                  <div>
+                    <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white mb-4 md:mb-6">
+                      Zona Horaria
+                    </h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-base md:text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Selecciona tu zona horaria
+                        </label>
+                        <select
+                          value={timezone}
+                          onChange={(e) => setTimezone(e.target.value)}
+                          className="w-full px-4 py-4 md:py-3 text-base rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <optgroup label="América">
+                            <option value="America/New_York">New York (EST/EDT)</option>
+                            <option value="America/Chicago">Chicago (CST/CDT)</option>
+                            <option value="America/Denver">Denver (MST/MDT)</option>
+                            <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+                            <option value="America/Mexico_City">Ciudad de México (CST)</option>
+                            <option value="America/Bogota">Bogotá (COT)</option>
+                            <option value="America/Lima">Lima (PET)</option>
+                            <option value="America/Santiago">Santiago (CLT)</option>
+                            <option value="America/Buenos_Aires">Buenos Aires (ART)</option>
+                            <option value="America/Sao_Paulo">São Paulo (BRT)</option>
+                          </optgroup>
+                          <optgroup label="Europa">
+                            <option value="Europe/London">Londres (GMT/BST)</option>
+                            <option value="Europe/Paris">París (CET/CEST)</option>
+                            <option value="Europe/Berlin">Berlín (CET/CEST)</option>
+                            <option value="Europe/Madrid">Madrid (CET/CEST)</option>
+                            <option value="Europe/Rome">Roma (CET/CEST)</option>
+                            <option value="Europe/Amsterdam">Ámsterdam (CET/CEST)</option>
+                            <option value="Europe/Brussels">Bruselas (CET/CEST)</option>
+                            <option value="Europe/Zurich">Zúrich (CET/CEST)</option>
+                            <option value="Europe/Moscow">Moscú (MSK)</option>
+                          </optgroup>
+                          <optgroup label="Asia">
+                            <option value="Asia/Dubai">Dubái (GST)</option>
+                            <option value="Asia/Kolkata">Calcuta (IST)</option>
+                            <option value="Asia/Singapore">Singapur (SGT)</option>
+                            <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
+                            <option value="Asia/Tokyo">Tokio (JST)</option>
+                            <option value="Asia/Seoul">Seúl (KST)</option>
+                            <option value="Asia/Shanghai">Shanghái (CST)</option>
+                          </optgroup>
+                          <optgroup label="Oceanía">
+                            <option value="Australia/Sydney">Sídney (AEDT/AEST)</option>
+                            <option value="Australia/Melbourne">Melbourne (AEDT/AEST)</option>
+                            <option value="Pacific/Auckland">Auckland (NZDT/NZST)</option>
+                          </optgroup>
+                          <optgroup label="África">
+                            <option value="Africa/Cairo">El Cairo (EET)</option>
+                            <option value="Africa/Johannesburg">Johannesburgo (SAST)</option>
+                            <option value="Africa/Lagos">Lagos (WAT)</option>
+                          </optgroup>
+                          <optgroup label="Otros">
+                            <option value="UTC">UTC (Tiempo Universal Coordinado)</option>
+                          </optgroup>
+                        </select>
+                        <p className="text-base md:text-sm text-slate-500 dark:text-slate-400 mt-2">
+                          Esta zona horaria se usará para programar posts y mostrar fechas
+                        </p>
+                      </div>
+
+                      {/* Current Time Preview */}
+                      <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
+                          Hora Actual en tu Zona
+                        </p>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          {new Date().toLocaleString('es-ES', {
+                            timeZone: timezone,
+                            dateStyle: 'full',
+                            timeStyle: 'long'
+                          })}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <Button onClick={handleSaveTimezone} disabled={savingTimezone} className="min-h-[48px] w-full sm:w-auto">
+                          {savingTimezone ? "Guardando..." : "Guardar Zona Horaria"}
+                        </Button>
+                        <Button variant="outline" onClick={() => setTimezone(profile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone)} className="min-h-[48px] w-full sm:w-auto">
                           Descartar
                         </Button>
                       </div>
@@ -726,7 +870,11 @@ export default function Profile({ session }: ProfileProps) {
                             <Linkedin className="h-4 w-4" />
                             Actualizar Datos
                           </Button>
-                          <Button variant="outline" className="gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                          <Button
+                            variant="outline"
+                            className="gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onClick={() => setShowDisconnectModal(true)}
+                          >
                             Desconectar
                           </Button>
                         </div>
@@ -779,6 +927,9 @@ export default function Profile({ session }: ProfileProps) {
                           <option value="es-ES">🇪🇸 Español (es-ES)</option>
                           <option value="en-US">🇺🇸 English (en-US)</option>
                           <option value="pt-BR">🇧🇷 Português (pt-BR)</option>
+                          <option value="fr-FR">🇫🇷 Français (fr-FR)</option>
+                          <option value="de-DE">🇩🇪 Deutsch (de-DE)</option>
+                          <option value="it-IT">🇮🇹 Italiano (it-IT)</option>
                         </select>
                         <p className="text-base md:text-sm text-slate-500 dark:text-slate-400 mt-2">
                           Este idioma se usará para reconocimiento de voz y generación de contenido con IA
@@ -794,6 +945,9 @@ export default function Profile({ session }: ProfileProps) {
                           {preferredLanguage === "es-ES" && "Escribe tu prompt o usa el micrófono..."}
                           {preferredLanguage === "en-US" && "Write your prompt or use the microphone..."}
                           {preferredLanguage === "pt-BR" && "Escreva seu prompt ou use o microfone..."}
+                          {preferredLanguage === "fr-FR" && "Écrivez votre prompt ou utilisez le microphone..."}
+                          {preferredLanguage === "de-DE" && "Schreiben Sie Ihren Prompt oder verwenden Sie das Mikrofon..."}
+                          {preferredLanguage === "it-IT" && "Scrivi il tuo prompt o usa il microfono..."}
                         </p>
                       </div>
 
@@ -813,29 +967,35 @@ export default function Profile({ session }: ProfileProps) {
 
                   {/* AI Personal */}
                   <div>
-                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
-                      Tu IA Personal
-                    </h2>
+                    <div className="flex items-center gap-2 mb-6">
+                      <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+                        Posts Automáticos Semanales
+                      </h2>
+                      <Tooltip content="La IA generará posts automáticamente según tus temas de interés y los guardará para que los revises antes de publicar" />
+                    </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                      Configura tu IA personal para generar posts para ti.
+                      Configura la generación automática de contenido para LinkedIn. La IA creará borradores que podrás revisar y editar antes de publicar.
                     </p>
 
                     <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-4 mb-6">
                       <p className="text-sm text-blue-800 dark:text-blue-200">
-                      ℹ️ Cada viernes creamos un nuevo post para cada tema que agregues. Puedes encontrar estos posts en &quot;Auto-Pilot Posts&quot;.
+                      ℹ️ Cada viernes generamos un borrador de post para cada tema que agregues. Encuentra estos borradores en tu bandeja &quot;Posts Automáticos&quot; listos para revisar y publicar.
                       </p>
                     </div>
 
                     <div className="space-y-6">
                       {/* Auto Post Generation Toggle */}
                       <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-800">
-                        <div>
-                          <h3 className="font-medium text-slate-900 dark:text-white">
-                            Habilitar Generación Automática de Posts
-                          </h3>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Habilítalo para que la IA genere posts para ti
-                          </p>
+                        <div className="flex items-start gap-2 flex-1">
+                          <div className="flex-1">
+                            <h3 className="font-medium text-slate-900 dark:text-white">
+                              Habilitar Generación Automática de Posts
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              Genera borradores de posts cada viernes basados en tus temas de interés
+                            </p>
+                          </div>
+                          <Tooltip content="Los posts se generan automáticamente pero NO se publican. Siempre podrás revisarlos y editarlos antes de compartir." />
                         </div>
                         <button
                           onClick={() => setAutoPostEnabled(!autoPostEnabled)}
@@ -1060,61 +1220,32 @@ export default function Profile({ session }: ProfileProps) {
                 <div className="space-y-8">
                   <div>
                     <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                      Preferencias de Analytics
+                      Privacidad y Analytics
                     </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                      Controla cómo usamos tus datos para mejorar tu experiencia
+                      Controla cómo usamos tus datos para mejorar tu experiencia y revisa tu consentimiento en cualquier momento.
                     </p>
 
-                    <div className="space-y-6">
-                      {/* Analytics Toggle */}
-                      <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-slate-900 dark:text-white mb-1">
-                            Habilitar Analytics
-                          </h3>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Permite que Kolink recopile datos de uso para mejorar el producto
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => setAnalyticsEnabled(!analyticsEnabled)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            analyticsEnabled ? "bg-blue-500" : "bg-slate-300 dark:bg-slate-700"
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              analyticsEnabled ? "translate-x-6" : "translate-x-1"
-                            }`}
-                          />
-                        </button>
-                      </div>
+                    <CookieSettingsCard />
 
-                      {/* Info Box */}
-                      <div className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                        <h4 className="text-sm font-medium text-slate-900 dark:text-white mb-2">
-                          ¿Qué datos recopilamos?
-                        </h4>
-                        <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1 list-disc list-inside">
-                          <li>Páginas visitadas y tiempo de sesión</li>
-                          <li>Acciones realizadas (generar posts, buscar inspiración)</li>
-                          <li>Rendimiento de contenido generado (viral scores)</li>
-                          <li>Errores y problemas técnicos</li>
-                        </ul>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">
-                          Nunca compartimos tus datos con terceros. Lee nuestra{" "}
-                          <a href="/privacy" className="text-blue-600 hover:underline">
-                            Política de Privacidad
-                          </a>
-                        </p>
-                      </div>
-
-                      <div className="flex gap-3 pt-4">
-                        <Button onClick={handleSaveAnalyticsPrefs} disabled={savingSettings}>
-                          {savingSettings ? "Guardando..." : "Guardar Preferencias"}
-                        </Button>
-                      </div>
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                      <h4 className="text-sm font-semibold text-slate-900 dark:text-white">Transparencia total</h4>
+                      <ul className="text-sm text-slate-600 dark:text-slate-400 list-disc list-inside space-y-1">
+                        <li>Analizamos el uso de funciones para priorizar mejoras.</li>
+                        <li>No compartimos datos de comportamiento con terceros.</li>
+                        <li>Puedes descargar tus datos en la sección “Exportar Datos”.</li>
+                      </ul>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Consulta los detalles en nuestra{" "}
+                        <Link href="/legal/privacidad" className="text-blue-600 hover:underline">
+                          Política de Privacidad
+                        </Link>{" "}
+                        y{" "}
+                        <Link href="/legal/cookies" className="text-blue-600 hover:underline">
+                          Política de Cookies
+                        </Link>
+                        .
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1349,6 +1480,19 @@ export default function Profile({ session }: ProfileProps) {
           </div>
         </div>
       </div>
+
+      {/* LinkedIn Disconnect Confirmation Modal */}
+      <ConfirmationModal
+        open={showDisconnectModal}
+        onOpenChange={setShowDisconnectModal}
+        title="Desconectar LinkedIn"
+        description="¿Estás seguro de que deseas desconectar tu cuenta de LinkedIn? Se eliminarán tu perfil, headline, bio y áreas de expertise. Esta acción no se puede deshacer."
+        confirmText="Desconectar"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={handleDisconnectLinkedIn}
+        loading={disconnectingLinkedIn}
+      />
     </>
   );
 }
