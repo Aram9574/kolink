@@ -54,23 +54,9 @@ export default function SignInPage() {
   }
 
   async function handleLinkedInSignIn() {
-    if (oauthLoading) return;
-    try {
-      setError(null);
-      setOauthLoading(true);
-
-      const { error: oauthError } = await supabaseClient.auth.signInWithOAuth({
-        provider: "linkedin",
-      });
-
-      if (oauthError) {
-        setError(oauthError.message);
-        setOauthLoading(false);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo iniciar sesión con LinkedIn");
-      setOauthLoading(false);
-    }
+    // LinkedIn OAuth login is not yet implemented
+    // Users should sign in with email and connect LinkedIn from their profile
+    setError("Por favor, inicia sesión con tu correo. Podrás conectar LinkedIn desde tu perfil después.");
   }
 
   return (
