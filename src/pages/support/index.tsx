@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { BookOpen, LifeBuoy, ListChecks, Sparkles, Youtube, FileText, MessageCircle } from "lucide-react";
-import Button from "@/components/Button";
 import { cn } from "@/lib/utils";
 
 type TabId = "faq" | "tutorials" | "changelog";
@@ -229,9 +228,12 @@ export default function SupportCenterPage() {
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                 Nuestro equipo responde en menos de 24 horas. Adjunta capturas o ejemplos para acelerar la respuesta.
               </p>
-              <Button asChild className="mt-4 w-full justify-center">
-                <Link href="mailto:soporte@kolink.es?subject=Ayuda%20Kolink">Contactar soporte</Link>
-              </Button>
+              <Link
+                href="mailto:soporte@kolink.es?subject=Ayuda%20Kolink"
+                className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                Contactar soporte
+              </Link>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-blue-50 p-6 text-slate-800 shadow-sm dark:border-blue-900 dark:bg-blue-900/30 dark:text-blue-100">
@@ -239,11 +241,14 @@ export default function SupportCenterPage() {
               <p className="mt-2 text-sm">
                 Comparte ideas, obtén feedback y accede a sesiones exclusivas con el equipo de producto.
               </p>
-              <Button asChild variant="outline" className="mt-4 w-full justify-center border-white text-slate-800 dark:border-blue-400 dark:text-blue-100">
-                <Link href="https://community.kolink.es" target="_blank" rel="noopener noreferrer">
-                  Abrir comunidad
-                </Link>
-              </Button>
+              <Link
+                href="https://community.kolink.es"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:bg-white/10 dark:border-blue-400 dark:text-blue-100"
+              >
+                Abrir comunidad
+              </Link>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">

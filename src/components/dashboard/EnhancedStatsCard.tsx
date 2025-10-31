@@ -50,6 +50,11 @@ type StatsData = {
       engagement: number;
     }>;
   };
+  alerts: string[];
+  forecast: {
+    nextBestSlot: string;
+    predictedEngagementLift: number;
+  };
 };
 
 type ComparisonPeriod = "week" | "month";
@@ -106,7 +111,18 @@ export default function EnhancedStatsCard() {
 
       const data = await response.json();
       setStats(data);
-      toast.success("Estadísticas cargadas correctamente");
+
+      const hasFallbackAlerts =
+        Array.isArray(data.alerts) &&
+        data.alerts.some((message: string) =>
+          message.toLowerCase().includes("datos en blanco")
+        );
+
+      if (hasFallbackAlerts) {
+        toast("Mostramos estadísticas vacías temporalmente. Intenta más tarde.", { icon: "ℹ️" });
+      } else {
+        toast.success("Estadísticas cargadas correctamente");
+      }
     } catch (err) {
       console.error("Stats error:", err);
       const errorMessage = err instanceof Error ? err.message : "Error al cargar estadísticas";

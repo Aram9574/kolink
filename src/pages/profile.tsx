@@ -161,7 +161,6 @@ export default function Profile({ session }: ProfileProps) {
       setPreferredLanguage(data.preferred_language || "es-ES");
       setTimezone(data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone);
       setToneProfile(data.tone_profile || "");
-      setAnalyticsEnabled(data.analytics_enabled !== false);
       if (data.notification_preferences) {
         setNotificationPrefs(data.notification_preferences as typeof notificationPrefs);
       }

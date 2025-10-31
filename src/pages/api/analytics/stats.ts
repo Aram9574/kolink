@@ -189,9 +189,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(response);
   } catch (err: unknown) {
     console.error("[api/analytics/stats] Error:", err);
-    return res
-      .status(500)
-      .json({ error: "No se pudieron obtener las estadísticas" });
+    const fallbackDays = Math.max(1, Math.min(period, 30));
+    const today = new Date();
+    const fallbackDailyStats = Array.from({ length: fallbackDays }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (fallbackDays - index - 1));
+      return {
+        date: date.toISOString(),
+        posts: 0,
+        engagement: 0,
+      };
+    });
+
+    const fallbackResponse: AnalyticsResponse = {
+      totals: {
+        totalPosts: 0,
+        creditsUsed: 0,
+        currentCredits: 0,
+        plan: null,
+        daysActive: 0,
+        lastActivity: null,
+      },
+      performance: {
+        postsThisWeek: 0,
+        postsThisMonth: 0,
+        avgViralScore: null,
+        topHashtags: [],
+      },
+      forecast: {
+        nextBestSlot: new Date().toISOString(),
+        predictedEngagementLift: 0,
+      },
+      alerts: [
+        "No se pudieron obtener las estadísticas en tiempo real. Mostramos datos en blanco temporalmente.",
+      ],
+      period: {
+        days: period,
+        currentPosts: 0,
+        previousPosts: 0,
+        postsChange: 0,
+        engagementChange: 0,
+        dailyStats: fallbackDailyStats,
+      },
+    };
+
+    return res.status(200).json(fallbackResponse);
   }
 }
 

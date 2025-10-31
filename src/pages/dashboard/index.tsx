@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type SVGProps, type ComponentType } from "react";
 import { useRouter } from "next/router";
 import { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
@@ -14,6 +14,11 @@ import {
   BarChart3,
   Activity,
   TrendingUp,
+  CalendarClock,
+  Lightbulb,
+  LifeBuoy,
+  Globe,
+  NotebookPen,
 } from "lucide-react";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
@@ -39,6 +44,16 @@ const TOPIC_OPTIONS = [
   "Estrategia de contenidos",
   "Marketing de comunidad",
 ];
+
+const AUTOPILOT_FREQUENCY_LABELS: Record<
+  "daily" | "weekly" | "biweekly" | "monthly",
+  string
+> = {
+  daily: "diaria",
+  weekly: "semanal",
+  biweekly: "quincenal",
+  monthly: "mensual",
+};
 
 const PRESET_OPTIONS = [
   {
@@ -71,6 +86,24 @@ type DashboardProps = {
   session: Session | null | undefined;
 };
 
+type ProfileFeatures = {
+  autopilot_enabled?: boolean;
+  autopilot_frequency?: "daily" | "weekly" | "biweekly" | "monthly";
+  linkedin_connected?: boolean;
+  tone_trained?: boolean;
+  onboarding_completed?: boolean;
+  [key: string]: unknown;
+};
+
+type QuickAction = {
+  id: string;
+  title: string;
+  description: string;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+  action: () => void;
+  highlight?: boolean;
+};
+
 export default function Dashboard({ session }: DashboardProps) {
   const router = useRouter();
   const userId = session?.user?.id ?? null;
@@ -97,6 +130,7 @@ export default function Dashboard({ session }: DashboardProps) {
   const [preferredLanguage, setPreferredLanguage] = useState<'es-ES' | 'en-US' | 'pt-BR'>('es-ES');
   const [formality, setFormality] = useState<number>(50);
   const [length, setLength] = useState<number>(200);
+  const [profileFeatures, setProfileFeatures] = useState<ProfileFeatures>({});
   const { isReady, query } = router;
   const { notifySuccess, notifyError, notifyInfo, checkCreditReminder, setupRealtimeNotifications, cleanupRealtimeNotifications } = useNotifications();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -113,6 +147,7 @@ export default function Dashboard({ session }: DashboardProps) {
     if (!userId) {
       setCredits(null);
       setPlan(null);
+      setProfileFeatures({});
       return;
     }
 
@@ -140,8 +175,9 @@ export default function Dashboard({ session }: DashboardProps) {
       setPreferredLanguage(data.preferred_language as 'es-ES' | 'en-US' | 'pt-BR');
     }
 
-    const features = (data?.features as Record<string, unknown>) ?? {};
-    const onboardingCompleted = Boolean((features as { onboarding_completed?: boolean }).onboarding_completed);
+    const features = (data?.features as ProfileFeatures) ?? {};
+    setProfileFeatures(features);
+    const onboardingCompleted = Boolean(features.onboarding_completed);
     const hasName = Boolean(data?.full_name && data.full_name.trim().length > 0);
 
     if (!onboardingCompleted || !hasName) {
@@ -509,6 +545,118 @@ export default function Dashboard({ session }: DashboardProps) {
     return Math.round((sum / valid.length) * 10) / 10;
   }, [posts]);
 
+  const autopilotEnabled = Boolean(profileFeatures.autopilot_enabled);
+  const autopilotFrequency = typeof profileFeatures.autopilot_frequency === "string"
+    ? (profileFeatures.autopilot_frequency as keyof typeof AUTOPILOT_FREQUENCY_LABELS)
+    : null;
+  const autopilotFrequencyLabel = autopilotFrequency
+    ? AUTOPILOT_FREQUENCY_LABELS[autopilotFrequency] ?? "personalizada"
+    : null;
+  const linkedinConnected = Boolean(profileFeatures.linkedin_connected);
+  const toneTrainingActive =
+    Boolean(profileFeatures.tone_trained) || (typeof toneProfile === "string" && toneProfile !== "professional");
+
+  const heroMetrics = useMemo(
+    () => [
+      {
+        label: "Créditos disponibles",
+        value: typeof credits === "number" ? credits : "—",
+        sublabel: `Plan ${plan ?? "Free"}`,
+      },
+      {
+        label: "Actividad semanal",
+        value: postsThisWeek,
+        sublabel: `${postsThisMonth} este mes`,
+      },
+      {
+        label: "Auto-Pilot",
+        value: autopilotEnabled ? "Activo" : "Pausado",
+        sublabel: autopilotEnabled
+          ? `Frecuencia ${autopilotFrequencyLabel ?? "personalizada"}`
+          : "Configura tu cadencia ideal",
+      },
+      {
+        label: "Viral score",
+        value: posts.length > 0 ? `${averageViralScore}` : "—",
+        sublabel: "Promedio últimos 50 posts",
+      },
+    ],
+    [credits, plan, postsThisWeek, postsThisMonth, autopilotEnabled, autopilotFrequencyLabel, posts.length, averageViralScore]
+  );
+
+  const triggerQuickIdea = useCallback(
+    (idea: string, preset?: (typeof PRESET_OPTIONS)[number]["id"]) => {
+      setPrompt(idea);
+      if (preset) {
+        setActivePreset(preset);
+      }
+      notifyInfo("Plantilla aplicada. Ajusta detalles antes de generar ✨");
+    },
+    [notifyInfo]
+  );
+
+  const quickActions = useMemo<QuickAction[]>(
+    () => [
+      {
+        id: "ai-post",
+        title: "Generar post con IA",
+        description: "Activa una plantilla curada y ajusta el mensaje antes de publicar.",
+        icon: Sparkles,
+        action: () =>
+          triggerQuickIdea(
+            "Comparte una victoria reciente y explica cómo impactó a tu equipo. Cierra con un CTA abierto.",
+            "insight"
+          ),
+        highlight: false,
+      },
+      {
+        id: "autopilot",
+        title: autopilotEnabled ? "Gestionar Auto-Pilot" : "Activa Auto-Pilot",
+        description: autopilotEnabled
+          ? `Frecuencia ${autopilotFrequencyLabel ?? "personalizada"}. Ajusta tu calendario.`
+          : linkedinConnected
+            ? "Programa publicaciones automáticas para mantener tu presencia."
+            : "Conecta tu LinkedIn para activar Auto-Pilot sin fricciones.",
+        icon: CalendarClock,
+        action: () => router.push("/calendar"),
+        highlight: !autopilotEnabled || !linkedinConnected,
+      },
+      {
+        id: "inspiration",
+        title: "Explorar inspiración",
+        description: "Descubre ejemplos de alto rendimiento y captura ideas.",
+        icon: Lightbulb,
+        action: () => router.push("/inspiration"),
+        highlight: false,
+      },
+      {
+        id: "support",
+        title: "Reportar bug / feedback",
+        description: "Habla directo con soporte y prioriza mejoras para tu equipo.",
+        icon: LifeBuoy,
+        action: () => {
+          if (typeof window !== "undefined") {
+            window.open(
+              "mailto:soporte@kolink.es?subject=Feedback%20dashboard%20Kolink&body=Describe%20el%20bug%20o%20idea%20que%20tienes:",
+              "_blank"
+            );
+          }
+        },
+        highlight: false,
+      },
+    ],
+    [autopilotEnabled, autopilotFrequencyLabel, router, triggerQuickIdea, linkedinConnected]
+  );
+
+  const scrollToHistory = () => {
+    if (typeof document !== "undefined") {
+      document.getElementById("history-section")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+
   if (session === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -529,236 +677,469 @@ export default function Dashboard({ session }: DashboardProps) {
     <>
       <Navbar session={session} />
       <div className="min-h-screen bg-slate-50 pb-20 pt-20 lg:pl-64 dark:bg-slate-950">
-        <div className="mx-auto max-w-6xl space-y-10 px-4 sm:px-6 lg:px-8">
-          <header className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-3">
-              <h1 className="text-3xl font-semibold text-slate-900 dark:text-white md:text-4xl">
-                Hey {firstName} 👋
-              </h1>
-              <p className="text-base text-slate-500 dark:text-slate-300 md:text-sm">
-                ¿Listo para crear contenido que se haga viral?
-              </p>
-            </div>
-            <Card className="w-full md:max-w-xs border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-blue-50 p-3 text-blue-600">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Plan actual</p>
-                  <p className="text-lg font-semibold text-slate-900 capitalize dark:text-white">
-                    {plan || "Free"}
+        <div className="mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl"
+          >
+            <div className="absolute -right-12 top-6 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+            <div className="relative z-10 flex flex-col gap-8 p-8 text-white md:p-10 lg:p-12">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-2xl space-y-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/70">Panel principal</p>
+                  <h1 className="text-3xl font-semibold md:text-4xl">
+                    Hola {firstName}, hoy es un buen día para publicar algo memorable ✨
+                  </h1>
+                  <p className="text-white/80 md:text-base">
+                    Resume tus aprendizajes, activa Auto-Pilot o revisa el rendimiento reciente. Kolink te acompaña con insights accionables.
                   </p>
-                </div>
-              </div>
-              <div className="mt-4 rounded-2xl bg-blue-50/60 px-4 py-3 text-base font-semibold text-blue-700">
-                Créditos disponibles: {credits ?? "—"}
-              </div>
-              <Button variant="outline" className="mt-4 w-full min-h-[48px]" onClick={() => setShowPlansModal(true)}>
-                Ver planes
-              </Button>
-            </Card>
-          </header>
-
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-            <Card className="grid gap-6 border-blue-100 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-300">Cuéntale a Kolink AI</p>
-                  <ViralScoreTooltip score={viralScore} />
-                </div>
-                <p className="text-xs text-slate-400">
-                  {toneProfile
-                    ? `Generaremos contenido con tu tono: ${toneProfile}`
-                    : "Describe la idea, objetivo o formato que necesitas..."}
-                </p>
-              </div>
-
-              {/* Prompt Suggestions */}
-              <PromptSuggestions
-                onSelect={handleSuggestionSelect}
-                language={preferredLanguage}
-              />
-
-              {/* Progress indicator */}
-              {loading && generationProgress && (
-                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
-                    <p className="text-sm font-medium text-blue-900">{generationProgress}</p>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      className="min-h-[46px] rounded-full px-6"
+                      onClick={() =>
+                        triggerQuickIdea(
+                          "Comparte lo que tu audiencia debería evitar esta semana y ofrece un consejo accionable.",
+                          "insight"
+                        )
+                      }
+                    >
+                      Crear insight rápido
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="min-h-[46px] rounded-full border-white/60 px-6 text-white hover:border-white hover:bg-white/10"
+                      onClick={() => setShowPlansModal(true)}
+                    >
+                      Gestionar créditos
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="min-h-[46px] rounded-full px-6 text-white/80 hover:text-white"
+                      onClick={scrollToHistory}
+                    >
+                      Ver historial
+                    </Button>
                   </div>
                 </div>
-              )}
+                <div className="grid w-full max-w-xl gap-4 sm:grid-cols-2">
+                  {heroMetrics.map((metric) => (
+                    <div
+                      key={metric.label}
+                      className="rounded-2xl border border-white/15 bg-white/10 p-6 backdrop-blur"
+                    >
+                      <p className="text-xs uppercase tracking-[0.3em] text-white/70">{metric.label}</p>
+                      <p className="mt-3 text-3xl font-semibold">{metric.value}</p>
+                      <p className="mt-1 text-xs text-white/70">{metric.sublabel}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.3em] text-white/70">Objetivo sugerido</p>
+                <p className="mt-3 text-sm text-white/90">
+                  Genera al menos <strong>3 publicaciones</strong> esta semana para mantener tu ritmo. Ya llevas{" "}
+                  <strong>{postsThisWeek}</strong>. ¿Necesitas inspiración rápida? Revisa las acciones destacadas debajo.
+                </p>
+              </div>
+            </div>
+          </motion.section>
 
-              {/* Content Controls */}
-              <ContentControls
-                tone={toneProfile}
-                onToneChange={setToneProfile}
-                formality={formality}
-                onFormalityChange={setFormality}
-                length={length}
-                onLengthChange={setLength}
-              />
-
-              <EditorAI
-                value={prompt}
-                onChange={setPrompt}
-                onGenerate={handleGenerate}
-                loading={loading}
-                viralScore={viralScore}
-                recommendations={recommendations}
-                language={preferredLanguage}
-              />
-
-              <div className="flex flex-wrap gap-3 md:gap-2">
-                {PRESET_OPTIONS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => setActivePreset(preset.id)}
-                    className={`rounded-full border px-5 py-3 md:px-4 md:py-2 text-sm md:text-xs font-semibold transition min-h-[48px] md:min-h-0 ${
-                      activePreset === preset.id
-                        ? "border-primary bg-primary text-white shadow-md"
-                        : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary dark:border-slate-600 dark:text-slate-300"
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {quickActions.map((action) => (
+              <Card
+                key={action.id}
+                className={`border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 ${
+                  action.highlight ? "border-primary/40 shadow-primary/10" : ""
+                }`}
+              >
+                <div className="flex flex-col gap-4">
+                  <span
+                    className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${
+                      action.highlight
+                        ? "bg-primary/20 text-primary"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                     }`}
                   >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm md:text-xs text-slate-400">
-                  {activePreset === "repurpose"
-                    ? "Usaremos tu último post con mejor desempeño"
-                    : "Consejo: sé específico con tu audiencia y CTA"}
+                    <action.icon className="h-5 w-5" />
+                  </span>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{action.title}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{action.description}</p>
+                  </div>
+                  <Button
+                    variant={action.highlight ? "primary" : "ghost"}
+                    className="mt-2 justify-center"
+                    onClick={action.action}
+                  >
+                    Abrir
+                  </Button>
                 </div>
-                <div className="flex gap-3">
-                  <Button variant="ghost" className="min-h-[48px]" onClick={() => { setPrompt(""); setViralScore(undefined); setRecommendations([]); }}>
+              </Card>
+            ))}
+          </section>
+
+          <div className="grid gap-6 xl:grid-cols-[2.2fr_1.1fr]">
+            <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+              <Card className="border-blue-100 bg-white p-8 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Estudio creativo</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Define tu objetivo, ajusta tono y deja que la IA proponga el mejor borrador.
+                    </p>
+                  </div>
+                  <ViralScoreTooltip score={viralScore} />
+                </div>
+
+                <div className="mt-6">
+                  <PromptSuggestions onSelect={handleSuggestionSelect} language={preferredLanguage} />
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {PRESET_OPTIONS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => setActivePreset(preset.id)}
+                      className={`rounded-full border px-5 py-3 text-sm font-semibold transition md:px-4 md:py-2 ${
+                        activePreset === preset.id
+                          ? "border-primary bg-primary text-white shadow-md"
+                          : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary dark:border-slate-600 dark:text-slate-300"
+                      }`}
+                    >
+                      <div className="flex flex-col text-left">
+                        <span>{preset.label}</span>
+                        <span className="text-xs font-normal text-slate-400">{preset.description}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {loading && generationProgress && (
+                  <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/80 p-4 dark:border-blue-900/50 dark:bg-blue-900/20">
+                    <div className="flex items-center gap-3">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-200">{generationProgress}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-6 space-y-6">
+                  <ContentControls
+                    tone={toneProfile}
+                    onToneChange={setToneProfile}
+                    formality={formality}
+                    onFormalityChange={setFormality}
+                    length={length}
+                    onLengthChange={setLength}
+                  />
+                  <EditorAI
+                    value={prompt}
+                    onChange={setPrompt}
+                    onGenerate={handleGenerate}
+                    loading={loading}
+                    viralScore={viralScore}
+                    recommendations={recommendations}
+                    language={preferredLanguage}
+                  />
+                </div>
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-slate-400">
+                    {activePreset === "repurpose"
+                      ? "Usaremos tu post con mejor rendimiento como base."
+                      : "Consejo rápido: concreta tu audiencia, CTA y propósito."}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    className="min-h-[44px]"
+                    onClick={() => {
+                      setPrompt("");
+                      setViralScore(undefined);
+                      setRecommendations([]);
+                    }}
+                  >
                     Limpiar
                   </Button>
                 </div>
-              </div>
-            </Card>
-          </motion.section>
+              </Card>
+            </motion.section>
 
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="border-blue-100 bg-white p-8 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">Temas frescos</p>
-                <p className="text-xs text-slate-400">Selecciona los temas sobre los que quieres escribir esta semana</p>
-              </div>
-              <div className="mt-5 flex flex-wrap gap-3">
-                {TOPIC_OPTIONS.map((topic) => {
-                  const active = selectedTopics.includes(topic);
-                  return (
-                    <button
-                      key={topic}
-                      type="button"
-                      onClick={() => toggleTopic(topic)}
-                      className={`rounded-full border px-5 py-3 md:px-4 md:py-2 text-sm md:text-sm transition min-h-[48px] md:min-h-0 ${
-                        active
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary"
-                      }`}
-                    >
-                      {topic}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm md:text-xs text-slate-400">{selectedTopics.length} temas seleccionados</p>
-                <Button variant="outline" className="px-6 min-h-[48px]">Confirmar temas</Button>
-              </div>
-            </Card>
-          </motion.section>
-
-          <section className="grid gap-6 md:grid-cols-[2fr_1fr]">
-            <Card className="border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Tu último post</h2>
-                {latestPost && (
-                  <Button variant="ghost" className="text-xs" onClick={() => handleCopy(latestPost.generated_text, latestPost.id)}>
-                    {copiedId === latestPost.id ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />} Copiar
-                  </Button>
-                )}
-              </div>
-              {latestPost ? (
-                <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-200">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-                      {new Date(latestPost.created_at).toLocaleString("es-ES", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
+            <motion.aside initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+              <Card className="border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Auto-Pilot</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {autopilotEnabled
+                        ? "Tus posts automáticos están listos. Ajusta la cadencia cuando lo necesites."
+                        : "Activa Auto-Pilot para mantener tu calendario lleno."}
                     </p>
-                    {latestPost.viral_score && (
-                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700">
-                        <TrendingUp className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                          {latestPost.viral_score.toFixed(0)}/100
-                        </span>
-                      </div>
+                  </div>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      autopilotEnabled
+                        ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-200"
+                        : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                    }`}
+                  >
+                    {autopilotEnabled ? "Activo" : "Pausado"}
+                  </span>
+                </div>
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <CalendarClock className="h-4 w-4 text-blue-500 dark:text-blue-300" />
+                    Frecuencia {autopilotFrequencyLabel ?? "personalizable"}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTopics.slice(0, 4).map((topic) => (
+                      <span
+                        key={topic}
+                        className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                      >
+                        {topic}
+                      </span>
+                    ))}
+                    {selectedTopics.length > 4 && (
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                        +{selectedTopics.length - 4}
+                      </span>
+                    )}
+                    {selectedTopics.length === 0 && (
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        Añade tus temas clave
+                      </span>
                     )}
                   </div>
-                  <p className="whitespace-pre-line leading-relaxed line-clamp-6">{latestPost.generated_text}</p>
-                  {recommendations.length > 0 && (
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 text-xs text-slate-600 dark:border-blue-700 dark:bg-blue-900/20 dark:text-slate-300">
-                      <p className="mb-2 font-semibold text-slate-800 dark:text-slate-200">Sugerencias</p>
-                      <ul className="list-disc space-y-1 pl-5">
-                        {recommendations.map((item, index) => (
-                          <li key={index}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="mt-5 w-full justify-center"
+                  onClick={() => router.push("/calendar")}
+                >
+                  Ajustar calendario
+                </Button>
+              </Card>
+
+              <Card className="border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    <NotebookPen className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Tono y estilo</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Ajusta el tono, la formalidad y la longitud objetivo de tus publicaciones.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                  <p>
+                    <span className="font-semibold">Tono actual:</span> {toneProfile || "Profesional"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Formalidad:</span> {formality}/100 ·{" "}
+                    <span className="font-semibold">Longitud:</span> {length} palabras aprox.
+                  </p>
+                  <p>
+                    <span className="font-semibold">Entrenamiento personalizado:</span>{" "}
+                    {toneTrainingActive ? "Activado" : "Pendiente"}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-blue-500 dark:text-blue-300" />
+                    <span>
+                      {preferredLanguage === "es-ES" ? "Español" : preferredLanguage === "en-US" ? "Inglés" : "Portugués"} como idioma preferido
+                    </span>
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="mt-4 w-full justify-center"
+                  onClick={() => router.push("/profile")}
+                >
+                  Editar preferencias
+                </Button>
+              </Card>
+
+              <Card className="border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    <BarChart3 className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Insights rápidos</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Visualiza la actividad reciente y accede a reportes detallados.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-emerald-500" />
+                      Posts esta semana
+                    </span>
+                    <span className="font-semibold">{postsThisWeek}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-blue-500" />
+                      Viral score medio
+                    </span>
+                    <span className="font-semibold">{posts.length > 0 ? averageViralScore : "—"}</span>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="mt-5 w-full justify-center"
+                  onClick={() => router.push("/stats")}
+                >
+                  Ver reportes
+                </Button>
+              </Card>
+            </motion.aside>
+          </div>
+
+          <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
+              <Card className="border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Tu último post</h2>
+                  {latestPost && (
+                    <Button
+                      variant="ghost"
+                      className="text-xs"
+                      onClick={() => handleCopy(latestPost.generated_text, latestPost.id)}
+                    >
+                      {copiedId === latestPost.id ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                      <span className="ml-1 hidden sm:inline">Copiar</span>
+                    </Button>
                   )}
                 </div>
-              ) : (
-                <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">Aún no has generado publicaciones. Empieza con alguna idea en la parte superior.</p>
-              )}
-            </Card>
+                {latestPost ? (
+                  <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-200">
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-slate-400">
+                      <span>
+                        {new Date(latestPost.created_at).toLocaleString("es-ES", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                      {latestPost.viral_score && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/70 px-3 py-1 font-semibold text-blue-600 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                          <TrendingUp className="h-3.5 w-3.5" />
+                          {latestPost.viral_score.toFixed(0)}/100
+                        </span>
+                      )}
+                    </div>
+                    <p className="whitespace-pre-line leading-relaxed">{latestPost.generated_text}</p>
+                    {recommendations.length > 0 && (
+                      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 text-xs text-slate-600 dark:border-blue-700 dark:bg-blue-900/20 dark:text-slate-300">
+                        <p className="mb-2 font-semibold text-slate-800 dark:text-slate-200">Sugerencias de mejora</p>
+                        <ul className="list-disc space-y-1 pl-5">
+                          {recommendations.map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" className="justify-center" onClick={() => setShowPreviewModal(true)}>
+                        Editar en modal
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="justify-center"
+                        onClick={() => handleExport(latestPost.generated_text, latestPost.prompt)}
+                      >
+                        Exportar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+                    Aún no has generado publicaciones. Escribe una idea arriba y obtén tu primer borrador en segundos.
+                  </p>
+                )}
+              </Card>
+            </motion.div>
 
-            <Card className="border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Comparte Kolink</h2>
-              <p className="mt-3 text-sm text-slate-500 dark:text-slate-300">
-                Da acceso a un colega y consigue 15% de comisión de por vida.
-              </p>
-              <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-xs font-semibold text-green-600">
-                $30 de crédito para ellos · 15% para ti
-              </div>
-              <Button variant="outline" className="mt-6 w-full min-h-[48px]" onClick={() => router.push("/profile")}>Compartir Kolink</Button>
-            </Card>
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
+              <Card className="border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Comparte Kolink</h2>
+                <p className="mt-3 text-sm text-slate-500 dark:text-slate-300">
+                  Invita a un colega y consigue 15% de comisión de por vida. Ellos reciben USD 30 en crédito inicial.
+                </p>
+                <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-xs font-semibold text-green-600 dark:border-green-900/50 dark:bg-green-900/10 dark:text-green-200">
+                  Recompensa disponible · Código personal en tu perfil
+                </div>
+                <Button
+                  variant="outline"
+                  className="mt-6 w-full justify-center"
+                  onClick={() => router.push("/profile")}
+                >
+                  Compartir Kolink
+                </Button>
+              </Card>
+            </motion.div>
           </section>
 
-          <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 md:p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+          <motion.section
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-3xl border border-blue-100 bg-white p-8 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Esta semana</p>
-                <p className="mt-3 text-3xl md:text-2xl font-semibold text-slate-900 dark:text-white">{postsThisWeek}</p>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Planificador de temas</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Selecciona los focos clave de esta semana. Los usaremos en sugerencias y Auto-Pilot.
+                </p>
               </div>
-              <Activity className="h-10 w-10 md:h-8 md:w-8 text-blue-500" />
-            </Card>
-            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 md:p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Este mes</p>
-                <p className="mt-3 text-3xl md:text-2xl font-semibold text-slate-900 dark:text-white">{postsThisMonth}</p>
-              </div>
-              <TrendingUp className="h-10 w-10 md:h-8 md:w-8 text-blue-500" />
-            </Card>
-            <Card className="flex items-center justify-between border-blue-100 bg-white p-6 md:p-6 shadow-md dark:border-slate-700 dark:bg-slate-900 sm:col-span-2 md:col-span-1">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Score promedio</p>
-                <p className="mt-3 text-3xl md:text-2xl font-semibold text-slate-900 dark:text-white">{averageViralScore}</p>
-              </div>
-              <BarChart3 className="h-10 w-10 md:h-8 md:w-8 text-blue-500" />
-            </Card>
-          </section>
+              <Button
+                variant="outline"
+                className="mt-3 sm:mt-0"
+                onClick={() => setSelectedTopics(TOPIC_OPTIONS.slice(0, 3))}
+              >
+                Resetear selección
+              </Button>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              {TOPIC_OPTIONS.map((topic) => {
+                const active = selectedTopics.includes(topic);
+                return (
+                  <button
+                    key={topic}
+                    type="button"
+                    onClick={() => toggleTopic(topic)}
+                    className={`rounded-full border px-5 py-3 text-sm transition md:px-4 md:py-2 ${
+                      active
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-slate-200 text-slate-500 hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    {topic}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-slate-400">{selectedTopics.length} temas seleccionados</p>
+              <Button className="sm:w-auto">Confirmar temas</Button>
+            </div>
+          </motion.section>
 
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Historial</h2>
-              <span className="text-xs text-slate-400">{posts.length} posts generados</span>
+
+          <section id="history-section" className="space-y-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Historial de publicaciones</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{posts.length} posts generados</p>
+              </div>
+              <p className="text-xs text-slate-400 dark:text-slate-500">Ordenado por más recientes</p>
             </div>
             {posts.length === 0 ? (
               <Card className="border-slate-200 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
@@ -767,47 +1148,61 @@ export default function Dashboard({ session }: DashboardProps) {
             ) : (
               <div className="space-y-3">
                 {posts.map((post) => (
-                  <Card key={post.id} className="border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                  <Card
+                    key={post.id}
+                    className="border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-[1px] hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
+                  >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-2 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.3em] text-slate-400">
+                          <span>
                             {new Date(post.created_at).toLocaleString("es-ES", {
                               dateStyle: "medium",
                               timeStyle: "short",
                             })}
-                          </p>
+                          </span>
                           {post.viral_score && (
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700">
-                              <TrendingUp className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                {post.viral_score.toFixed(0)}
-                              </span>
-                            </div>
+                            <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/70 px-2 py-0.5 font-semibold text-blue-600 dark:border-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                              <TrendingUp className="h-3 w-3" />
+                              {post.viral_score.toFixed(0)}
+                            </span>
                           )}
                         </div>
                         <p className="text-sm text-slate-600 dark:text-slate-200 line-clamp-3 whitespace-pre-line">
                           {post.generated_text}
                         </p>
                       </div>
-                      <div className="flex flex-shrink-0 flex-wrap sm:flex-nowrap items-center gap-2">
+                      <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
                         <button
                           onClick={() => handleExport(post.generated_text, post.prompt)}
-                          className="rounded-xl border border-slate-200 px-4 py-3 md:px-3 md:py-2 text-sm md:text-xs text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 min-h-[44px] md:min-h-0 flex items-center justify-center"
+                          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300"
                         >
-                          <Share2 className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5" /> <span>Exportar</span>
+                          <div className="flex items-center gap-1.5">
+                            <Share2 className="h-4 w-4" />
+                            <span>Exportar</span>
+                          </div>
                         </button>
                         <button
                           onClick={() => handleCopy(post.generated_text, post.id)}
-                          className="rounded-xl border border-slate-200 px-4 py-3 md:px-3 md:py-2 text-sm md:text-xs text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300 min-h-[44px] md:min-h-0 flex items-center justify-center"
+                          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300"
                         >
-                          {copiedId === post.id ? <Check className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5 text-primary" /> : <Copy className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5" />} <span>Copiar</span>
+                          <div className="flex items-center gap-1.5">
+                            {copiedId === post.id ? (
+                              <Check className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            <span>Copiar</span>
+                          </div>
                         </button>
                         <button
                           onClick={() => handleDelete(post.id)}
-                          className="rounded-xl border border-red-200 px-4 py-3 md:px-3 md:py-2 text-sm md:text-xs text-red-500 transition hover:bg-red-50 dark:border-red-600/50 dark:hover:bg-red-950 min-h-[44px] md:min-h-0 flex items-center justify-center"
+                          className="rounded-xl border border-red-200 px-4 py-2 text-sm text-red-500 transition hover:bg-red-50 dark:border-red-600/50 dark:hover:bg-red-950"
                         >
-                          <Trash2 className="mr-1.5 md:mr-1 h-4 md:h-3.5 w-4 md:w-3.5" /> <span>Eliminar</span>
+                          <div className="flex items-center gap-1.5">
+                            <Trash2 className="h-4 w-4" />
+                            <span>Eliminar</span>
+                          </div>
                         </button>
                       </div>
                     </div>
