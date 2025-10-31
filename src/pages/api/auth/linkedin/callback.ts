@@ -97,25 +97,50 @@ export default async function handler(
 
     const linkedInProfile = await profileResponse.json();
 
-    // Get current user from session
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    // Get current user from session cookie
+    // Supabase stores the session in cookies with the format:
+    // sb-<project-ref>-auth-token
+    const supabaseAuthCookie = Object.keys(cookies || {}).find(key =>
+      key.startsWith('sb-') && key.includes('-auth-token')
+    );
+
+    if (!supabaseAuthCookie || !cookies[supabaseAuthCookie]) {
       return res.redirect(
         "/signin?error=" +
           encodeURIComponent("You must be signed in to connect LinkedIn")
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    // Parse the session from cookie
+    let session;
+    try {
+      session = JSON.parse(decodeURIComponent(cookies[supabaseAuthCookie]));
+    } catch (e) {
+      console.error("Failed to parse session cookie:", e);
+      return res.redirect(
+        "/signin?error=" +
+          encodeURIComponent("Invalid session. Please sign in again.")
+      );
+    }
+
+    const accessToken = session?.access_token || session?.[0];
+    if (!accessToken) {
+      return res.redirect(
+        "/signin?error=" +
+          encodeURIComponent("No valid session found. Please sign in again.")
+      );
+    }
+
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser(token);
+    } = await supabase.auth.getUser(accessToken);
 
     if (userError || !user) {
+      console.error("Failed to get user from session:", userError);
       return res.redirect(
         "/signin?error=" +
-          encodeURIComponent("You must be signed in to connect LinkedIn")
+          encodeURIComponent("Session expired. Please sign in again.")
       );
     }
 
