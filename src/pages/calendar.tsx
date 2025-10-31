@@ -82,8 +82,8 @@ export default function CalendarPage() {
       const { data, error } = await supabase
         .from("calendar_events")
         .select("*")
-        .order("scheduled_at", { ascending: true })
-        .gte("scheduled_at", new Date().toISOString());
+        .order("scheduled_time", { ascending: true })
+        .gte("scheduled_time", new Date().toISOString());
 
       if (error) throw error;
 
@@ -91,7 +91,7 @@ export default function CalendarPage() {
         data.map((event: {
           id: string;
           post_id?: string;
-          scheduled_at: string;
+          scheduled_time: string;
           platforms: string[];
           ai_score: number;
           recommendation_reason: {
@@ -103,7 +103,7 @@ export default function CalendarPage() {
         }) => ({
           id: event.id,
           postId: event.post_id,
-          scheduledAt: event.scheduled_at,
+          scheduledAt: event.scheduled_time,
           platforms: event.platforms || [],
           aiScore: event.ai_score || 0,
           recommendationReason: event.recommendation_reason || {},
