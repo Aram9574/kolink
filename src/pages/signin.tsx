@@ -5,12 +5,14 @@ import { useRouter } from "next/router";
 import Button from "@/components/Button";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/posthog";
+import { Linkedin } from "lucide-react";
 
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -51,6 +53,26 @@ export default function SignInPage() {
     router.push(!hasCompleted || !hasName ? "/account-setup" : "/dashboard");
   }
 
+  async function handleLinkedInSignIn() {
+    if (oauthLoading) return;
+    try {
+      setError(null);
+      setOauthLoading(true);
+
+      const { error: oauthError } = await supabaseClient.auth.signInWithOAuth({
+        provider: "linkedin",
+      });
+
+      if (oauthError) {
+        setError(oauthError.message);
+        setOauthLoading(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo iniciar sesión con LinkedIn");
+      setOauthLoading(false);
+    }
+  }
+
   return (
     <>
       <Head>
@@ -73,6 +95,28 @@ export default function SignInPage() {
           </div>
 
           <div className="space-y-6">
+            <div className="space-y-4">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={oauthLoading || loading}
+                className="w-full rounded-full border border-slate-200 bg-white py-3 text-base font-semibold text-slate-600 transition hover:border-[#0A66C2] hover:text-[#0A66C2]"
+                onClick={handleLinkedInSignIn}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <Linkedin className="h-5 w-5 text-[#0A66C2]" />
+                  {oauthLoading ? "Conectando con LinkedIn..." : "Continuar con LinkedIn"}
+                </span>
+              </Button>
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-slate-200" />
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  o ingresa con tu correo
+                </span>
+                <span className="h-px flex-1 bg-slate-200" />
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-5 text-left">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
@@ -113,7 +157,7 @@ export default function SignInPage() {
                 <p className="rounded-2xl bg-red-50 px-4 py-3 text-xs text-red-600">{error}</p>
               )}
 
-              <Button type="submit" disabled={loading} className="w-full rounded-full py-3 text-base">
+              <Button type="submit" disabled={loading || oauthLoading} className="w-full rounded-full py-3 text-base">
                 {loading ? "Iniciando sesión..." : "Iniciar sesión"}
               </Button>
             </form>
