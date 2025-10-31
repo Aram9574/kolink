@@ -23,11 +23,13 @@ import {
   Video,
   FileText,
   LayoutGrid,
+  List,
   Clock,
   Undo2,
   Filter,
   ArrowUpDown,
   Hash,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -170,6 +172,9 @@ const normalizeHashtagsInput = (input: string) =>
     .map((tag) => tag.replace(/^#/, "").trim())
     .filter(Boolean);
 
+const getOptionLabel = (options: Array<{ id: string; label: string }>, value: string) =>
+  options.find((option) => option.id === value)?.label ?? value;
+
 const hasFilterValues = (filters: SavedSearchFilters) =>
   Object.values(filters).some((value) => {
     if (Array.isArray(value)) {
@@ -190,6 +195,15 @@ const renderFilterSummary = (filters: SavedSearchFilters) => {
     const [first, ...rest] = formatted;
     chips.push(rest.length ? `${first} +${rest.length}` : first);
   }
+  if (filters.language) {
+    chips.push(`Idioma: ${getOptionLabel(languageOptions, filters.language)}`);
+  }
+  if (filters.sector) {
+    chips.push(`Sector: ${getOptionLabel(sectorOptions, filters.sector)}`);
+  }
+  if (filters.country) {
+    chips.push(`País: ${getOptionLabel(countryOptions, filters.country)}`);
+  }
   return chips.length > 0 ? chips.join(" • ") : "Sin filtros adicionales";
 };
 
@@ -207,6 +221,7 @@ export default function InspirationPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [results, setResults] = useState<InspirationPost[]>([]);
   const [resultsCount, setResultsCount] = useState(0);
   const [sortOption, setSortOption] = useState<"recent" | "top">("recent");
@@ -246,9 +261,22 @@ export default function InspirationPage() {
       selectedFormat ||
       minLikes !== defaultMinLikes ||
       timeRange ||
-      hashtagPreview.length > 0
+      hashtagPreview.length > 0 ||
+      selectedLanguage ||
+      selectedSector ||
+      selectedCountry
     );
-  }, [selectedPlatform, selectedContentTypes, selectedFormat, minLikes, timeRange, hashtagPreview]);
+  }, [
+    selectedPlatform,
+    selectedContentTypes,
+    selectedFormat,
+    minLikes,
+    timeRange,
+    hashtagPreview,
+    selectedLanguage,
+    selectedSector,
+    selectedCountry,
+  ]);
 
   const performSearch = async (
     query: string,
@@ -270,6 +298,9 @@ export default function InspirationPage() {
       const likeFloor = overrides?.minLikes ?? minLikes;
       const period = overrides?.period ?? timeRange;
       const sort = overrides?.sort ?? sortOption;
+      const language = overrides?.language ?? selectedLanguage;
+      const sector = overrides?.sector ?? selectedSector;
+      const country = overrides?.country ?? selectedCountry;
 
       const filtersPayload: Record<string, unknown> = {};
       if (platform) filtersPayload.platform = platform;
@@ -278,6 +309,9 @@ export default function InspirationPage() {
       if (likeFloor > 0) filtersPayload.minLikes = likeFloor;
       if (period) filtersPayload.period = period;
       if (hashtags.length) filtersPayload.hashtags = hashtags;
+      if (language) filtersPayload.language = language;
+      if (sector) filtersPayload.sector = sector;
+      if (country) filtersPayload.country = country;
 
       const payload = {
         query: query || undefined,
@@ -341,6 +375,9 @@ export default function InspirationPage() {
     setMinLikes(defaultMinLikes);
     setTimeRange("");
     setHashtagsInput("");
+    setSelectedLanguage("");
+    setSelectedSector("");
+    setSelectedCountry("");
     performSearch(searchQuery, {
       platform: "",
       contentTypes: [],
@@ -348,6 +385,9 @@ export default function InspirationPage() {
       minLikes: defaultMinLikes,
       period: "",
       hashtags: [],
+      language: "",
+      sector: "",
+      country: "",
     });
   };
 
@@ -422,6 +462,9 @@ export default function InspirationPage() {
       minLikes: minLikes !== defaultMinLikes ? minLikes : undefined,
       period: timeRange || undefined,
       hashtags: hashtags.length ? hashtags : undefined,
+      language: selectedLanguage || undefined,
+      sector: selectedSector || undefined,
+      country: selectedCountry || undefined,
     };
 
     if (!searchQuery && !hasFilterValues(filtersToSave)) {
@@ -465,6 +508,9 @@ export default function InspirationPage() {
     setSelectedFormat(search.filters.format || "");
     setMinLikes(search.filters.minLikes ?? defaultMinLikes);
     setTimeRange(search.filters.period || "");
+    setSelectedLanguage(search.filters.language || "");
+    setSelectedSector(search.filters.sector || "");
+    setSelectedCountry(search.filters.country || "");
 
     const savedHashtags = sanitizeHashtagsArray(search.filters.hashtags);
     setHashtagsInput(
@@ -478,6 +524,9 @@ export default function InspirationPage() {
       minLikes: search.filters.minLikes ?? defaultMinLikes,
       period: search.filters.period,
       hashtags: savedHashtags,
+      language: search.filters.language ?? "",
+      sector: search.filters.sector ?? "",
+      country: search.filters.country ?? "",
     });
 
     toast.success(`Aplicando búsqueda: ${search.name}`);
@@ -503,6 +552,22 @@ export default function InspirationPage() {
     } catch (error) {
       console.error("Delete search error:", error);
       toast.error("Error al eliminar");
+    }
+  };
+
+  const handleUseIdea = (post: InspirationPost) => {
+    try {
+      const ideaContent = (post.summary || post.content || "").trim();
+      if (!ideaContent) {
+        toast.error("No pudimos preparar esta idea. Intenta con otra.");
+        return;
+      }
+      localStorage.setItem("kolink-draft", ideaContent);
+      toast.success("Idea enviada a tu editor. Redirigiendo al estudio creativo...");
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Use idea error:", error);
+      toast.error("No se pudo enviar la idea al editor");
     }
   };
 
@@ -720,6 +785,45 @@ export default function InspirationPage() {
               </div>
             )}
 
+            <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-6 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
+              <div className="text-sm text-slate-500 dark:text-slate-300">
+                {searching
+                  ? "Buscando ideas relevantes…"
+                  : resultsCount === 1
+                  ? "1 idea encontrada para tu búsqueda."
+                  : `${resultsCount} ideas encontradas para tu búsqueda.`}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 dark:text-slate-500">Vista</span>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition",
+                    viewMode === "grid"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-200 text-slate-500 hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                  )}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  className={cn(
+                    "flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition",
+                    viewMode === "list"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-200 text-slate-500 hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                  )}
+                >
+                  <List className="h-4 w-4" />
+                  Lista
+                </button>
+              </div>
+            </div>
+
             {searching ? (
               <Card className="flex items-center justify-center py-16">
                 <Loader />
@@ -737,79 +841,185 @@ export default function InspirationPage() {
                 </div>
               </Card>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {results.map((post) => (
-                  <Card key={post.id} className="flex h-full flex-col overflow-hidden p-6 shadow-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase text-primary">
-                            {post.platform}
-                          </span>
-                          {post.similarity && post.similarity > 0 && (
-                            <span className="text-xs text-slate-400">
-                              {(post.similarity * 100).toFixed(0)}% match
+              <div
+                className={cn(
+                  viewMode === "grid"
+                    ? "grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
+                    : "space-y-4"
+                )}
+              >
+                {results.map((post) => {
+                  const languageLabel = post.language
+                    ? getOptionLabel(languageOptions, post.language)
+                    : null;
+                  const sectorLabel = post.sector
+                    ? getOptionLabel(sectorOptions, post.sector)
+                    : null;
+                  const countryLabel = post.country
+                    ? getOptionLabel(countryOptions, post.country)
+                    : null;
+                  const authorInitials = post.author
+                    ? post.author
+                        .split(" ")
+                        .map((part) => part[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : "K";
+
+                  return (
+                    <Card
+                      key={post.id}
+                      className={cn(
+                        "flex h-full flex-col overflow-hidden border border-slate-200 p-6 shadow-sm transition hover:shadow-md dark:border-slate-700",
+                        viewMode === "list" && "md:flex-row md:items-start md:gap-6"
+                      )}
+                    >
+                      <div className={cn("flex flex-col gap-4", viewMode === "list" && "md:w-64")}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold uppercase text-primary"
+                              style={
+                                post.author_profile_image
+                                  ? {
+                                      backgroundImage: `url(${post.author_profile_image})`,
+                                      backgroundSize: "cover",
+                                      backgroundPosition: "center",
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {!post.author_profile_image && authorInitials}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase text-primary">
+                                  {post.platform}
+                                </span>
+                                {post.similarity && post.similarity > 0 && (
+                                  <span className="text-xs text-slate-400">
+                                    {(post.similarity * 100).toFixed(0)}% match
+                                  </span>
+                                )}
+                              </div>
+                              {post.author_url ? (
+                                <a
+                                  href={post.author_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-slate-800 transition hover:text-primary dark:text-slate-100"
+                                >
+                                  {post.author}
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              ) : (
+                                <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                  {post.author}
+                                </p>
+                              )}
+                              <div className="mt-1 flex items-center gap-1 text-xs text-slate-400">
+                                <Clock className="h-3.5 w-3.5" />
+                                {new Date(post.capturedAt).toLocaleDateString("es-ES", {
+                                  day: "2-digit",
+                                  month: "short",
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => savePost(post.id)}
+                            className="rounded-full border border-slate-200 p-2 text-slate-400 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-500 dark:hover:border-primary dark:hover:text-primary"
+                            title="Guardar en favoritos"
+                          >
+                            <Bookmark className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-3 text-xs text-slate-500 dark:text-slate-400">
+                          {languageLabel && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                              Idioma: {languageLabel}
+                            </span>
+                          )}
+                          {sectorLabel && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                              Sector: {sectorLabel}
+                            </span>
+                          )}
+                          {countryLabel && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                              País: {countryLabel}
                             </span>
                           )}
                         </div>
-                        <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                          {post.author}
-                        </p>
-                        <div className="mt-1 flex items-center gap-1 text-xs text-slate-400">
-                          <Clock className="h-3.5 w-3.5" />
-                          {new Date(post.capturedAt).toLocaleDateString("es-ES", {
-                            day: "2-digit",
-                            month: "short",
-                          })}
+                      </div>
+
+                      <div className="mt-4 flex flex-1 flex-col space-y-4 md:mt-0">
+                        <div className="flex-1 space-y-3">
+                          {post.title && (
+                            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                              {post.title}
+                            </h3>
+                          )}
+                          <p className="line-clamp-6 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                            {post.summary || post.content}
+                          </p>
+
+                          {post.tags?.length ? (
+                            <div className="flex flex-wrap gap-2">
+                              {post.tags.slice(0, 6).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                >
+                                  <Hash className="h-3 w-3" />
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                          {post.metrics.likes && (
+                            <span>{post.metrics.likes.toLocaleString()} likes</span>
+                          )}
+                          {post.metrics.shares && (
+                            <span>{post.metrics.shares.toLocaleString()} shares</span>
+                          )}
+                          {post.metrics.comments && (
+                            <span>{post.metrics.comments.toLocaleString()} comentarios</span>
+                          )}
+                          {post.metrics.views && (
+                            <span>{post.metrics.views.toLocaleString()} visualizaciones</span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 pt-4">
+                          <Button
+                            type="button"
+                            onClick={() => handleUseIdea(post)}
+                            className="flex items-center gap-2"
+                          >
+                            Usar esta idea
+                          </Button>
+                          {post.original_url && (
+                            <a
+                              href={post.original_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-4 py-2 text-xs font-medium text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                            >
+                              Ver original
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
                         </div>
                       </div>
-                      <button
-                        onClick={() => savePost(post.id)}
-                        className="rounded-full border border-slate-200 p-2 text-slate-400 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-500 dark:hover:border-primary dark:hover:text-primary"
-                        title="Guardar en favoritos"
-                      >
-                        <Bookmark className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    <div className="mt-4 flex-1 space-y-3">
-                      {post.title && (
-                        <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-                          {post.title}
-                        </h3>
-                      )}
-                      <p className="line-clamp-5 text-sm text-slate-600 dark:text-slate-300">
-                        {post.summary || post.content}
-                      </p>
-
-                      {post.tags?.length ? (
-                        <div className="flex flex-wrap gap-2">
-                          {post.tags.slice(0, 4).map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                            >
-                              <Hash className="h-3 w-3" />
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                      {post.metrics.likes && (
-                        <span>{post.metrics.likes.toLocaleString()} likes</span>
-                      )}
-                      {post.metrics.shares && (
-                        <span>{post.metrics.shares.toLocaleString()} shares</span>
-                      )}
-                      {post.metrics.comments && (
-                        <span>{post.metrics.comments.toLocaleString()} comentarios</span>
-                      )}
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </section>
