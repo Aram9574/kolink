@@ -340,7 +340,7 @@ export default function InspirationPage() {
       const data = await response.json();
       if (data.ok) {
         const rawSearches = Array.isArray(data.searches) ? data.searches : [];
-        const sanitized: SavedSearch[] = rawSearches.map((search) => {
+        const sanitized: SavedSearch[] = rawSearches.map((search: unknown) => {
           const typed = search as SavedSearch;
           return {
             ...typed,
