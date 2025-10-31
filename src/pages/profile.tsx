@@ -781,7 +781,10 @@ export default function Profile({ session }: ProfileProps) {
                         </p>
                       </div>
                       {!profile?.linkedin_profile_url && (
-                        <Button className="gap-2 min-h-[48px] md:min-h-0">
+                        <Button
+                          className="gap-2 min-h-[48px] md:min-h-0"
+                          onClick={() => window.location.href = '/api/auth/linkedin/authorize'}
+                        >
                           <Linkedin className="h-5 w-5 md:h-4 md:w-4" />
                           Conectar LinkedIn
                         </Button>
@@ -865,9 +868,34 @@ export default function Profile({ session }: ProfileProps) {
 
                         {/* Actions */}
                         <div className="pt-4 border-t border-blue-200 dark:border-blue-800 flex flex-col sm:flex-row gap-3">
-                          <Button variant="outline" className="gap-2">
+                          <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={async () => {
+                              if (!session) return;
+                              try {
+                                toast.loading("Importando tus posts de LinkedIn...");
+                                const response = await fetch("/api/linkedin/fetch-posts", {
+                                  headers: {
+                                    Authorization: `Bearer ${session.access_token}`,
+                                  },
+                                });
+                                const data = await response.json();
+                                if (response.ok) {
+                                  toast.dismiss();
+                                  toast.success(`¡Importados ${data.samples_saved} posts para personalización!`);
+                                } else {
+                                  toast.dismiss();
+                                  toast.error(data.error || "Error al importar posts");
+                                }
+                              } catch (error) {
+                                toast.dismiss();
+                                toast.error("Error al importar posts");
+                              }
+                            }}
+                          >
                             <Linkedin className="h-4 w-4" />
-                            Actualizar Datos
+                            Importar Posts
                           </Button>
                           <Button
                             variant="outline"
