@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
 
 type SaveRequest =
   | {
@@ -14,6 +14,49 @@ type SaveRequest =
       filters: Record<string, unknown>;
     };
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseSaveRequest(body: unknown): SaveRequest {
+  if (!isPlainObject(body) || typeof body.type !== "string") {
+    throw new Error("Formato inválido en la petición.");
+  }
+
+  if (body.type === "post") {
+    if (typeof body.inspirationPostId !== "string" || body.inspirationPostId.trim().length === 0) {
+      throw new Error("inspirationPostId es requerido.");
+    }
+
+    const metadata = isPlainObject(body.metadata) ? body.metadata : undefined;
+
+    return {
+      type: "post",
+      inspirationPostId: body.inspirationPostId,
+      note: typeof body.note === "string" ? body.note : undefined,
+      metadata,
+    };
+  }
+
+  if (body.type === "search") {
+    if (typeof body.name !== "string" || body.name.trim().length === 0) {
+      throw new Error("El nombre de la búsqueda es requerido.");
+    }
+
+    if (!isPlainObject(body.filters)) {
+      throw new Error("filters debe ser un objeto.");
+    }
+
+    return {
+      type: "search",
+      name: body.name,
+      filters: body.filters,
+    };
+  }
+
+  throw new Error("Tipo de guardado inválido.");
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
@@ -25,20 +68,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const supabase = getSupabaseAdminClient();
+  let supabase;
+
+  try {
+    supabase = getSupabaseServerClient(token);
+  } catch (error) {
+    console.error("[api/inspiration/save] Supabase initialization error:", error);
+    return res.status(500).json({ error: "Configuración de Supabase inválida." });
+  }
+
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser(token);
+
+  if (userError) {
+    console.error("[api/inspiration/save] Error obteniendo usuario:", userError);
+    return res.status(401).json({ error: "Sesión inválida" });
+  }
 
   if (!user) {
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
-  const body = req.body as SaveRequest;
+  let body: SaveRequest;
 
   try {
-    // If inspirationPostId is present, save as post (for backwards compatibility)
-    if ("inspirationPostId" in body || body.type === "post") {
+    body = parseSaveRequest(req.body);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Datos inválidos";
+    return res.status(400).json({ error: message });
+  }
+
+  try {
+    // If type is post, save as post
+    if (body.type === "post") {
       // Check if already saved
       const { data: existing } = await supabase
         .from("saved_posts")

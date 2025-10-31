@@ -1,5 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
+import { z } from "zod";
+
+const deleteSearchSchema = z.object({
+  searchId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((value) => (Array.isArray(value) ? value[0] : value))
+    .pipe(z.string().uuid()),
+});
 
 /**
  * DELETE /api/inspiration/searches/delete
@@ -16,7 +24,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const supabase = getSupabaseAdminClient();
+  let supabase;
+  try {
+    supabase = getSupabaseServerClient(token);
+  } catch (error) {
+    console.error("[api/inspiration/searches/delete] Supabase initialization error:", error);
+    return res.status(500).json({ error: "Configuración de Supabase inválida" });
+  }
 
   const {
     data: { user },
@@ -27,11 +41,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
-  const { searchId } = req.query;
-
-  if (!searchId || typeof searchId !== "string") {
-    return res.status(400).json({ error: "searchId es requerido" });
+  const parseResult = deleteSearchSchema.safeParse(req.query);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      error: "searchId es requerido",
+      details: parseResult.error.flatten(),
+    });
   }
+  const { searchId } = parseResult.data;
 
   try {
     // Verify ownership before deleting

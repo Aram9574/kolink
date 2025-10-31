@@ -386,10 +386,10 @@ Por favor, genera contenido inspirado en este estilo y tema.`;
             <p className="text-gray-500 dark:text-gray-400 mb-6">
               {searchQuery || platformFilter
                 ? "Intenta con otros filtros de búsqueda"
-                : "Empieza a guardar inspiración desde la página de Inspiración"}
+                : "Empieza a guardar ideas desde Inspiration Hub"}
             </p>
             <Button onClick={() => router.push("/inspiration")}>
-              Explorar Inspiración
+              Explorar Inspiration Hub
             </Button>
           </Card>
         ) : (

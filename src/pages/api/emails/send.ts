@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { resend, FROM_EMAIL } from "@/lib/resend";
+import { getResendClient, FROM_EMAIL } from "@/lib/resend";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { rateLimit, RATE_LIMIT_CONFIGS } from "@/lib/rateLimit";
 import fs from "fs/promises";
@@ -65,7 +65,8 @@ async function sendWelcomeEmail(to: string, data: Record<string, unknown>) {
 
   const html = await loadEmailTemplate("welcome", emailData);
 
-  const result = await resend.emails.send({
+  const resendClient = getResendClient();
+  const result = await resendClient.emails.send({
     from: FROM_EMAIL,
     to,
     subject: "¡Bienvenido a Kolink! 🎉",
@@ -96,7 +97,8 @@ async function sendWeeklyEmail(to: string, data: Record<string, unknown>) {
 
   const html = await loadEmailTemplate("weekly", emailData);
 
-  const result = await resend.emails.send({
+  const resendClient = getResendClient();
+  const result = await resendClient.emails.send({
     from: FROM_EMAIL,
     to,
     subject: "Tu Resumen Semanal de Kolink 📊",
@@ -123,7 +125,8 @@ async function sendResetPasswordEmail(to: string, data: Record<string, unknown>)
 
   const html = await loadEmailTemplate("reset-password", emailData);
 
-  const result = await resend.emails.send({
+  const resendClient = getResendClient();
+  const result = await resendClient.emails.send({
     from: FROM_EMAIL,
     to,
     subject: "Restablece tu contraseña - Kolink 🔐",
@@ -155,7 +158,8 @@ async function sendPaymentSuccessfulEmail(to: string, data: Record<string, unkno
 
   const html = await loadEmailTemplate("payment-successful", emailData);
 
-  const result = await resend.emails.send({
+  const resendClient = getResendClient();
+  const result = await resendClient.emails.send({
     from: FROM_EMAIL,
     to,
     subject: "¡Pago exitoso! Tu plan está activo 🎉",
@@ -184,7 +188,8 @@ async function sendCreditsLowEmail(to: string, data: Record<string, unknown>) {
 
   const html = await loadEmailTemplate("credits-low", emailData);
 
-  const result = await resend.emails.send({
+  const resendClient = getResendClient();
+  const result = await resendClient.emails.send({
     from: FROM_EMAIL,
     to,
     subject: "⚠️ Tus créditos de Kolink están por agotarse",

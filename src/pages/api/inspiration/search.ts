@@ -1,17 +1,41 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { generateCacheKey, withCache } from "@/lib/redis";
 import { openai } from "@/lib/openai";
 import { limiter } from "@/lib/rateLimiter";
+import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
+import { z } from "zod";
 
-type SearchRequest = {
-  query?: string;
-  filters?: {
-    platform?: string;
-    tags?: string[];
+const searchRequestSchema = z.object({
+  query: z.string().optional(),
+  filters: z
+    .object({
+      platform: z.string().optional(),
+      tags: z.array(z.string()).max(20).optional(),
+    })
+    .optional(),
+  limit: z.number().int().positive().max(100).optional(),
+});
+
+type SearchRequest = z.infer<typeof searchRequestSchema>;
+
+function normalizeSearchRequest(request: SearchRequest) {
+  const trimmedQuery = request.query?.trim() || undefined;
+
+  const platform = request.filters?.platform?.trim();
+  const tags = request.filters?.tags?.map((tag) => tag.trim()).filter(Boolean);
+
+  return {
+    query: trimmedQuery,
+    filters:
+      platform || (tags && tags.length > 0)
+        ? {
+            ...(platform ? { platform } : {}),
+            ...(tags && tags.length > 0 ? { tags } : {}),
+          }
+        : undefined,
+    limit: request.limit,
   };
-  limit?: number;
-};
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -24,10 +48,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const supabase = getSupabaseAdminClient();
+  let supabase;
+  try {
+    supabase = getSupabaseServerClient(token);
+  } catch (error) {
+    console.error("[api/inspiration/search] Supabase initialization error:", error);
+    return res.status(500).json({ error: "Configuración de Supabase inválida" });
+  }
+
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser(token);
+
+  if (userError) {
+    console.error("[api/inspiration/search] Error autenticando usuario:", userError);
+    return res.status(401).json({ error: "Sesión inválida" });
+  }
 
   if (!user) {
     return res.status(401).json({ error: "Sesión inválida" });
@@ -49,14 +86,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Continuar sin rate limiting si hay error
   }
 
-  const body = req.body as SearchRequest;
+  const parseResult = searchRequestSchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    return res.status(400).json({
+      error: "Datos de búsqueda inválidos",
+      details: parseResult.error.flatten(),
+    });
+  }
+
+  const body = normalizeSearchRequest(parseResult.data);
   const limit = Math.min(body.limit ?? 20, 50);
 
   // Generate cache key from search parameters
   const cacheKey = generateCacheKey("inspiration:search", {
     query: body.query || "",
     platform: body.filters?.platform || "",
-    tags: body.filters?.tags || [],
+    tags: body.filters?.tags ?? [],
     limit,
   });
 
@@ -64,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const results = await withCache(cacheKey, 300, async () => {
       // If there's a search query, use semantic search with embeddings
-      if (body.query && body.query.trim().length > 0) {
+      if (body.query) {
         try {
           // Generate embedding for the search query
           // Using text-embedding-3-small for consistency with stored embeddings

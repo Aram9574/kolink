@@ -1,15 +1,43 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
+import { z } from "zod";
 
-type UpdateSearchRequest = {
-  searchId: string;
-  name?: string;
-  filters?: {
-    query?: string;
-    platform?: string;
-    tags?: string[];
-  };
-};
+const baseFiltersSchema = z
+  .object({
+    query: z.string().trim().min(1).optional(),
+    platform: z.string().trim().min(1).optional(),
+    tags: z.array(z.string().trim().min(1)).max(20).optional(),
+    contentTypes: z.array(z.string().trim().min(1)).max(10).optional(),
+    format: z.string().trim().min(1).optional(),
+    minLikes: z.number().int().min(0).max(1_000_000).optional(),
+    period: z.string().trim().min(1).optional(),
+    hashtags: z.array(z.string().trim().min(1)).max(20).optional(),
+  })
+  .partial();
+
+const hasFilterValues = (filters?: z.infer<typeof baseFiltersSchema>) =>
+  !!filters &&
+  Object.values(filters).some((value) => {
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return value !== undefined && value !== "" && value !== null;
+  });
+
+const updateSearchSchema = z
+  .object({
+    searchId: z.string().uuid(),
+    name: z.string().trim().min(1).max(120).optional(),
+    filters: baseFiltersSchema.optional(),
+  })
+  .refine((values) => {
+    const hasName = Boolean(values.name);
+    const hasFilters = hasFilterValues(values.filters);
+    return hasName || hasFilters;
+  }, {
+    message: "Debes proporcionar al menos un campo para actualizar",
+    path: ["name"],
+  });
 
 /**
  * PUT /api/inspiration/searches/update
@@ -26,7 +54,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const supabase = getSupabaseAdminClient();
+  let supabase;
+  try {
+    supabase = getSupabaseServerClient(token);
+  } catch (error) {
+    console.error("[api/inspiration/searches/update] Supabase initialization error:", error);
+    return res.status(500).json({ error: "Configuración de Supabase inválida" });
+  }
 
   const {
     data: { user },
@@ -37,15 +71,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
-  const body = req.body as UpdateSearchRequest;
-
-  if (!body.searchId) {
-    return res.status(400).json({ error: "searchId es requerido" });
+  const parseResult = updateSearchSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      error: "Datos inválidos",
+      details: parseResult.error.flatten(),
+    });
   }
 
-  if (!body.name && !body.filters) {
-    return res.status(400).json({ error: "Debes proporcionar al menos un campo para actualizar" });
-  }
+  const body = parseResult.data;
 
   try {
     // Verify ownership before updating
@@ -71,7 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       updateData.name = body.name.trim();
     }
 
-    if (body.filters) {
+    if (body.filters && hasFilterValues(body.filters)) {
       updateData.filters = body.filters;
     }
 

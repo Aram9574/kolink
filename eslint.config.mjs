@@ -17,6 +17,10 @@ const eslintConfig = [
       ".next/**",
       "out/**",
       "build/**",
+      "coverage/**",
+      "playwright-report/**",
+      "test-results/**",
+      "e2e/**",
       "next-env.d.ts",
       "**/*.test.ts",
       "**/*.test.tsx",
@@ -34,6 +38,14 @@ const eslintConfig = [
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+    },
+  },
+  {
+    files: ["scripts/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unused-vars": "off", // Scripts de desarrollo pueden tener vars sin usar
     },
   },
 ];

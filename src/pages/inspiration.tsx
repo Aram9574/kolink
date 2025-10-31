@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import type { Session } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
@@ -8,7 +8,28 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loader from "@/components/Loader";
 import { supabase } from "@/lib/supabase";
-import { Search, Bookmark, Filter, Save, Trash2, Play } from "lucide-react";
+import {
+  Search,
+  Bookmark,
+  Save,
+  Trash2,
+  Play,
+  SlidersHorizontal,
+  Sparkles,
+  Lightbulb,
+  Brain,
+  Megaphone,
+  Image as ImageIcon,
+  Video,
+  FileText,
+  LayoutGrid,
+  Clock,
+  Undo2,
+  Filter,
+  ArrowUpDown,
+  Hash,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
 type InspirationPost = {
@@ -28,17 +49,98 @@ type InspirationPost = {
   similarity?: number;
 };
 
+type SavedSearchFilters = {
+  query?: string;
+  platform?: string;
+  tags?: string[];
+  contentTypes?: string[];
+  format?: string;
+  minLikes?: number;
+  period?: string;
+  hashtags?: string[];
+};
+
 type SavedSearch = {
   id: string;
   user_id: string;
   name: string;
-  filters: {
-    query?: string;
-    platform?: string;
-    tags?: string[];
-  };
+  filters: SavedSearchFilters;
   created_at: string;
   updated_at: string;
+};
+
+type RuntimeFilters = {
+  platform?: string;
+  contentTypes?: string[];
+  format?: string;
+  minLikes?: number;
+  period?: string;
+  hashtags?: string[];
+  sort?: "recent" | "top";
+};
+
+const defaultMinLikes = 0;
+const maxLikesValue = 90000;
+
+const contentTypeOptions = [
+  { id: "instructivo", label: "Instructivo", icon: Lightbulb },
+  { id: "inspirador", label: "Inspirador", icon: Sparkles },
+  { id: "introspectivo", label: "Introspectivo", icon: Brain },
+  { id: "promocional", label: "Promocional", icon: Megaphone },
+];
+
+const formatOptions = [
+  { id: "imagen", label: "Imagen", icon: ImageIcon },
+  { id: "video", label: "Vídeo", icon: Video },
+  { id: "carrusel", label: "Carrusel", icon: LayoutGrid },
+  { id: "texto", label: "Texto", icon: FileText },
+];
+
+const periodOptions = [
+  { id: "30d", label: "30D" },
+  { id: "3m", label: "3M" },
+  { id: "12m", label: "12M" },
+];
+
+const platformOptions = [
+  { id: "", label: "Todas las plataformas" },
+  { id: "linkedin", label: "LinkedIn" },
+  { id: "twitter", label: "Twitter/X" },
+  { id: "instagram", label: "Instagram" },
+];
+
+const sanitizeHashtagsArray = (hashtags?: string[]) =>
+  (hashtags ?? [])
+    .map((tag) => tag.replace(/^#/, "").trim())
+    .filter(Boolean);
+
+const normalizeHashtagsInput = (input: string) =>
+  input
+    .split(/[,\s]+/)
+    .map((tag) => tag.replace(/^#/, "").trim())
+    .filter(Boolean);
+
+const hasFilterValues = (filters: SavedSearchFilters) =>
+  Object.values(filters).some((value) => {
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return value !== undefined && value !== "" && value !== null;
+  });
+
+const renderFilterSummary = (filters: SavedSearchFilters) => {
+  const chips: string[] = [];
+  if (filters.platform) chips.push(filters.platform);
+  if (filters.contentTypes?.length) chips.push(filters.contentTypes.join(", "));
+  if (filters.format) chips.push(filters.format);
+  if (filters.minLikes) chips.push(`+${filters.minLikes} likes`);
+  if (filters.period) chips.push(filters.period.toUpperCase());
+  if (filters.hashtags?.length) {
+    const formatted = filters.hashtags.map((tag) => `#${tag.replace(/^#/, "")}`);
+    const [first, ...rest] = formatted;
+    chips.push(rest.length ? `${first} +${rest.length}` : first);
+  }
+  return chips.length > 0 ? chips.join(" • ") : "Sin filtros adicionales";
 };
 
 export default function InspirationPage() {
@@ -46,60 +148,105 @@ export default function InspirationPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [platformFilter, setPlatformFilter] = useState<string>("");
+  const [selectedPlatform, setSelectedPlatform] = useState("");
+  const [selectedContentTypes, setSelectedContentTypes] = useState<string[]>([]);
+  const [selectedFormat, setSelectedFormat] = useState("");
+  const [minLikes, setMinLikes] = useState(defaultMinLikes);
+  const [timeRange, setTimeRange] = useState("");
+  const [hashtagsInput, setHashtagsInput] = useState("");
   const [results, setResults] = useState<InspirationPost[]>([]);
+  const [resultsCount, setResultsCount] = useState(0);
+  const [sortOption, setSortOption] = useState<"recent" | "top">("recent");
   const [searching, setSearching] = useState(false);
-
-  // Saved searches state
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newSearchName, setNewSearchName] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (!session) {
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      if (!currentSession) {
         router.push("/signin");
-      } else {
-        setLoading(false);
-        performSearch(""); // Load initial results
-        loadSavedSearches(session); // Load saved searches
+        return;
       }
+      setLoading(false);
+      performSearch("", undefined, currentSession);
+      loadSavedSearches(currentSession);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    } = supabase.auth.onAuthStateChange((_event, updatedSession) => {
+      setSession(updatedSession);
     });
 
     return () => subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const performSearch = async (query: string) => {
-    if (!session) return;
+  const hashtagPreview = useMemo(() => normalizeHashtagsInput(hashtagsInput), [hashtagsInput]);
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      selectedPlatform ||
+      selectedContentTypes.length > 0 ||
+      selectedFormat ||
+      minLikes !== defaultMinLikes ||
+      timeRange ||
+      hashtagPreview.length > 0
+    );
+  }, [selectedPlatform, selectedContentTypes, selectedFormat, minLikes, timeRange, hashtagPreview]);
+
+  const performSearch = async (
+    query: string,
+    overrides?: RuntimeFilters,
+    activeSession: Session | null = session
+  ) => {
+    if (!activeSession) return;
 
     setSearching(true);
     try {
-      const token = session.access_token;
+      const token = activeSession.access_token;
+      const hashtags = overrides?.hashtags
+        ? sanitizeHashtagsArray(overrides.hashtags)
+        : hashtagPreview;
+
+      const platform = overrides?.platform ?? selectedPlatform;
+      const contentTypes = overrides?.contentTypes ?? selectedContentTypes;
+      const format = overrides?.format ?? selectedFormat;
+      const likeFloor = overrides?.minLikes ?? minLikes;
+      const period = overrides?.period ?? timeRange;
+      const sort = overrides?.sort ?? sortOption;
+
+      const filtersPayload: Record<string, unknown> = {};
+      if (platform) filtersPayload.platform = platform;
+      if (contentTypes.length) filtersPayload.contentTypes = contentTypes;
+      if (format) filtersPayload.format = format;
+      if (likeFloor > 0) filtersPayload.minLikes = likeFloor;
+      if (period) filtersPayload.period = period;
+      if (hashtags.length) filtersPayload.hashtags = hashtags;
+
+      const payload = {
+        query: query || undefined,
+        filters: Object.keys(filtersPayload).length ? filtersPayload : undefined,
+        limit: 24,
+        sort,
+      };
+
       const response = await fetch("/api/inspiration/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          query: query || undefined,
-          filters: platformFilter ? { platform: platformFilter } : undefined,
-          limit: 20,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (data.ok) {
-        setResults(data.results);
+        setResults(data.results || []);
+        setResultsCount(data.results?.length ?? 0);
       } else {
         toast.error(data.error || "Error al buscar inspiración");
       }
@@ -111,9 +258,49 @@ export default function InspirationPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
     performSearch(searchQuery);
+  };
+
+  const toggleContentType = (value: string) => {
+    setSelectedContentTypes((prev) =>
+      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+    );
+  };
+
+  const handleFormatSelect = (value: string) => {
+    setSelectedFormat((prev) => (prev === value ? "" : value));
+  };
+
+  const handlePeriodSelect = (value: string) => {
+    setTimeRange((prev) => (prev === value ? "" : value));
+  };
+
+  const handleFiltersApply = () => {
+    performSearch(searchQuery);
+  };
+
+  const handleResetFilters = () => {
+    setSelectedPlatform("");
+    setSelectedContentTypes([]);
+    setSelectedFormat("");
+    setMinLikes(defaultMinLikes);
+    setTimeRange("");
+    setHashtagsInput("");
+    performSearch(searchQuery, {
+      platform: "",
+      contentTypes: [],
+      format: "",
+      minLikes: defaultMinLikes,
+      period: "",
+      hashtags: [],
+    });
+  };
+
+  const handleSortChange = (value: "recent" | "top") => {
+    setSortOption(value);
+    performSearch(searchQuery, { sort: value });
   };
 
   const savePost = async (postId: string) => {
@@ -127,7 +314,7 @@ export default function InspirationPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ inspirationPostId: postId }),
+        body: JSON.stringify({ type: "post", inspirationPostId: postId }),
       });
 
       const data = await response.json();
@@ -143,17 +330,24 @@ export default function InspirationPage() {
     }
   };
 
-  // Saved searches functions
-  const loadSavedSearches = async (session: Session) => {
+  const loadSavedSearches = async (activeSession: Session) => {
     try {
-      const token = session.access_token;
+      const token = activeSession.access_token;
       const response = await fetch("/api/inspiration/searches/list", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
       if (data.ok) {
-        setSavedSearches(data.searches);
+        const rawSearches = Array.isArray(data.searches) ? data.searches : [];
+        const sanitized: SavedSearch[] = rawSearches.map((search) => {
+          const typed = search as SavedSearch;
+          return {
+            ...typed,
+            filters: typed.filters ?? {},
+          };
+        });
+        setSavedSearches(sanitized);
       }
     } catch (error) {
       console.error("Load searches error:", error);
@@ -163,6 +357,22 @@ export default function InspirationPage() {
   const handleSaveCurrentSearch = async () => {
     if (!session || !newSearchName.trim()) {
       toast.error("Por favor ingresa un nombre para la búsqueda");
+      return;
+    }
+
+    const hashtags = hashtagPreview;
+    const filtersToSave: SavedSearchFilters = {
+      query: searchQuery || undefined,
+      platform: selectedPlatform || undefined,
+      contentTypes: selectedContentTypes.length ? selectedContentTypes : undefined,
+      format: selectedFormat || undefined,
+      minLikes: minLikes !== defaultMinLikes ? minLikes : undefined,
+      period: timeRange || undefined,
+      hashtags: hashtags.length ? hashtags : undefined,
+    };
+
+    if (!searchQuery && !hasFilterValues(filtersToSave)) {
+      toast.error("Agrega un término o filtro antes de guardar");
       return;
     }
 
@@ -176,10 +386,7 @@ export default function InspirationPage() {
         },
         body: JSON.stringify({
           name: newSearchName.trim(),
-          filters: {
-            query: searchQuery || undefined,
-            platform: platformFilter || undefined,
-          },
+          filters: filtersToSave,
         }),
       });
 
@@ -200,8 +407,26 @@ export default function InspirationPage() {
 
   const handleApplySavedSearch = (search: SavedSearch) => {
     setSearchQuery(search.filters.query || "");
-    setPlatformFilter(search.filters.platform || "");
-    performSearch(search.filters.query || "");
+    setSelectedPlatform(search.filters.platform || "");
+    setSelectedContentTypes(search.filters.contentTypes || []);
+    setSelectedFormat(search.filters.format || "");
+    setMinLikes(search.filters.minLikes ?? defaultMinLikes);
+    setTimeRange(search.filters.period || "");
+
+    const savedHashtags = sanitizeHashtagsArray(search.filters.hashtags);
+    setHashtagsInput(
+      savedHashtags.length ? savedHashtags.map((tag) => `#${tag}`).join(", ") : ""
+    );
+
+    performSearch(search.filters.query || "", {
+      platform: search.filters.platform,
+      contentTypes: search.filters.contentTypes,
+      format: search.filters.format,
+      minLikes: search.filters.minLikes ?? defaultMinLikes,
+      period: search.filters.period,
+      hashtags: savedHashtags,
+    });
+
     toast.success(`Aplicando búsqueda: ${search.name}`);
   };
 
@@ -230,7 +455,7 @@ export default function InspirationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-950">
         <Loader />
       </div>
     );
@@ -240,239 +465,497 @@ export default function InspirationPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navbar session={session} />
 
-      <main className="mx-auto max-w-7xl px-4 py-20 lg:pl-64 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Inspiration Hub
-          </h1>
-          <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">
-            Descubre contenido viral y encuentra inspiración para tus próximos posts
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <Card className="mb-8 p-5 md:p-6">
-          <form onSubmit={handleSearch} className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6 md:w-5 md:h-5" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar por palabras clave, temas, autores..."
-                  className="w-full pl-11 md:pl-10 pr-4 py-4 md:py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
+      <main className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:pl-64">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <section className="flex-1 space-y-6">
+            <header className="space-y-3">
+              <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-primary">
+                <Sparkles className="h-4 w-4" />
+                Modo comunidad
               </div>
-              <Button type="submit" disabled={searching} className="min-h-[48px] w-full sm:w-auto">
-                {searching ? "Buscando..." : "Buscar"}
-              </Button>
-            </div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">
+                Inspiration Hub
+              </h1>
+              <p className="text-base text-slate-600 dark:text-slate-300 md:text-lg">
+                Observa lo que comparte tu comunidad y construye tu próximo contenido con datos reales.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Listo para conectar con el feed de LinkedIn
+                </div>
+                <div className="flex items-center gap-1">
+                  <Search className="h-4 w-4" />
+                  {searching ? "Buscando ideas..." : `${resultsCount} resultados disponibles`}
+                </div>
+                {hasActiveFilters && (
+                  <div className="flex items-center gap-1">
+                    <Filter className="h-4 w-4" />
+                    Filtros activos
+                  </div>
+                )}
+              </div>
+            </header>
 
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 md:justify-between">
-              <div className="flex items-center gap-3">
-                <Filter className="w-6 h-6 md:w-5 md:h-5 text-gray-500 flex-shrink-0" />
-                <select
-                  value={platformFilter}
-                  onChange={(e) => setPlatformFilter(e.target.value)}
-                  className="flex-1 md:flex-initial px-4 py-4 md:py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+            <Card className="p-6">
+              <form onSubmit={handleSearch} className="space-y-5">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder="Buscar por palabra clave, persona o tema…"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-10 py-4 text-base text-slate-900 shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={searching}
+                    className="min-h-[52px] w-full sm:w-auto"
+                  >
+                    {searching ? "Buscando..." : "Buscar inspiración"}
+                  </Button>
+                </div>
+
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-3">
+                    <Filter className="h-5 w-5 text-slate-400" />
+                    <select
+                      value={selectedPlatform}
+                      onChange={(event) => setSelectedPlatform(event.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 md:w-60"
+                    >
+                      {platformOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <ArrowUpDown className="h-4 w-4 text-slate-400" />
+                    <select
+                      value={sortOption}
+                      onChange={(event) =>
+                        handleSortChange(event.target.value as "recent" | "top")
+                      }
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    >
+                      <option value="recent">Ordenar por fecha</option>
+                      <option value="top">Ordenar por relevancia</option>
+                    </select>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowSaveDialog(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      Guardar búsqueda
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </Card>
+
+            {savedSearches.length > 0 && (
+              <Card className="p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    Búsquedas guardadas
+                  </h2>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                    {savedSearches.length} presets
+                  </span>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {savedSearches.map((search) => (
+                    <div
+                      key={search.id}
+                      className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
+                    >
+                      <div className="min-w-0 space-y-1">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                          {search.name}
+                        </p>
+                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                          {search.filters.query || "Sin palabra clave"}
+                        </p>
+                        <p className="truncate text-xs text-slate-400 dark:text-slate-500">
+                          {renderFilterSummary(search.filters)}
+                        </p>
+                      </div>
+                      <div className="ml-3 flex shrink-0 items-center gap-2">
+                        <button
+                          onClick={() => handleApplySavedSearch(search)}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/40 text-primary transition hover:bg-primary/10"
+                          title="Aplicar búsqueda"
+                        >
+                          <Play className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSavedSearch(search.id)}
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-500 transition hover:bg-red-50 dark:border-red-900/40 dark:hover:bg-red-900/20"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {showSaveDialog && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+                <Card className="w-full max-w-md p-6 shadow-2xl">
+                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
+                    Guardar búsqueda actual
+                  </h3>
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    Guarda este preset de filtros para reutilizarlo cuando tengas el feed de LinkedIn conectado.
+                  </p>
+
+                  <div className="mt-6 space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        value={newSearchName}
+                        onChange={(event) => setNewSearchName(event.target.value)}
+                        placeholder="Ej: Agentes IA · +500 likes"
+                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                      />
+                    </div>
+                    <div className="rounded-lg bg-slate-100/70 p-3 text-xs text-slate-600 dark:bg-slate-800/80 dark:text-slate-300">
+                      <p>
+                        <strong>Palabra clave:</strong> {searchQuery || "—"}
+                      </p>
+                      <p>
+                        <strong>Plataforma:</strong> {selectedPlatform || "Todas"}
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleSaveCurrentSearch}
+                        className="flex-1"
+                        disabled={searching}
+                      >
+                        Guardar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowSaveDialog(false);
+                          setNewSearchName("");
+                        }}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {searching ? (
+              <Card className="flex items-center justify-center py-16">
+                <Loader />
+              </Card>
+            ) : results.length === 0 ? (
+              <Card className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+                <Sparkles className="h-10 w-10 text-primary" />
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    Aún no tenemos ideas con estos filtros
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Ajusta la búsqueda o prueba con un nuevo tema para obtener resultados frescos de la comunidad.
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {results.map((post) => (
+                  <Card key={post.id} className="flex h-full flex-col overflow-hidden p-6 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase text-primary">
+                            {post.platform}
+                          </span>
+                          {post.similarity && post.similarity > 0 && (
+                            <span className="text-xs text-slate-400">
+                              {(post.similarity * 100).toFixed(0)}% match
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                          {post.author}
+                        </p>
+                        <div className="mt-1 flex items-center gap-1 text-xs text-slate-400">
+                          <Clock className="h-3.5 w-3.5" />
+                          {new Date(post.capturedAt).toLocaleDateString("es-ES", {
+                            day: "2-digit",
+                            month: "short",
+                          })}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => savePost(post.id)}
+                        className="rounded-full border border-slate-200 p-2 text-slate-400 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-500 dark:hover:border-primary dark:hover:text-primary"
+                        title="Guardar en favoritos"
+                      >
+                        <Bookmark className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="mt-4 flex-1 space-y-3">
+                      {post.title && (
+                        <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                          {post.title}
+                        </h3>
+                      )}
+                      <p className="line-clamp-5 text-sm text-slate-600 dark:text-slate-300">
+                        {post.summary || post.content}
+                      </p>
+
+                      {post.tags?.length ? (
+                        <div className="flex flex-wrap gap-2">
+                          {post.tags.slice(0, 4).map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                            >
+                              <Hash className="h-3 w-3" />
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                      {post.metrics.likes && (
+                        <span>{post.metrics.likes.toLocaleString()} likes</span>
+                      )}
+                      {post.metrics.shares && (
+                        <span>{post.metrics.shares.toLocaleString()} shares</span>
+                      )}
+                      {post.metrics.comments && (
+                        <span>{post.metrics.comments.toLocaleString()} comentarios</span>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <aside className="w-full shrink-0 space-y-6 lg:w-80">
+            <Card className="p-6">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                  <SlidersHorizontal className="h-4 w-4 text-primary" />
+                  Filtros activos
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className={cn(
+                    "flex items-center gap-1 text-xs font-medium text-slate-400 transition hover:text-primary",
+                    !hasActiveFilters && "pointer-events-none opacity-40"
+                  )}
                 >
-                  <option value="">Todas las plataformas</option>
-                  <option value="linkedin">LinkedIn</option>
-                  <option value="twitter">Twitter</option>
-                  <option value="instagram">Instagram</option>
-                </select>
+                  <Undo2 className="h-3.5 w-3.5" />
+                  Restablecer
+                </button>
               </div>
 
+              <div className="space-y-6">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Plataforma
+                  </p>
+                  <select
+                    value={selectedPlatform}
+                    onChange={(event) => setSelectedPlatform(event.target.value)}
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  >
+                    {platformOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Tipo de contenido
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {contentTypeOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => toggleContentType(option.id)}
+                        className={cn(
+                          "flex flex-col items-start gap-1 rounded-lg border px-3 py-3 text-left text-sm transition",
+                          selectedContentTypes.includes(option.id)
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-slate-200 text-slate-600 hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                        )}
+                      >
+                        <option.icon className="h-4 w-4" />
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Formato
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {formatOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handleFormatSelect(option.id)}
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg border px-3 py-3 text-sm transition",
+                          selectedFormat === option.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-slate-200 text-slate-600 hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                        )}
+                      >
+                        <option.icon className="h-4 w-4" />
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Me gusta mínimos
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {minLikes.toLocaleString()}
+                    </span>
+                  </p>
+                  <input
+                    type="range"
+                    min={0}
+                    max={maxLikesValue}
+                    step={50}
+                    value={minLikes}
+                    onChange={(event) => setMinLikes(Number(event.target.value))}
+                    className="mt-3 w-full accent-primary"
+                  />
+                  <div className="mt-1 flex justify-between text-xs text-slate-400">
+                    <span>0</span>
+                    <span>{maxLikesValue.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Periodo
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    {periodOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => handlePeriodSelect(option.id)}
+                        className={cn(
+                          "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition",
+                          timeRange === option.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-slate-200 text-slate-600 hover:border-primary/40 hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Hashtags
+                  </p>
+                  <input
+                    type="text"
+                    value={hashtagsInput}
+                    onChange={(event) => setHashtagsInput(event.target.value)}
+                    placeholder="#Growth #Liderazgo"
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  />
+                  {hashtagPreview.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {hashtagPreview.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-slate-200 px-2.5 py-1 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <Button
+                  onClick={handleFiltersApply}
+                  disabled={searching}
+                  className="w-full min-h-[48px]"
+                >
+                  {searching ? "Actualizando..." : "Aplicar filtros"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleResetFilters}
+                  className="w-full min-h-[44px]"
+                  disabled={!hasActiveFilters}
+                >
+                  Limpiar filtros
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="border-2 border-dashed border-primary/40 bg-primary/5 p-6">
+              <h3 className="text-base font-semibold text-primary">
+                Próximamente: Conecta tu LinkedIn
+              </h3>
+              <p className="mt-2 text-sm text-primary/80">
+                Esta vista está lista para sincronizarse con la API oficial de LinkedIn. Cuando esté disponible, podrás filtrar en tiempo real el contenido que publica tu comunidad y detectar oportunidades al instante.
+              </p>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowSaveDialog(true)}
-                className="flex items-center justify-center gap-2 min-h-[48px] w-full md:w-auto"
+                disabled
+                className="mt-4 w-full border-primary text-primary opacity-60"
               >
-                <Save className="w-5 h-5 md:w-4 md:h-4" />
-                Guardar búsqueda
+                Conectar LinkedIn (muy pronto)
               </Button>
-            </div>
-          </form>
-        </Card>
-
-        {/* Saved Searches */}
-        {savedSearches.length > 0 && (
-          <Card className="mb-8 p-5 md:p-6">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Búsquedas Guardadas
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {savedSearches.map((search) => (
-                <div
-                  key={search.id}
-                  className="flex items-center justify-between p-4 md:p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary dark:hover:border-primary transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base md:text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {search.name}
-                    </p>
-                    <p className="text-sm md:text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {search.filters.query || "Sin query"}
-                      {search.filters.platform && ` • ${search.filters.platform}`}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                    <button
-                      onClick={() => handleApplySavedSearch(search)}
-                      className="p-3 md:p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors min-h-[44px] md:min-h-0 flex items-center justify-center"
-                      title="Aplicar búsqueda"
-                    >
-                      <Play className="w-5 h-5 md:w-4 md:h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteSavedSearch(search.id)}
-                      className="p-3 md:p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors min-h-[44px] md:min-h-0 flex items-center justify-center"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="w-5 h-5 md:w-4 md:h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-
-        {/* Save Search Dialog */}
-        {showSaveDialog && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <Card className="max-w-md w-full p-6 md:p-8">
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                Guardar Búsqueda
-              </h3>
-              <p className="text-base md:text-sm text-gray-600 dark:text-gray-400 mb-6 md:mb-4">
-                Guarda los filtros actuales para usarlos más tarde
-              </p>
-              <div className="space-y-6 md:space-y-4">
-                <div>
-                  <label className="block text-base md:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Nombre de la búsqueda
-                  </label>
-                  <input
-                    type="text"
-                    value={newSearchName}
-                    onChange={(e) => setNewSearchName(e.target.value)}
-                    placeholder="Ej: Posts de IA en LinkedIn"
-                    className="w-full px-4 py-4 md:py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                    onKeyDown={(e) => e.key === "Enter" && handleSaveCurrentSearch()}
-                  />
-                </div>
-                <div className="text-base md:text-sm text-gray-600 dark:text-gray-400">
-                  <p><strong>Query:</strong> {searchQuery || "(vacío)"}</p>
-                  <p><strong>Plataforma:</strong> {platformFilter || "Todas"}</p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button onClick={handleSaveCurrentSearch} className="flex-1 min-h-[48px]">
-                    Guardar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowSaveDialog(false);
-                      setNewSearchName("");
-                    }}
-                    className="flex-1 min-h-[48px]"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
             </Card>
-          </div>
-        )}
-
-        {/* Results */}
-        {searching ? (
-          <div className="flex justify-center py-12">
-            <Loader />
-          </div>
-        ) : results.length === 0 ? (
-          <Card className="text-center py-12 p-6">
-            <p className="text-gray-500 dark:text-gray-400 text-base md:text-lg">
-              No se encontraron resultados. Intenta con otros términos de búsqueda.
-            </p>
-          </Card>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {results.map((post) => (
-              <Card key={post.id} className="flex flex-col h-full p-5 md:p-6">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2 md:mb-1">
-                      <span className="text-base md:text-sm font-medium text-primary uppercase">
-                        {post.platform}
-                      </span>
-                      {post.similarity && post.similarity > 0 && (
-                        <span className="text-sm md:text-xs text-gray-500 dark:text-gray-400">
-                          {(post.similarity * 100).toFixed(0)}% relevante
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-base md:text-sm text-gray-600 dark:text-gray-400">
-                      por {post.author}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => savePost(post.id)}
-                    className="text-gray-400 transition-colors hover:text-primary p-2 md:p-0 min-h-[44px] md:min-h-0 flex items-center justify-center flex-shrink-0"
-                    title="Guardar en favoritos"
-                  >
-                    <Bookmark className="w-6 h-6 md:w-5 md:h-5" />
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 mb-4">
-                  {post.title && (
-                    <h3 className="text-base md:text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                      {post.title}
-                    </h3>
-                  )}
-                  <p className="text-base md:text-sm text-gray-700 dark:text-gray-300 line-clamp-4">
-                    {post.summary || post.content}
-                  </p>
-                </div>
-
-                {/* Tags */}
-                {post.tags && post.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {post.tags.slice(0, 3).map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="text-sm md:text-xs px-3 py-1.5 md:px-2 md:py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Metrics */}
-                <div className="flex flex-wrap items-center gap-3 md:gap-4 text-base md:text-sm text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  {post.metrics.likes && (
-                    <span>{post.metrics.likes.toLocaleString()} likes</span>
-                  )}
-                  {post.metrics.shares && (
-                    <span>{post.metrics.shares.toLocaleString()} shares</span>
-                  )}
-                  {post.metrics.comments && (
-                    <span>{post.metrics.comments.toLocaleString()} comentarios</span>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
+          </aside>
+        </div>
       </main>
     </div>
   );

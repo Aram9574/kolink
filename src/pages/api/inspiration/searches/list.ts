@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
 
 /**
  * GET /api/inspiration/searches/list
@@ -16,7 +16,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const supabase = getSupabaseAdminClient();
+  let supabase;
+  try {
+    supabase = getSupabaseServerClient(token);
+  } catch (error) {
+    console.error("[api/inspiration/searches/list] Supabase initialization error:", error);
+    return res.status(500).json({ error: "Configuración de Supabase inválida" });
+  }
 
   const {
     data: { user },

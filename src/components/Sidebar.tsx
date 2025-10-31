@@ -13,6 +13,7 @@ import {
   Lightbulb,
   Menu,
   X,
+  FilePenLine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -62,6 +63,11 @@ export default function Sidebar({ session }: SidebarProps) {
 
   const draftsScheduling = [
     {
+      name: "Mis posts",
+      icon: FilePenLine,
+      href: "/my-posts",
+    },
+    {
       name: "Calendario",
       icon: Calendar,
       href: "/calendar",
@@ -70,7 +76,7 @@ export default function Sidebar({ session }: SidebarProps) {
 
   const contentInspiration = [
     {
-      name: "Inspiración",
+      name: "Inspiration Hub",
       icon: Lightbulb,
       href: "/inspiration",
     },
@@ -198,7 +204,7 @@ export default function Sidebar({ session }: SidebarProps) {
             {/* Content Inspiration */}
             <div>
               <h3 className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Inspiración de Contenido
+                Inspiration Hub
               </h3>
               <div className="space-y-1">
                 {contentInspiration.map((item) => (

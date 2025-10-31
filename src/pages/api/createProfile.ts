@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { rateLimit, RATE_LIMIT_CONFIGS } from "@/lib/rateLimit";
+import { z } from "zod";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -16,11 +17,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const { user } = req.body as { user?: { id: string; email?: string | null } };
+  const bodySchema = z.object({
+    user: z.object({
+      id: z.string().uuid("ID de usuario inválido"),
+      email: z.string().email().nullable().optional(),
+    }),
+  });
 
-  if (!user || !user.id) {
-    return res.status(400).json({ error: "Usuario no proporcionado" });
+  const parseResult = bodySchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    return res.status(400).json({
+      error: "Usuario no proporcionado o inválido",
+      details: parseResult.error.flatten(),
+    });
   }
+
+  const { user } = parseResult.data;
 
   const { error } = await supabase.from("profiles").insert([
     {

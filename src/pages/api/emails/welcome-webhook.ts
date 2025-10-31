@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { resend, FROM_EMAIL } from "@/lib/resend";
+import { getResendClient, FROM_EMAIL } from "@/lib/resend";
 import { supabaseClient } from "@/lib/supabaseClient";
 import fs from "fs/promises";
 import path from "path";
@@ -68,7 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const processedHtml = replaceTemplateVars(html, emailData);
 
     // Send email via Resend
-    const result = await resend.emails.send({
+    const resendClient = getResendClient();
+    const result = await resendClient.emails.send({
       from: FROM_EMAIL,
       to: profile.email,
       subject: "¡Bienvenido a Kolink! 🎉",

@@ -3,7 +3,7 @@ import { buffer } from "micro";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 import { logPayment, logError } from "@/lib/logger";
-import { resend, FROM_EMAIL } from "@/lib/resend";
+import { getResendClient, FROM_EMAIL } from "@/lib/resend";
 import fs from "fs/promises";
 import path from "path";
 
@@ -12,34 +12,34 @@ export const config = {
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-// Map Stripe Price IDs to plans and credits
-const PLAN_MAPPING: Record<
-  string,
-  { plan: string; credits: number; displayName: string; price: number }
-> = {
-  [process.env.STRIPE_PRICE_ID_BASIC || ""]: {
-    plan: "basic",
-    credits: 50,
-    displayName: "Basic",
-    price: 9,
+type PlanInfo = { plan: string; credits: number; displayName: string; price: number };
+
+const ALL_PLANS: PlanInfo[] = [
+  { plan: "basic", credits: 50, displayName: "Basic", price: 9 },
+  { plan: "standard", credits: 150, displayName: "Standard", price: 19 },
+  { plan: "premium", credits: 500, displayName: "Premium", price: 29 },
+];
+
+const PLAN_MAPPING: Record<string, PlanInfo> = ALL_PLANS.reduce(
+  (acc, plan) => {
+    const priceId =
+      plan.plan === "basic"
+        ? process.env.STRIPE_PRICE_ID_BASIC
+        : plan.plan === "standard"
+          ? process.env.STRIPE_PRICE_ID_STANDARD
+          : process.env.STRIPE_PRICE_ID_PREMIUM;
+
+    if (priceId) {
+      acc[priceId] = plan;
+    }
+
+    return acc;
   },
-  [process.env.STRIPE_PRICE_ID_STANDARD || ""]: {
-    plan: "standard",
-    credits: 150,
-    displayName: "Standard",
-    price: 19,
-  },
-  [process.env.STRIPE_PRICE_ID_PREMIUM || ""]: {
-    plan: "premium",
-    credits: 500,
-    displayName: "Premium",
-    price: 29,
-  },
-};
+  {} as Record<string, PlanInfo>
+);
 
 /**
  * Replaces template variables in HTML string
@@ -87,7 +87,9 @@ async function sendPaymentEmail(
 
     const processedHtml = replaceTemplateVars(html, emailData);
 
-    await resend.emails.send({
+    const resendClient = getResendClient();
+
+    await resendClient.emails.send({
       from: FROM_EMAIL,
       to,
       subject: "¡Pago exitoso! Tu plan está activo 🎉",
@@ -108,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     console.error("❌ Supabase server keys missing.");
-    return res.status(500).send("Configuración de Supabase incompleta.");
+    return res.status(500).send("Configuración de Supabase incompleta (requiere clave service role).");
   }
 
   if (!webhookSecret) {
@@ -179,7 +181,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Determine plan and credits from Stripe line items
-      let planInfo = { plan: "basic", credits: 50, displayName: "Basic" };
+      let planInfo: { plan: string; credits: number; displayName: string; price: number } = {
+        plan: "basic",
+        credits: 50,
+        displayName: "Basic",
+        price: 9
+      };
 
       // Try to get price ID from session line items
       try {
@@ -190,14 +197,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const priceId = sessionWithLineItems.line_items?.data[0]?.price?.id;
 
-        if (priceId && PLAN_MAPPING[priceId]) {
-          planInfo = PLAN_MAPPING[priceId];
+        if (priceId) {
+          const mappedPlan = PLAN_MAPPING[priceId];
+          if (mappedPlan) {
+            planInfo = mappedPlan;
+          }
         } else if (session.metadata?.selected_plan) {
           // Fallback to metadata
           const selectedPlan = session.metadata.selected_plan.toLowerCase();
-          const foundPlan = Object.values(PLAN_MAPPING).find(
-            (p) => p.plan === selectedPlan
-          );
+          const foundPlan = ALL_PLANS.find((p) => p.plan === selectedPlan);
           if (foundPlan) {
             planInfo = foundPlan;
           }

@@ -7,13 +7,14 @@
 -- ============================================================================
 
 -- Drop existing function if exists (con todas las posibles firmas)
-DROP FUNCTION IF EXISTS search_inspiration_posts(vector, float, int);
-DROP FUNCTION IF EXISTS search_inspiration_posts(vector, double precision, integer);
 DROP FUNCTION IF EXISTS search_inspiration_posts;
+
+-- Asegurar extensión pgvector disponible
+CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- Crear función de búsqueda semántica
 CREATE OR REPLACE FUNCTION search_inspiration_posts(
-  query_embedding vector(1536),
+  query_embedding extensions.vector(1536),
   match_threshold float DEFAULT 0.3,
   match_count int DEFAULT 20
 )

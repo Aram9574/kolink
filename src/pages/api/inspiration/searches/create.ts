@@ -1,14 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
+import { z } from "zod";
 
-type CreateSearchRequest = {
-  name: string;
-  filters: {
-    query?: string;
-    platform?: string;
-    tags?: string[];
-  };
-};
+const baseFiltersSchema = z
+  .object({
+    query: z.string().trim().min(1).optional(),
+    platform: z.string().trim().min(1).optional(),
+    tags: z.array(z.string().trim().min(1)).max(20).optional(),
+    contentTypes: z.array(z.string().trim().min(1)).max(10).optional(),
+    format: z.string().trim().min(1).optional(),
+    minLikes: z.number().int().min(0).max(1_000_000).optional(),
+    period: z.string().trim().min(1).optional(),
+    hashtags: z.array(z.string().trim().min(1)).max(20).optional(),
+  })
+  .partial();
+
+const createSearchSchema = z.object({
+  name: z.string().trim().min(1, "El nombre de la búsqueda es requerido").max(120),
+  filters: baseFiltersSchema.refine(
+    (filters) =>
+      Object.values(filters).some((value) => {
+        if (Array.isArray(value)) {
+          return value.length > 0;
+        }
+        return value !== undefined && value !== "" && value !== null;
+      }),
+    {
+      message: "Debes proporcionar al menos un filtro",
+    }
+  ),
+});
 
 /**
  * POST /api/inspiration/searches/create
@@ -25,7 +46,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const token = authHeader.replace("Bearer ", "");
-  const supabase = getSupabaseAdminClient();
+  let supabase;
+  try {
+    supabase = getSupabaseServerClient(token);
+  } catch (error) {
+    console.error("[api/inspiration/searches/create] Supabase initialization error:", error);
+    return res.status(500).json({ error: "Configuración de Supabase inválida" });
+  }
 
   const {
     data: { user },
@@ -36,15 +63,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
-  const body = req.body as CreateSearchRequest;
-
-  if (!body.name || body.name.trim().length === 0) {
-    return res.status(400).json({ error: "El nombre de la búsqueda es requerido" });
+  const parseResult = createSearchSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      error: "Datos inválidos",
+      details: parseResult.error.flatten(),
+    });
   }
 
-  if (!body.filters || Object.keys(body.filters).length === 0) {
-    return res.status(400).json({ error: "Debes proporcionar al menos un filtro" });
-  }
+  const body = parseResult.data;
 
   try {
     const { data, error } = await supabase
