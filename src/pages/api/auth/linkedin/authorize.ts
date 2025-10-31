@@ -16,7 +16,6 @@ export default async function handler(
     const {
       LINKEDIN_CLIENT_ID,
       LINKEDIN_REDIRECT_URI,
-      NEXT_PUBLIC_SITE_URL,
     } = process.env;
 
     if (!LINKEDIN_CLIENT_ID || !LINKEDIN_REDIRECT_URI) {

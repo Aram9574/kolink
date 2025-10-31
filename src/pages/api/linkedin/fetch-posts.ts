@@ -33,7 +33,7 @@ export default async function handler(
     // Get user profile with LinkedIn token
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("linkedin_access_token, linkedin_token_expires_at, linkedin_id")
+      .select("linkedin_access_token, linkedin_token_expires_at, linkedin_id, preferred_language")
       .eq("id", user.id)
       .single();
 
@@ -80,10 +80,22 @@ export default async function handler(
       });
     }
 
-    const postsData = await postsResponse.json();
+    const postsData = await postsResponse.json() as {
+      elements?: Array<{
+        id: string;
+        specificContent?: {
+          "com.linkedin.ugc.ShareContent"?: {
+            shareCommentary?: { text?: string };
+          };
+        };
+        created?: { time: number };
+        lastModified?: { time: number };
+        visibility?: string;
+      }>;
+    };
 
     // Extract text content from posts
-    const posts = postsData.elements?.map((post: any) => {
+    const posts = postsData.elements?.map((post) => {
       const text = post.specificContent?.["com.linkedin.ugc.ShareContent"]?.shareCommentary?.text || "";
       return {
         id: post.id,
@@ -96,13 +108,13 @@ export default async function handler(
 
     // Store posts as writing samples for AI learning
     const writingSamples = posts
-      .filter((p: any) => p.text && p.text.length > 50) // Only meaningful posts
-      .map((post: any) => ({
+      .filter((p) => p.text && p.text.length > 50) // Only meaningful posts
+      .map((post) => ({
         user_id: user.id,
         content: post.text,
         source: "linkedin",
         language: profile.preferred_language || "es-ES",
-        created_at: new Date(post.created).toISOString(),
+        created_at: new Date(post.created || 0).toISOString(),
       }));
 
     if (writingSamples.length > 0) {
