@@ -36,8 +36,16 @@ export function Hero() {
         <motion.p
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="mt-4 max-w-2xl text-xl font-semibold text-blue-600"
+        >
+          Genera y analiza contenido para LinkedIn con IA personalizada
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-6 max-w-2xl text-lg text-slate-600"
+          className="mt-4 max-w-2xl text-lg text-slate-600"
         >
           Crea contenido consistente, analiza resultados en tiempo real y recibe feedback profesional sin salir de Kolink.
         </motion.p>

@@ -6,6 +6,8 @@ import Button from "@/components/Button";
 import { supabaseClient } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 import { analytics } from "@/lib/posthog";
+import { PasswordStrengthIndicator } from "@/components/security/PasswordStrengthIndicator";
+import { validatePassword } from "@/lib/security/passwordValidation";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -17,6 +19,14 @@ export default function SignUpPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      toast.error("La contraseña no cumple con los requisitos de seguridad");
+      return;
+    }
+
     if (password !== confirmPassword) {
       toast.error("Las contraseñas no coinciden");
       return;
@@ -112,8 +122,13 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="w-full rounded-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                 />
+                {password && (
+                  <div className="pt-2">
+                    <PasswordStrengthIndicator password={password} />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

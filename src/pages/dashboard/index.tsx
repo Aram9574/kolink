@@ -25,6 +25,9 @@ import EditorAI from "@/components/EditorAI";
 import { useNotifications } from "@/contexts/NotificationContext";
 import Navbar from "@/components/Navbar";
 import { analytics } from "@/lib/posthog";
+import { ViralScoreTooltip } from "@/components/dashboard/ViralScoreTooltip";
+import { PostPreviewModal } from "@/components/dashboard/PostPreviewModal";
+import { PromptSuggestions } from "@/components/dashboard/PromptSuggestions";
 
 const TOPIC_OPTIONS = [
   "Inteligencia artificial en salud",
@@ -78,8 +81,11 @@ export default function Dashboard({ session }: DashboardProps) {
   const [showPlansModal, setShowPlansModal] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewContent, setPreviewContent] = useState("");
   const [exportContent, setExportContent] = useState({ content: "", title: "" });
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [generationProgress, setGenerationProgress] = useState<string>("");
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [fullName, setFullName] = useState<string>("");
   const [redirecting, setRedirecting] = useState(false);
@@ -264,16 +270,34 @@ export default function Dashboard({ session }: DashboardProps) {
     }
 
     setLoading(true);
+    setGenerationProgress("Preparando tu contenido...");
+
+    // Create timeout to prevent infinite loading (60 seconds)
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setGenerationProgress("");
+        notifyError("Tiempo de espera agotado. Por favor, intenta de nuevo.");
+      }
+    }, 60000);
 
     try {
+      setGenerationProgress("Verificando sesión...");
       const { data: sessionData } = await supabaseClient.auth.getSession();
       const token = sessionData.session?.access_token;
 
       if (!token) {
+        clearTimeout(timeoutId);
         notifyError("Sesión inválida. Vuelve a iniciar sesión");
         setLoading(false);
+        setGenerationProgress("");
         return;
       }
+
+      setGenerationProgress("Generando contenido con IA...");
+
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), 55000);
 
       const response = await fetch("/api/post/generate", {
         method: "POST",
@@ -287,7 +311,11 @@ export default function Dashboard({ session }: DashboardProps) {
           toneProfile: toneProfile || undefined,
           language: preferredLanguage,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(fetchTimeout);
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -295,12 +323,16 @@ export default function Dashboard({ session }: DashboardProps) {
         if (response.status === 402) {
           notifyError("Sin créditos disponibles. Mejora tu plan para continuar");
           setShowPlansModal(true);
+        } else if (response.status === 429) {
+          notifyError("Demasiadas solicitudes. Espera un momento e intenta nuevamente.");
         } else {
           notifyError(data?.error ?? "Error al generar contenido");
         }
         await loadCredits();
         return;
       }
+
+      setGenerationProgress("Procesando resultados...");
 
       // Set viral score from API response
       if (data.viralScore?.score !== undefined) {
@@ -359,15 +391,24 @@ export default function Dashboard({ session }: DashboardProps) {
         await loadCredits();
       }
 
+      // Show preview modal instead of redirecting immediately
+      setPreviewContent(newPost.generated_text);
+      setShowPreviewModal(true);
       notifySuccess("Contenido generado con éxito");
-      redirectTimeoutRef.current = setTimeout(() => {
-        router.push("/write");
-      }, 3000);
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error("Generate error:", error);
-      notifyError("Error al conectar con el servidor");
+
+      if ((error as Error).name === 'AbortError') {
+        notifyError("La solicitud tardó demasiado. Por favor, intenta de nuevo.");
+      } else if ((error as Error).message?.includes('NetworkError') || (error as Error).message?.includes('Failed to fetch')) {
+        notifyError("Error de conexión. Verifica tu internet e intenta nuevamente.");
+      } else {
+        notifyError("Error al conectar con el servidor");
+      }
     } finally {
       setLoading(false);
+      setGenerationProgress("");
     }
   };
 
@@ -376,6 +417,38 @@ export default function Dashboard({ session }: DashboardProps) {
     setCopiedId(postId);
     notifySuccess("Copiado al portapapeles");
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handlePreviewSave = async (editedContent: string) => {
+    setPreviewContent(editedContent);
+    // Update the latest post with edited content
+    if (posts.length > 0) {
+      const updatedPosts = [...posts];
+      updatedPosts[0] = { ...updatedPosts[0], generated_text: editedContent };
+      setPosts(updatedPosts);
+
+      // Update in database
+      const { error } = await supabaseClient
+        .from("posts")
+        .update({ generated_text: editedContent })
+        .eq("id", updatedPosts[0].id);
+
+      if (error) {
+        notifyError("Error al guardar cambios");
+      } else {
+        notifySuccess("Cambios guardados correctamente");
+      }
+    }
+  };
+
+  const handlePreviewCopy = () => {
+    // This is called from the modal's copy button
+    // The modal handles the actual copying
+  };
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    setPrompt(suggestion);
+    notifyInfo("Sugerencia aplicada. Personalízala antes de generar");
   };
 
   const handleDelete = async (postId: string) => {
@@ -484,13 +557,32 @@ export default function Dashboard({ session }: DashboardProps) {
           <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
             <Card className="grid gap-6 border-blue-100 bg-white p-8 shadow-xl dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-col gap-2">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-300">Cuéntale a Kolink AI</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-300">Cuéntale a Kolink AI</p>
+                  <ViralScoreTooltip score={viralScore} />
+                </div>
                 <p className="text-xs text-slate-400">
                   {toneProfile
                     ? `Generaremos contenido con tu tono: ${toneProfile}`
                     : "Describe la idea, objetivo o formato que necesitas..."}
                 </p>
               </div>
+
+              {/* Prompt Suggestions */}
+              <PromptSuggestions
+                onSelect={handleSuggestionSelect}
+                language={preferredLanguage}
+              />
+
+              {/* Progress indicator */}
+              {loading && generationProgress && (
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                    <p className="text-sm font-medium text-blue-900">{generationProgress}</p>
+                  </div>
+                </div>
+              )}
 
               <EditorAI
                 value={prompt}
@@ -722,6 +814,15 @@ export default function Dashboard({ session }: DashboardProps) {
           onOpenChange={setShowExportModal}
           content={exportContent.content}
           title={exportContent.title}
+        />
+        <PostPreviewModal
+          open={showPreviewModal}
+          onOpenChange={setShowPreviewModal}
+          content={previewContent}
+          onSave={handlePreviewSave}
+          onCopy={handlePreviewCopy}
+          viralScore={viralScore}
+          recommendations={recommendations}
         />
       </div>
     </>

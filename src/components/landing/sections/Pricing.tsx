@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Button from "@/components/Button";
+import { Shield, RefreshCw, CheckCircle } from "lucide-react";
 
 const PLANS = [
   {
@@ -92,6 +93,45 @@ export function Pricing() {
               </div>
             );
           })}
+        </div>
+
+        {/* Guarantees and Policies */}
+        <div className="mt-16 grid gap-6 md:grid-cols-3">
+          <div className="flex items-start gap-4 rounded-2xl border border-blue-100 bg-blue-50/30 p-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <CheckCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900">Prueba gratuita de 7 días</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Acceso completo sin tarjeta de crédito. Explora todas las funciones sin compromiso.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 rounded-2xl border border-green-100 bg-green-50/30 p-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+              <Shield className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900">Garantía de reembolso</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                30 días de garantía sin preguntas. Si no estás satisfecho, te devolvemos el 100%.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 rounded-2xl border border-purple-100 bg-purple-50/30 p-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+              <RefreshCw className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900">Cancela cuando quieras</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Sin contratos ni penalizaciones. Mantén acceso hasta el final de tu periodo actual.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -6,16 +6,51 @@ import { Plus } from "lucide-react";
 const FAQ_ITEMS = [
   {
     question: "¿Cómo funciona la prueba gratuita?",
-    answer: "Accedes a todas las funciones durante 7 días. No pedimos tarjeta y puedes cancelar cuando quieras.",
+    answer: "Accedes a todas las funciones durante 7 días sin necesidad de tarjeta de crédito. Puedes explorar la plataforma completa, generar contenido con IA, y ver analytics. Si no te convence, simplemente no hagas nada y tu cuenta no será cobrada.",
   },
-  { question: "¿Qué soporte ofrecen?", answer: "Incluimos onboarding guiado, sesiones grupales y canal de soporte prioritario." },
+  {
+    question: "¿Cómo se integra Kolink con LinkedIn?",
+    answer: "Kolink genera y optimiza contenido que luego copias y publicas directamente en LinkedIn. No publicamos automáticamente en tu nombre para mantener tu autenticidad. Próximamente tendremos integración OAuth para facilitar aún más el proceso.",
+  },
+  {
+    question: "¿Cómo funcionan los créditos?",
+    answer: "Cada generación de contenido con IA consume 1 crédito. Los créditos se renuevan mensualmente según tu plan: Starter (10), Growth (30), Scale (90). Los créditos no utilizados no se acumulan al mes siguiente.",
+  },
+  {
+    question: "¿Qué pasa con mis datos y privacidad?",
+    answer: "Tus datos están protegidos con encriptación de nivel empresarial. Solo los usamos para mejorar tu experiencia. Nunca compartimos tu información con terceros. Cumplimos con GDPR y puedes exportar o eliminar tus datos en cualquier momento.",
+  },
+  {
+    question: "¿Ofrecen reembolsos?",
+    answer: "Sí, ofrecemos garantía de reembolso de 30 días sin preguntas. Si no estás satisfecho con Kolink en el primer mes, te devolvemos el 100% de tu dinero. Simplemente contáctanos a info@kolink.es.",
+  },
+  {
+    question: "¿Qué soporte ofrecen?",
+    answer: "Todos los planes incluyen soporte por email (respuesta en menos de 24h). Los planes Growth y Scale tienen soporte prioritario, onboarding guiado, sesiones grupales mensuales y acceso a nuestra comunidad privada de creadores.",
+  },
+  {
+    question: "¿Puedo cambiar de plan?",
+    answer: "Sí, puedes actualizar o degradar tu plan en cualquier momento. Si actualizas, se prorratea la diferencia. Si degradas, el cambio se aplica en tu siguiente ciclo de facturación.",
+  },
   {
     question: "¿Puedo invitar a mi equipo?",
-    answer: "Sí. En los planes Growth y Scale puedes añadir miembros, asignar permisos y compartir bibliotecas de contenido.",
+    answer: "Sí. En los planes Growth (hasta 3 usuarios) y Scale (hasta 10 usuarios) puedes añadir miembros de tu equipo, asignar permisos y compartir bibliotecas de contenido. Cada usuario tiene su propio dashboard y créditos.",
   },
   {
     question: "¿Se integra con mis herramientas?",
-    answer: "Kolink se conecta con HubSpot, Notion y Slack. Próximamente: Salesforce y ClickUp.",
+    answer: "Kolink se conecta con HubSpot, Notion y Slack para sincronizar contenido y recibir notificaciones. Próximamente: Salesforce, ClickUp, y Google Calendar. Si necesitas una integración específica, contáctanos.",
+  },
+  {
+    question: "¿Puedo cancelar en cualquier momento?",
+    answer: "Sí, puedes cancelar tu suscripción cuando quieras desde tu panel de control. Mantendrás acceso hasta el final de tu periodo de facturación actual. No hay contratos ni penalizaciones por cancelación.",
+  },
+  {
+    question: "¿La IA comprende mi industria?",
+    answer: "Sí, nuestra IA está entrenada en múltiples industrias (B2B SaaS, consultoría, marketing, fintech, HR, etc.). Cuanto más uses la plataforma, mejor aprenderá tu voz y estilo específico. También puedes crear plantillas personalizadas.",
+  },
+  {
+    question: "¿Qué idiomas soporta Kolink?",
+    answer: "Actualmente soportamos español e inglés completamente. La IA puede generar contenido en múltiples idiomas incluyendo portugués, francés, alemán e italiano. Contáctanos si necesitas soporte para otro idioma.",
   },
 ];
 

@@ -265,4 +265,92 @@ Each plan maps to corresponding Stripe price IDs in environment variables.
 - `/docs/database/admin_notifications_migration.sql` - Admin notifications table
 - `/docs/database/welcome_email_trigger.sql` - Trigger for welcome emails
 
+## Security Features (v1.0)
+
+### Two-Factor Authentication (2FA)
+- TOTP-based authentication (compatible with Google Authenticator, Authy, etc.)
+- QR code generation for easy setup
+- Manual secret entry option
+- 8 backup codes for account recovery
+- Rate limiting (5 attempts per 5 minutes)
+- Encrypted secret storage (AES-256-GCM)
+- Security alerts on enable/disable
+
+### Password Security
+- **Robust validation** with real-time feedback
+- **Strength indicator** with visual progress bar
+- **Requirements:**
+  - Minimum 8 characters (recommended 12+)
+  - Uppercase, lowercase, numbers, special characters
+  - No common passwords (top 100 list blocked)
+  - No sequential patterns or repeated characters
+- **Password history** tracking to prevent reuse
+
+### Password Recovery
+- Secure token-based recovery system
+- SHA-256 hashed tokens (never stored in plain text)
+- 1-hour token expiration
+- Single-use enforcement
+- Email notifications
+- Security alerts on reset requests
+- IP address and device tracking
+
+### Session Management
+- Multi-device session tracking
+- Device information (type, OS, browser)
+- IP address and geolocation
+- Last activity timestamps
+- Current session identification
+- Individual session revocation
+- Bulk session revocation (all except current)
+- Security alerts for suspicious logins
+- Automatic cleanup of expired sessions
+
+### Data Encryption
+- **In Transit:** HTTPS/TLS, secure WebSocket, CSP headers
+- **At Rest:**
+  - AES-256-GCM for 2FA secrets
+  - SHA-256 for tokens and password hashes
+  - Supabase encryption for database
+
+### Security Alerts & Monitoring
+- Real-time security event notifications
+- Alert types: new device, new location, password changes, 2FA events, suspicious activity
+- Severity levels: low, medium, high, critical
+- Email and in-app notifications
+- Complete login history audit trail
+
+### Architecture
+- `/src/lib/security/passwordValidation.ts` - Password strength validation
+- `/src/lib/security/twoFactor.ts` - 2FA implementation (TOTP, backup codes, encryption)
+- `/src/components/security/PasswordStrengthIndicator.tsx` - Real-time password feedback UI
+- `/src/components/security/TwoFactorSetup.tsx` - 2FA setup wizard
+- `/src/components/security/ActiveSessions.tsx` - Session management UI
+- `/src/pages/security.tsx` - Comprehensive security dashboard
+- `/src/pages/forgot-password.tsx` - Password recovery request
+- `/src/pages/reset-password.tsx` - Password reset with token
+- `/src/pages/api/security/` - Security API endpoints
+
+### Database Tables
+- `user_2fa_settings` - 2FA configuration and encrypted secrets
+- `user_2fa_attempts` - 2FA verification attempts tracking
+- `password_reset_tokens` - Password recovery tokens (hashed)
+- `user_sessions` - Active session tracking across devices
+- `login_history` - Complete login audit trail
+- `security_alerts` - Security event notifications
+- `password_history` - Password hashes to prevent reuse
+- `password_policies` - Configurable password requirements
+- `security_metrics` - Daily security metrics aggregation
+
+### API Endpoints
+- `POST /api/security/2fa/setup` - Initialize 2FA setup
+- `POST /api/security/2fa/verify` - Verify TOTP code
+- `POST /api/security/password/request-reset` - Request password reset
+- `POST /api/security/password/reset` - Reset password with token
+- `GET /api/security/sessions/list` - Get active sessions
+- `POST /api/security/sessions/revoke` - Revoke sessions
+
+### Environment Variables
+- `ENCRYPTION_KEY` - 256-bit hex key for 2FA secret encryption
+
 ## Authentication

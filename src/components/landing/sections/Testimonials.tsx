@@ -1,22 +1,56 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 
 const TESTIMONIALS = [
   {
     name: "Patricia Serrano",
     role: "CMO · SaaS B2B",
     quote: "Kolink nos dio un sistema. Pasamos de publicar una vez al mes a tener pipeline mensual y 3x en demos.",
+    rating: 5,
   },
   {
     name: "Pablo Muñoz",
     role: "Founder · Studio Growth",
     quote: "El feedback semanal y la comunidad cambiaron nuestra narrativa. LinkedIn ahora es nuestro principal canal de leads.",
+    rating: 5,
   },
   {
     name: "Isabella Ríos",
     role: "Consultora de marca personal",
     quote: "En 90 días, mis posts duplicaron el alcance y cada semana recibo solicitudes de sesiones 1:1.",
+    rating: 5,
+  },
+  {
+    name: "Carlos Mendoza",
+    role: "Director Marketing · Tech Startup",
+    quote: "La IA de Kolink entiende nuestra industria. Generamos contenido técnico de calidad manteniendo nuestra voz auténtica.",
+    rating: 5,
+  },
+  {
+    name: "Laura Fernández",
+    role: "Consultora de Recursos Humanos",
+    quote: "Antes me costaba horas escribir un post. Ahora con Kolink creo contenido de valor en minutos. Mi audiencia ha crecido un 200%.",
+    rating: 5,
+  },
+  {
+    name: "Miguel Ángel Torres",
+    role: "CEO · Agencia Digital",
+    quote: "Implementamos Kolink para todo el equipo. La consistencia en LinkedIn nos ha traído 12 clientes nuevos en 3 meses.",
+    rating: 5,
+  },
+  {
+    name: "Sofía Ramírez",
+    role: "Coach Ejecutiva",
+    quote: "Los analytics me ayudan a entender qué temas resuenan más con mi audiencia. Mis sesiones de coaching se llenan cada mes.",
+    rating: 5,
+  },
+  {
+    name: "Javier Ortiz",
+    role: "Product Manager · Fintech",
+    quote: "La integración con nuestras herramientas y el soporte del equipo han sido excepcionales. Kolink es parte esencial de nuestra estrategia.",
+    rating: 5,
   },
 ];
 
@@ -60,24 +94,53 @@ export function TestimonialsCarousel() {
                       <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{testimonial.role}</p>
                     </div>
                   </div>
-                  <p className="mt-6 text-lg font-medium text-slate-800">“{testimonial.quote}”</p>
+
+                  {/* Star rating */}
+                  <div className="mt-4 flex gap-1">
+                    {Array.from({ length: testimonial.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+
+                  <p className="mt-6 text-lg font-medium text-slate-800">&ldquo;{testimonial.quote}&rdquo;</p>
                 </div>
               </article>
             ))}
           </div>
 
-          <div className="mt-8 flex items-center justify-center gap-2">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => setActive(index)}
-                className={`h-3 w-3 rounded-full transition-all ${
-                  active === index ? "bg-blue-600 scale-110" : "bg-blue-200 opacity-70"
-                }`}
-                aria-label={`Ver testimonio ${index + 1}`}
-              />
-            ))}
+          {/* Navigation controls */}
+          <div className="mt-8 flex items-center justify-center gap-8">
+            <button
+              type="button"
+              onClick={() => setActive((prev) => (prev - 1 + total) % total)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow transition hover:bg-blue-50 hover:border-blue-300"
+              aria-label="Testimonio anterior"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              {slides.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setActive(index)}
+                  className={`h-3 w-3 rounded-full transition-all ${
+                    active === index ? "bg-blue-600 scale-110" : "bg-blue-200 opacity-70"
+                  }`}
+                  aria-label={`Ver testimonio ${index + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActive((prev) => (prev + 1) % total)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow transition hover:bg-blue-50 hover:border-blue-300"
+              aria-label="Siguiente testimonio"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>
