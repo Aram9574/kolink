@@ -59,12 +59,16 @@ export default async function handler(
     // 3. Obtener perfil del usuario
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("credits, preferred_language, writing_style_profile")
+      .select("*")
       .eq("id", user.id)
       .single();
 
     if (profileError || !profile) {
-      return res.status(404).json({ error: "Profile not found" });
+      console.error("Profile error:", profileError);
+      return res.status(404).json({
+        error: "Profile not found",
+        details: profileError?.message
+      });
     }
 
     // 4. Verificar créditos

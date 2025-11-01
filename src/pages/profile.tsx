@@ -140,6 +140,22 @@ export default function Profile({ session }: ProfileProps) {
     }
   }, [router.query.section]);
 
+  // Reload profile when returning from LinkedIn OAuth
+  useEffect(() => {
+    if (router.query.success && session?.user) {
+      toast.success(decodeURIComponent(router.query.success as string));
+      loadProfile(); // Reload to show LinkedIn data
+      // Clean URL
+      router.replace('/profile?section=linkedin', undefined, { shallow: true });
+    }
+    if (router.query.error) {
+      toast.error(decodeURIComponent(router.query.error as string));
+      // Clean URL
+      router.replace('/profile?section=linkedin', undefined, { shallow: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.success, router.query.error]);
+
   const loadProfile = async () => {
     if (!session?.user) return;
 
