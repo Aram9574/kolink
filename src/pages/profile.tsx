@@ -919,7 +919,10 @@ export default function Profile({ session }: ProfileProps) {
                         <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6">
                           Vincula tu cuenta de LinkedIn para acceder a tus datos profesionales, importar tu bio y headline, y potenciar la generación de contenido.
                         </p>
-                        <Button className="gap-2">
+                        <Button
+                          className="gap-2"
+                          onClick={() => window.location.href = '/api/auth/linkedin/authorize'}
+                        >
                           <Linkedin className="h-4 w-4" />
                           Conectar LinkedIn
                         </Button>
