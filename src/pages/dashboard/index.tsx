@@ -339,19 +339,20 @@ export default function Dashboard({ session }: DashboardProps) {
       const controller = new AbortController();
       const fetchTimeout = setTimeout(() => controller.abort(), 55000);
 
-      const response = await fetch("/api/post/generate", {
+      // Usar el nuevo sistema de IA viral
+      const response = await fetch("/api/ai/generate-viral", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          prompt,
-          preset: activePreset,
-          toneProfile: toneProfile || undefined,
-          language: preferredLanguage,
-          formality,
-          length,
+          topic: prompt,
+          tone: toneProfile || "profesional",
+          objective: "engagement",
+          target_length: length === 100 ? "short" : length === 200 ? "medium" : "long",
+          include_cta: true,
+          mode: "generate",
         }),
         signal: controller.signal,
       });
@@ -376,33 +377,30 @@ export default function Dashboard({ session }: DashboardProps) {
 
       setGenerationProgress("Procesando resultados...");
 
-      // Set viral score from API response
-      if (data.viralScore?.score !== undefined) {
-        setViralScore(data.viralScore.score);
+      // Set viral score from AI analysis
+      if (data.analysis?.estimated_viral_score !== undefined) {
+        setViralScore(data.analysis.estimated_viral_score);
       }
 
-      if (data.recommendations && Array.isArray(data.recommendations)) {
-        setRecommendations(
-          data.recommendations.map((item: { action?: string } | string) =>
-            typeof item === "string" ? item : item.action ?? ""
-          )
-        );
+      // Set recommendations from analysis suggestions
+      if (data.analysis?.suggestions && Array.isArray(data.analysis.suggestions)) {
+        setRecommendations(data.analysis.suggestions);
       }
 
       const newPost = {
-        id: data.postId || Date.now().toString(),
+        id: Date.now().toString(),
         prompt,
-        generated_text: data.content || data.output,
+        generated_text: data.content,
         created_at: new Date().toISOString(),
         user_id: session.user.id,
-        viral_score: data.viralScore?.score ?? null,
+        viral_score: data.analysis?.estimated_viral_score ?? null,
       };
 
       // Track post generation
       analytics.postGenerated(
         prompt,
         newPost.viral_score ?? undefined,
-        data.remainingCredits
+        data.credits_remaining
       );
 
       setPosts((current) => [newPost, ...current]);
@@ -427,8 +425,8 @@ export default function Dashboard({ session }: DashboardProps) {
       setPrompt("");
       localStorage.removeItem("kolink-draft");
 
-      if (typeof data.remainingCredits === "number") {
-        setCredits(data.remainingCredits);
+      if (typeof data.credits_remaining === "number") {
+        setCredits(data.credits_remaining);
       } else {
         await loadCredits();
       }
