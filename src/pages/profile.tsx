@@ -799,7 +799,14 @@ export default function Profile({ session }: ProfileProps) {
                       {!profile?.linkedin_profile_url && (
                         <Button
                           className="gap-2 min-h-[48px] md:min-h-0"
-                          onClick={() => window.location.href = '/api/auth/linkedin/authorize'}
+                          onClick={async () => {
+                            const { data: { session } } = await supabaseClient.auth.getSession();
+                            if (session?.access_token) {
+                              window.location.href = `/api/auth/linkedin/authorize?token=${session.access_token}`;
+                            } else {
+                              toast.error("No se pudo obtener la sesión. Por favor, inicia sesión de nuevo.");
+                            }
+                          }}
                         >
                           <Linkedin className="h-5 w-5 md:h-4 md:w-4" />
                           Conectar LinkedIn
@@ -937,7 +944,14 @@ export default function Profile({ session }: ProfileProps) {
                         </p>
                         <Button
                           className="gap-2"
-                          onClick={() => window.location.href = '/api/auth/linkedin/authorize'}
+                          onClick={async () => {
+                            const { data: { session } } = await supabaseClient.auth.getSession();
+                            if (session?.access_token) {
+                              window.location.href = `/api/auth/linkedin/authorize?token=${session.access_token}`;
+                            } else {
+                              toast.error("No se pudo obtener la sesión. Por favor, inicia sesión de nuevo.");
+                            }
+                          }}
                         >
                           <Linkedin className="h-4 w-4" />
                           Conectar LinkedIn

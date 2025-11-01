@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * LinkedIn OAuth Authorization Endpoint
@@ -14,49 +14,73 @@ export default async function handler(
   }
 
   try {
-    // Get user from Authorization header or cookies
-    const authHeader = req.headers.authorization;
-    let userId: string | undefined;
+    // Create a Supabase client with the request context
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          persistSession: false,
+        },
+      }
+    );
 
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const {
-        data: { user },
-      } = await supabase.auth.getUser(token);
-      userId = user?.id;
+    // Get token from query parameter (preferred) or cookies
+    let accessToken: string | null = null;
+
+    // First, check query parameter
+    if (req.query.token && typeof req.query.token === 'string') {
+      accessToken = req.query.token;
     }
 
-    // If no user from header, try to get from cookies
-    if (!userId) {
-      const cookies = req.headers.cookie?.split(";").reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split("=");
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
+    // If no token from query, try cookies
+    if (!accessToken) {
+      const cookies = req.headers.cookie || "";
+      const cookieArray = cookies.split(";").map(c => c.trim());
 
-      const supabaseAuthCookie = Object.keys(cookies || {}).find(key =>
-        key.startsWith('sb-') && key.includes('-auth-token')
-      );
-
-      if (supabaseAuthCookie && cookies && cookies[supabaseAuthCookie]) {
-        try {
-          const session = JSON.parse(decodeURIComponent(cookies[supabaseAuthCookie]));
-          const accessToken = session?.access_token || session?.[0];
-          if (accessToken) {
-            const { data: { user } } = await supabase.auth.getUser(accessToken);
-            userId = user?.id;
+      for (const cookie of cookieArray) {
+        if (cookie.startsWith("sb-") && cookie.includes("-auth-token=")) {
+          try {
+            const value = cookie.split("=")[1];
+            if (value) {
+              const decoded = decodeURIComponent(value);
+              const parsed = JSON.parse(decoded);
+              accessToken = parsed.access_token || parsed[0];
+              break;
+            }
+          } catch (e) {
+            continue;
           }
-        } catch (e) {
-          console.error("Failed to parse session cookie:", e);
         }
       }
     }
 
-    if (!userId) {
+    // If no token from cookies, check Authorization header
+    if (!accessToken) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        accessToken = authHeader.replace("Bearer ", "");
+      }
+    }
+
+    if (!accessToken) {
+      console.error("No access token found in query, cookies, or headers");
       return res.redirect(
         "/signin?error=" + encodeURIComponent("Debes iniciar sesión primero")
       );
     }
+
+    // Verify the token and get user
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+
+    if (error || !user) {
+      console.error("Error verifying user session:", error);
+      return res.redirect(
+        "/signin?error=" + encodeURIComponent("Sesión inválida. Por favor, inicia sesión de nuevo.")
+      );
+    }
+
+    const userId = user.id;
 
     const {
       LINKEDIN_CLIENT_ID,
