@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import type { Session } from "@supabase/supabase-js";
 import Navbar from "@/components/Navbar";
@@ -8,6 +8,21 @@ import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loader from "@/components/Loader";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 import { Calendar as CalendarIcon, Clock, Sparkles, Linkedin, Twitter } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -40,6 +55,100 @@ type BestTimeSlot = {
   sampleSize: number;
 };
 
+const formatPlatformLabel = (platform: string) => {
+  if (platform === "linkedin") return "LinkedIn";
+  if (platform === "twitter") return "Twitter/X";
+  return platform.charAt(0).toUpperCase() + platform.slice(1);
+};
+
+type SortableCalendarEventCardProps = {
+  event: CalendarEvent;
+  formatDate: (dateString: string) => string;
+  onEdit: () => void;
+};
+
+function SortableCalendarEventCard({
+  event,
+  formatDate,
+  onEdit,
+}: SortableCalendarEventCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: event.id,
+  });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    cursor: isDragging ? "grabbing" : "grab",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <Card
+        className={cn(
+          "flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between md:p-6",
+          isDragging && "border-primary/60 shadow-lg shadow-primary/20 dark:border-primary/60"
+        )}
+      >
+        <div className="flex flex-1 items-start gap-4">
+          <Clock className="h-6 w-6 flex-shrink-0 text-primary md:h-5 md:w-5" />
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex flex-wrap items-center gap-3">
+              <span className="text-base font-semibold text-gray-900 dark:text-white md:text-sm">
+                {formatDate(event.scheduledAt)}
+              </span>
+              <span
+                className={cn(
+                  "rounded px-3 py-1.5 text-sm md:px-2 md:py-1 md:text-xs",
+                  event.status === "scheduled"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                    : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                )}
+              >
+                {event.status}
+              </span>
+            </div>
+
+            <div className="mb-3 flex flex-wrap items-center gap-2 md:mb-2">
+              {event.platforms.map((platform) => (
+                <span
+                  key={`${event.id}-${platform}`}
+                  className="flex items-center gap-1.5 rounded bg-gray-100 px-3 py-1.5 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300 md:gap-1 md:px-2 md:py-1 md:text-xs"
+                >
+                  {platform === "linkedin" && <Linkedin className="h-4 w-4 md:h-3 md:w-3" />}
+                  {platform === "twitter" && <Twitter className="h-4 w-4 md:h-3 md:w-3" />}
+                  {formatPlatformLabel(platform)}
+                </span>
+              ))}
+            </div>
+
+            <div className="mb-2 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary md:h-4 md:w-4" />
+              <span className="text-base text-gray-600 dark:text-gray-400 md:text-sm">
+                AI Score: <strong>{event.aiScore.toFixed(1)}</strong>/100
+              </span>
+            </div>
+
+            {event.recommendationReason?.factors?.[0] && (
+              <div className="mt-2 text-sm text-gray-500 dark:text-gray-400 md:text-xs">
+                {event.recommendationReason.factors[0]}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <Button
+          variant="secondary"
+          onClick={onEdit}
+          className="w-full min-h-[48px] px-4 py-2 text-base md:w-auto md:min-h-0 md:text-xs"
+        >
+          Editar
+        </Button>
+      </Card>
+    </div>
+  );
+}
+
 export default function CalendarPage() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
@@ -55,6 +164,81 @@ export default function CalendarPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
+  const [rescheduleEvent, setRescheduleEvent] = useState<CalendarEvent | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [updatingEvent, setUpdatingEvent] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
+
+  const weeklySummary = useMemo(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setHours(0, 0, 0, 0);
+    const currentDay = startOfWeek.getDay();
+    const diffToMonday = (currentDay + 6) % 7;
+    startOfWeek.setDate(startOfWeek.getDate() - diffToMonday);
+
+    const endExclusive = new Date(startOfWeek);
+    endExclusive.setDate(endExclusive.getDate() + 7);
+    const lastDay = new Date(endExclusive);
+    lastDay.setDate(lastDay.getDate() - 1);
+
+    const dailyCounts = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + index);
+      return {
+        label: date.toLocaleDateString("es-ES", { weekday: "short" }),
+        count: 0,
+        date,
+      };
+    });
+
+    const platformCounts: Record<string, number> = {};
+    let aiTotal = 0;
+    let aiCount = 0;
+
+    events.forEach((event) => {
+      const eventDate = new Date(event.scheduledAt);
+      if (eventDate >= startOfWeek && eventDate < endExclusive) {
+        const diffInDays = Math.floor(
+          (eventDate.getTime() - startOfWeek.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (diffInDays >= 0 && diffInDays < dailyCounts.length) {
+          dailyCounts[diffInDays].count += 1;
+        }
+        event.platforms.forEach((platform) => {
+          platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+        });
+        if (!Number.isNaN(event.aiScore)) {
+          aiTotal += event.aiScore;
+          aiCount += 1;
+        }
+      }
+    });
+
+    const total = dailyCounts.reduce((sum, day) => sum + day.count, 0);
+    const topPlatforms = Object.entries(platformCounts)
+      .sort(([, countA], [, countB]) => countB - countA)
+      .slice(0, 3);
+
+    return {
+      total,
+      avgAi: aiCount > 0 ? aiTotal / aiCount : null,
+      dailyCounts,
+      topPlatforms,
+      rangeLabel: `${startOfWeek.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+      })} - ${lastDay.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+      })}`,
+    };
+  }, [events]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -228,6 +412,70 @@ export default function CalendarPage() {
     );
   };
 
+
+  const toLocalInputValue = (dateString: string) => {
+    const date = new Date(dateString);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60 * 1000);
+    return localDate.toISOString().slice(0, 16);
+  };
+
+  const openRescheduleModal = (event: CalendarEvent) => {
+    setRescheduleEvent(event);
+    setRescheduleDate(toLocalInputValue(event.scheduledAt));
+  };
+
+  const closeRescheduleModal = () => {
+    setRescheduleEvent(null);
+    setRescheduleDate("");
+    loadEvents();
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = events.findIndex((item) => item.id === active.id);
+    const newIndex = events.findIndex((item) => item.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(events, oldIndex, newIndex);
+    setEvents(reordered);
+
+    const movedEvent = reordered[newIndex];
+    openRescheduleModal(movedEvent);
+  };
+
+  const handleUpdateEventSchedule = async () => {
+    if (!session || !rescheduleEvent) return;
+    if (!rescheduleDate) {
+      toast.error("Selecciona una nueva fecha y hora");
+      return;
+    }
+
+    setUpdatingEvent(true);
+    try {
+      const isoDate = new Date(rescheduleDate).toISOString();
+      const { error } = await supabase
+        .from("calendar_events")
+        .update({ scheduled_time: isoDate })
+        .eq("id", rescheduleEvent.id);
+
+      if (error) throw error;
+
+      toast.success("Evento reprogramado correctamente");
+      closeRescheduleModal();
+      if (session?.access_token) {
+        fetchBestTimes(session.access_token);
+      }
+    } catch (error) {
+      console.error("Update event error:", error);
+      toast.error("No se pudo reprogramar el evento");
+    } finally {
+      setUpdatingEvent(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("es-ES", {
@@ -348,66 +596,133 @@ export default function CalendarPage() {
               </div>
             </Card>
           ) : (
-            <div className="space-y-4">
-              {events.map((event) => (
-                <Card key={event.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 md:p-6">
-                  <div className="flex items-start gap-4 flex-1">
-                    <Clock className="w-6 h-6 md:w-5 md:h-5 text-primary mt-1 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-3 mb-2">
-                        <span className="font-semibold text-gray-900 dark:text-white text-base md:text-sm">
-                          {formatDate(event.scheduledAt)}
-                        </span>
-                        <span
-                          className={`text-sm md:text-xs px-3 py-1.5 md:px-2 md:py-1 rounded ${
-                            event.status === "scheduled"
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                              : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                          }`}
-                        >
-                          {event.status}
-                        </span>
-                      </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={events.map((event) => event.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-4">
+                  {events.map((event) => (
+                    <SortableCalendarEventCard
+                      key={event.id}
+                      event={event}
+                      formatDate={formatDate}
+                      onEdit={() => openRescheduleModal(event)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
 
-                      {/* Platforms */}
-                      <div className="flex items-center flex-wrap gap-2 mb-3 md:mb-2">
-                        {event.platforms.map((platform) => (
-                          <span
-                            key={platform}
-                            className="text-sm md:text-xs flex items-center gap-1.5 md:gap-1 px-3 py-1.5 md:px-2 md:py-1 bg-gray-100 dark:bg-gray-700 rounded"
-                          >
-                            {platform === "linkedin" && <Linkedin className="w-4 h-4 md:w-3 md:h-3" />}
-                            {platform === "twitter" && <Twitter className="w-4 h-4 md:w-3 md:h-3" />}
-                            {platform}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* AI Score */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-5 h-5 md:w-4 md:h-4 text-primary" />
-                        <span className="text-base md:text-sm text-gray-600 dark:text-gray-400">
-                          AI Score: <strong>{event.aiScore.toFixed(1)}</strong>/100
-                        </span>
-                      </div>
-
-                      {/* Recommendation Factors */}
-                      {event.recommendationReason?.factors && (
-                        <div className="mt-2 text-sm md:text-xs text-gray-500 dark:text-gray-400">
-                          {event.recommendationReason.factors[0]}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button variant="secondary" className="min-h-[48px] md:min-h-0 w-full md:w-auto px-4 py-2 text-base md:text-xs">
-                    Editar
-                  </Button>
-                </Card>
-              ))}
-            </div>
           )}
         </div>
+
+        <Card className="mt-6 border border-dashed border-primary/30 bg-primary/5 p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Resumen semanal
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {weeklySummary.rangeLabel}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-300">
+              <span>
+                <strong>{weeklySummary.total}</strong> publicaciones programadas
+              </span>
+              <span>
+                Promedio IA:{" "}
+                <strong>{weeklySummary.avgAi ? weeklySummary.avgAi.toFixed(1) : "—"}</strong>
+                /100
+              </span>
+              {weeklySummary.topPlatforms.length > 0 && (
+                <span>
+                  Top plataformas:{" "}
+                  {weeklySummary.topPlatforms
+                    .map(([platform, count]) => `${formatPlatformLabel(platform)} (${count})`)
+                    .join(", ")}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            {weeklySummary.dailyCounts.map((day) => (
+              <div
+                key={day.label}
+                className={cn(
+                  "flex min-w-[90px] flex-col rounded-lg border px-3 py-2 text-center text-xs text-gray-600 dark:text-gray-300",
+                  day.count > 0
+                    ? "border-primary/50 bg-white shadow-sm dark:bg-slate-800"
+                    : "border-gray-200 bg-white dark:border-gray-700 dark:bg-slate-900"
+                )}
+              >
+                <span className="font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                  {day.label}
+                </span>
+                <span className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
+                  {day.count}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {weeklySummary.total === 0 && (
+            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+              No hay publicaciones programadas para esta semana. Programa tu próxima pieza para
+              visualizarla aquí.
+            </p>
+          )}
+        </Card>
+
+        {rescheduleEvent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <Card className="w-full max-w-md p-6 shadow-2xl">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Reprogramar publicación
+              </h2>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Nuevo horario para{" "}
+                <strong>{formatDate(rescheduleEvent.scheduledAt)}</strong>
+              </p>
+
+              <div className="mt-6 space-y-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                  Fecha y hora
+                </label>
+                <input
+                  type="datetime-local"
+                  value={rescheduleDate}
+                  onChange={(event) => setRescheduleDate(event.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Ajusta la fecha u hora en la que quieres que se publique este contenido.
+                </p>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <Button
+                  onClick={handleUpdateEventSchedule}
+                  disabled={updatingEvent}
+                  className="flex-1 min-h-[44px]"
+                >
+                  {updatingEvent ? "Actualizando..." : "Guardar cambios"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={closeRescheduleModal}
+                  className="flex-1 min-h-[44px]"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Schedule Modal */}
         {showScheduleModal && (

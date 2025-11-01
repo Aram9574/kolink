@@ -12,7 +12,6 @@ export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -85,13 +84,13 @@ export default function SignInPage() {
               <Button
                 type="button"
                 variant="outline"
-                disabled={oauthLoading || loading}
+                disabled={loading}
                 className="w-full rounded-full border border-slate-200 bg-white py-3 text-base font-semibold text-slate-600 transition hover:border-[#0A66C2] hover:text-[#0A66C2]"
                 onClick={handleLinkedInSignIn}
               >
                 <span className="flex items-center justify-center gap-2">
                   <Linkedin className="h-5 w-5 text-[#0A66C2]" />
-                  {oauthLoading ? "Conectando con LinkedIn..." : "Continuar con LinkedIn"}
+                  Continuar con LinkedIn
                 </span>
               </Button>
               <div className="flex items-center gap-3">
@@ -143,7 +142,7 @@ export default function SignInPage() {
                 <p className="rounded-2xl bg-red-50 px-4 py-3 text-xs text-red-600">{error}</p>
               )}
 
-              <Button type="submit" disabled={loading || oauthLoading} className="w-full rounded-full py-3 text-base">
+              <Button type="submit" disabled={loading} className="w-full rounded-full py-3 text-base">
                 {loading ? "Iniciando sesión..." : "Iniciar sesión"}
               </Button>
             </form>

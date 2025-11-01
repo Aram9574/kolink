@@ -97,50 +97,20 @@ export default async function handler(
 
     const linkedInProfile = await profileResponse.json();
 
-    // Get current user from session cookie
-    // Supabase stores the session in cookies with the format:
-    // sb-<project-ref>-auth-token
-    const supabaseAuthCookie = Object.keys(cookies || {}).find(key =>
-      key.startsWith('sb-') && key.includes('-auth-token')
-    );
-
-    if (!supabaseAuthCookie || !cookies[supabaseAuthCookie]) {
-      return res.redirect(
-        "/signin?error=" +
-          encodeURIComponent("You must be signed in to connect LinkedIn")
-      );
-    }
-
-    // Parse the session from cookie
-    let session;
+    // Extract userId from state parameter
+    let userId: string;
     try {
-      session = JSON.parse(decodeURIComponent(cookies[supabaseAuthCookie]));
+      const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
+      userId = stateData.userId;
+
+      if (!userId) {
+        throw new Error("No userId in state");
+      }
     } catch (e) {
-      console.error("Failed to parse session cookie:", e);
+      console.error("Failed to parse state parameter:", e);
       return res.redirect(
         "/signin?error=" +
-          encodeURIComponent("Invalid session. Please sign in again.")
-      );
-    }
-
-    const accessToken = session?.access_token || session?.[0];
-    if (!accessToken) {
-      return res.redirect(
-        "/signin?error=" +
-          encodeURIComponent("No valid session found. Please sign in again.")
-      );
-    }
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(accessToken);
-
-    if (userError || !user) {
-      console.error("Failed to get user from session:", userError);
-      return res.redirect(
-        "/signin?error=" +
-          encodeURIComponent("Session expired. Please sign in again.")
+          encodeURIComponent("Sesión inválida. Por favor, inicia sesión de nuevo.")
       );
     }
 
@@ -162,7 +132,7 @@ export default async function handler(
         bio: linkedInProfile.description || null,
         linkedin_profile_url: linkedInProfile.profile || null,
       })
-      .eq("id", user.id);
+      .eq("id", userId);
 
     if (updateError) {
       console.error("Failed to update profile with LinkedIn data:", updateError);

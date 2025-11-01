@@ -888,7 +888,7 @@ export default function Profile({ session }: ProfileProps) {
                                   toast.dismiss();
                                   toast.error(data.error || "Error al importar posts");
                                 }
-                              } catch (error) {
+                              } catch (_error) {
                                 toast.dismiss();
                                 toast.error("Error al importar posts");
                               }
