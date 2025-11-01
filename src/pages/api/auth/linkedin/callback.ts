@@ -35,8 +35,22 @@ export default async function handler(
 
     const storedState = cookies?.linkedin_oauth_state;
 
-    if (!storedState || storedState !== state) {
+    if (!storedState || !state) {
+      console.error("Missing state parameter or cookie");
+      return res.redirect(
+        "/profile?error=" +
+          encodeURIComponent("Authentication failed - security check")
+      );
+    }
+
+    // Decode both states for comparison (LinkedIn may URL-encode the state)
+    const decodedStoredState = decodeURIComponent(storedState);
+    const decodedReceivedState = decodeURIComponent(state as string);
+
+    if (decodedStoredState !== decodedReceivedState) {
       console.error("State mismatch - possible CSRF attack");
+      console.error("Stored:", decodedStoredState);
+      console.error("Received:", decodedReceivedState);
       return res.redirect(
         "/profile?error=" +
           encodeURIComponent("Authentication failed - security check")
