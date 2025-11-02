@@ -169,15 +169,16 @@ export default async function handler(
     try {
       embeddings = await generateBatchEmbeddings(contents);
       console.log(`[Viral Ingest] ${embeddings.length} embeddings generados`);
-    } catch (embeddingError: any) {
+    } catch (embeddingError) {
       console.error('[Viral Ingest] Error al generar embeddings:', embeddingError);
+      const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
       // Eliminar posts si falla la generación de embeddings
       await supabase.from('viral_corpus').delete().in(
         'id',
         insertedPosts.map((p) => p.id)
       );
       return res.status(500).json({
-        error: `Error al generar embeddings: ${embeddingError.message}`,
+        error: `Error al generar embeddings: ${errorMessage}`,
       });
     }
 
@@ -216,10 +217,11 @@ export default async function handler(
     };
 
     return res.status(201).json(response);
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Viral Ingest] Error inesperado:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
-      error: `Error interno del servidor: ${error.message}`,
+      error: `Error interno del servidor: ${errorMessage}`,
     });
   }
 }

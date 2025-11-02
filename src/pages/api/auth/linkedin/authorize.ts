@@ -48,7 +48,7 @@ export default async function handler(
               accessToken = parsed.access_token || parsed[0];
               break;
             }
-          } catch (e) {
+          } catch (_e) {
             continue;
           }
         }

@@ -7,7 +7,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
+import { Session } from '@supabase/supabase-js';
+import { supabaseClient } from '@/lib/supabaseClient';
 import Card from '@/components/Card';
 import Loader from '@/components/Loader';
 import { toast } from 'react-hot-toast';
@@ -25,9 +26,11 @@ interface Generation {
   created_at: string;
 }
 
-export default function GenerationsHistory() {
-  const session = useSession();
-  const supabase = useSupabaseClient();
+interface GenerationsHistoryProps {
+  session: Session | null | undefined;
+}
+
+export default function GenerationsHistory({ session }: GenerationsHistoryProps) {
 
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,13 +40,14 @@ export default function GenerationsHistory() {
     if (session) {
       fetchGenerations();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const fetchGenerations = async () => {
     if (!session) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('generations')
         .select('*')
         .eq('user_id', session.user.id)
@@ -53,7 +57,7 @@ export default function GenerationsHistory() {
       if (error) throw error;
 
       setGenerations(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching generations:', error);
       toast.error('Error al cargar historial');
     } finally {

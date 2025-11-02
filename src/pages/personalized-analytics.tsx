@@ -8,7 +8,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
+import { Session } from '@supabase/supabase-js';
+import { supabaseClient } from '@/lib/supabaseClient';
 import Navbar from '@/components/Navbar';
 import Card from '@/components/Card';
 import Loader from '@/components/Loader';
@@ -30,10 +31,12 @@ interface AnalyticsData {
   }>;
 }
 
-export default function PersonalizedAnalyticsPage() {
+interface PersonalizedAnalyticsPageProps {
+  session: Session | null | undefined;
+}
+
+export default function PersonalizedAnalyticsPage({ session }: PersonalizedAnalyticsPageProps) {
   const router = useRouter();
-  const session = useSession();
-  const supabase = useSupabaseClient();
 
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +48,7 @@ export default function PersonalizedAnalyticsPage() {
     }
 
     fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const fetchAnalytics = async () => {
@@ -52,19 +56,19 @@ export default function PersonalizedAnalyticsPage() {
 
     try {
       // Fetch total generations
-      const { count: genCount } = await supabase
+      const { count: genCount } = await supabaseClient
         .from('generations')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', session.user.id);
 
       // Fetch total user posts
-      const { count: postsCount } = await supabase
+      const { count: postsCount } = await supabaseClient
         .from('user_posts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', session.user.id);
 
       // Fetch all generations for detailed analytics
-      const { data: generations } = await supabase
+      const { data: generations } = await supabaseClient
         .from('generations')
         .select('*')
         .eq('user_id', session.user.id);
@@ -87,7 +91,7 @@ export default function PersonalizedAnalyticsPage() {
       )[0]?.[0] || 'N/A';
 
       // Recent generations
-      const { data: recent } = await supabase
+      const { data: recent } = await supabaseClient
         .from('generations')
         .select('id, topic, intent, created_at')
         .eq('user_id', session.user.id)
@@ -121,7 +125,7 @@ export default function PersonalizedAnalyticsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
+        <Navbar session={session} />
         <div className="flex items-center justify-center py-20">
           <Loader size={40} />
         </div>
@@ -151,7 +155,7 @@ export default function PersonalizedAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar session={session} />
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Header */}

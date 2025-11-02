@@ -8,7 +8,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
+import { Session } from '@supabase/supabase-js';
+import { supabaseClient } from '@/lib/supabaseClient';
 import Navbar from '@/components/Navbar';
 import PersonalizedGenerator from '@/components/personalization/PersonalizedGenerator';
 import GenerationsHistory from '@/components/personalization/GenerationsHistory';
@@ -16,10 +17,12 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import Loader from '@/components/Loader';
 
-export default function PersonalizedPage() {
+interface PersonalizedPageProps {
+  session: Session | null | undefined;
+}
+
+export default function PersonalizedPage({ session }: PersonalizedPageProps) {
   const router = useRouter();
-  const session = useSession();
-  const supabase = useSupabaseClient();
 
   const [userPostsCount, setUserPostsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -32,13 +35,14 @@ export default function PersonalizedPage() {
     }
 
     fetchUserPostsCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const fetchUserPostsCount = async () => {
     if (!session) return;
 
     try {
-      const { count, error } = await supabase
+      const { count, error } = await supabaseClient
         .from('user_posts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', session.user.id);
@@ -63,7 +67,7 @@ export default function PersonalizedPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar session={session} />
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Header */}
@@ -155,6 +159,7 @@ export default function PersonalizedPage() {
         {/* Content */}
         {activeTab === 'generate' && (
           <PersonalizedGenerator
+            session={session}
             onGenerated={() => {
               // Refresh history when new generation is created
               setActiveTab('history');
@@ -162,7 +167,7 @@ export default function PersonalizedPage() {
           />
         )}
 
-        {activeTab === 'history' && <GenerationsHistory />}
+        {activeTab === 'history' && <GenerationsHistory session={session} />}
 
         {/* Help Section */}
         <Card className="mt-8">

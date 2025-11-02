@@ -144,7 +144,7 @@ export async function generateLinkedInPost(
       variantA: parsed.variantA.trim(),
       variantB: parsed.variantB.trim(),
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al generar contenido:', error);
 
     // Si hay error de parsing JSON, intentar extraer manualmente
@@ -152,7 +152,8 @@ export async function generateLinkedInPost(
       throw new Error('Error al parsear respuesta de OpenAI. Formato JSON inválido.');
     }
 
-    throw new Error(`Error en generación de contenido: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Error en generación de contenido: ${errorMessage}`);
   }
 }
 
@@ -243,9 +244,10 @@ Responde ÚNICAMENTE con JSON:
     }
 
     return JSON.parse(content);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al analizar estilo del usuario:', error);
-    throw new Error(`Error en análisis de estilo: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Error en análisis de estilo: ${errorMessage}`);
   }
 }
 
@@ -294,8 +296,9 @@ Mejora el post manteniendo la autenticidad del autor.`;
     }
 
     return JSON.parse(content);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al mejorar post:', error);
-    throw new Error(`Error en mejora de post: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Error en mejora de post: ${errorMessage}`);
   }
 }

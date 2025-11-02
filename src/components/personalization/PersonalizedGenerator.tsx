@@ -8,7 +8,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from '@supabase/auth-helpers-react';
+import { Session } from '@supabase/supabase-js';
+import { supabaseClient } from '@/lib/supabaseClient';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import Loader from '@/components/Loader';
@@ -16,11 +17,11 @@ import { toast } from 'react-hot-toast';
 import type { ContentIntent } from '@/types/personalization';
 
 interface PersonalizedGeneratorProps {
+  session: Session | null | undefined;
   onGenerated?: (generationId: string, variantA: string, variantB: string) => void;
 }
 
-export default function PersonalizedGenerator({ onGenerated }: PersonalizedGeneratorProps) {
-  const session = useSession();
+export default function PersonalizedGenerator({ session, onGenerated }: PersonalizedGeneratorProps) {
 
   const [topic, setTopic] = useState('');
   const [intent, setIntent] = useState<ContentIntent>('educativo');
@@ -28,7 +29,6 @@ export default function PersonalizedGenerator({ onGenerated }: PersonalizedGener
   const [generating, setGenerating] = useState(false);
   const [variantA, setVariantA] = useState('');
   const [variantB, setVariantB] = useState('');
-  const [generationId, setGenerationId] = useState('');
   const [showResults, setShowResults] = useState(false);
 
   const intents: { value: ContentIntent; label: string; emoji: string }[] = [
@@ -54,10 +54,18 @@ export default function PersonalizedGenerator({ onGenerated }: PersonalizedGener
     setShowResults(false);
 
     try {
+      // Get access token
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        throw new Error('Sesión inválida. Por favor, inicia sesión de nuevo.');
+      }
+
       const response = await fetch('/api/personalized/generate', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -77,7 +85,6 @@ export default function PersonalizedGenerator({ onGenerated }: PersonalizedGener
 
       setVariantA(result.variantA);
       setVariantB(result.variantB);
-      setGenerationId(result.generation_id);
       setShowResults(true);
 
       toast.success('✅ Post generado exitosamente!');
@@ -86,9 +93,10 @@ export default function PersonalizedGenerator({ onGenerated }: PersonalizedGener
         onGenerated(result.generation_id, result.variantA, result.variantB);
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error generating content:', error);
-      toast.error(error.message || 'Error al generar contenido');
+      const errorMessage = error instanceof Error ? error.message : 'Error al generar contenido';
+      toast.error(errorMessage);
     } finally {
       setGenerating(false);
     }
@@ -103,7 +111,6 @@ export default function PersonalizedGenerator({ onGenerated }: PersonalizedGener
     setShowResults(false);
     setVariantA('');
     setVariantB('');
-    setGenerationId('');
     setTopic('');
     setAdditionalContext('');
   };

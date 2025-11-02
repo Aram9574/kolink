@@ -127,10 +127,11 @@ export default async function handler(
     try {
       queryEmbedding = await generateEmbedding(topic);
       console.log(`[RAG Retrieve] Embedding generado (${queryEmbedding.length} dimensiones)`);
-    } catch (embeddingError: any) {
+    } catch (embeddingError) {
       console.error('[RAG Retrieve] Error al generar embedding:', embeddingError);
+      const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
       return res.status(500).json({
-        error: `Error al generar embedding: ${embeddingError.message}`,
+        error: `Error al generar embedding: ${errorMessage}`,
       });
     }
 
@@ -149,10 +150,10 @@ export default async function handler(
       console.error('[RAG Retrieve] Error en búsqueda de posts de usuario:', userError);
     }
 
-    const userPosts: SimilarPost[] = (userPostsData ?? []).map((row: any) => ({
-      id: row.post_id,
-      content: row.content,
-      similarity: row.similarity,
+    const userPosts: SimilarPost[] = (userPostsData ?? []).map((row: Record<string, unknown>) => ({
+      id: String(row.post_id),
+      content: String(row.content),
+      similarity: Number(row.similarity),
       type: 'user' as const,
     }));
 
@@ -173,11 +174,11 @@ export default async function handler(
       console.error('[RAG Retrieve] Error en búsqueda de posts virales:', viralError);
     }
 
-    const viralPosts: SimilarPost[] = (viralPostsData ?? []).map((row: any) => ({
-      id: row.viral_id,
-      content: row.content,
-      similarity: row.similarity,
-      engagement_rate: parseFloat(row.engagement_rate),
+    const viralPosts: SimilarPost[] = (viralPostsData ?? []).map((row: Record<string, unknown>) => ({
+      id: String(row.viral_id),
+      content: String(row.content),
+      similarity: Number(row.similarity),
+      engagement_rate: parseFloat(String(row.engagement_rate)),
       type: 'viral' as const,
     }));
 
@@ -218,10 +219,11 @@ export default async function handler(
     };
 
     return res.status(200).json(response);
-  } catch (error: any) {
+  } catch (error) {
     console.error('[RAG Retrieve] Error inesperado:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
-      error: `Error interno del servidor: ${error.message}`,
+      error: `Error interno del servidor: ${errorMessage}`,
     });
   }
 }
@@ -272,7 +274,7 @@ async function fetchPostsByIds(
       id: post.id,
       content: post.content,
       similarity: 1,
-      engagement_rate: parseFloat(post.engagement_rate as any),
+      engagement_rate: typeof post.engagement_rate === 'number' ? post.engagement_rate : parseFloat(String(post.engagement_rate)),
       type: 'viral' as const,
     }));
   }

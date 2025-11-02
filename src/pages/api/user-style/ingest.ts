@@ -19,7 +19,6 @@ import { generateBatchEmbeddings } from '@/lib/ai/embeddings';
 import type {
   IngestUserPostsRequest,
   IngestUserPostsResponse,
-  UserPost,
 } from '@/types/personalization';
 
 // Inicializar cliente de Supabase con service role para operaciones admin
@@ -127,15 +126,16 @@ export default async function handler(
     try {
       embeddings = await generateBatchEmbeddings(contents);
       console.log(`[Ingest] ${embeddings.length} embeddings generados`);
-    } catch (embeddingError: any) {
+    } catch (embeddingError) {
       console.error('[Ingest] Error al generar embeddings:', embeddingError);
+      const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
       // Si falla la generación de embeddings, eliminamos los posts insertados
       await supabase.from('user_posts').delete().in(
         'id',
         insertedPosts.map((p) => p.id)
       );
       return res.status(500).json({
-        error: `Error al generar embeddings: ${embeddingError.message}`,
+        error: `Error al generar embeddings: ${errorMessage}`,
       });
     }
 
@@ -175,10 +175,11 @@ export default async function handler(
     };
 
     return res.status(201).json(response);
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Ingest] Error inesperado:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
-      error: `Error interno del servidor: ${error.message}`,
+      error: `Error interno del servidor: ${errorMessage}`,
     });
   }
 }

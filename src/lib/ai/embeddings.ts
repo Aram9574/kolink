@@ -6,7 +6,7 @@
  */
 
 import OpenAI from 'openai';
-import type { EmbeddingConfig, EmbeddingResponse } from '@/types/personalization';
+import type { EmbeddingConfig } from '@/types/personalization';
 
 // Inicializar cliente de OpenAI
 const openai = new OpenAI({
@@ -56,9 +56,10 @@ export async function generateEmbedding(
     }
 
     return embedding;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al generar embedding:', error);
-    throw new Error(`Error en OpenAI Embeddings: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Error en OpenAI Embeddings: ${errorMessage}`);
   }
 }
 
@@ -121,9 +122,10 @@ export async function generateBatchEmbeddings(
     }
 
     return allEmbeddings;
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error al generar embeddings en batch:', error);
-    throw new Error(`Error en OpenAI Batch Embeddings: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Error en OpenAI Batch Embeddings: ${errorMessage}`);
   }
 }
 
@@ -183,7 +185,7 @@ export function normalizeEmbedding(embedding: number[]): number[] {
  * @param expectedDimensions - Dimensiones esperadas
  * @returns true si es válido
  */
-export function validateEmbedding(embedding: any, expectedDimensions: number = 1536): boolean {
+export function validateEmbedding(embedding: unknown, expectedDimensions: number = 1536): boolean {
   if (!Array.isArray(embedding)) {
     return false;
   }

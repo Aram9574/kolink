@@ -5,9 +5,10 @@
  * para que el sistema aprenda su estilo de escritura.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
+import { Session } from '@supabase/supabase-js';
+import { supabaseClient } from '@/lib/supabaseClient';
 import Navbar from '@/components/Navbar';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
@@ -22,10 +23,12 @@ interface PostInput {
   views?: number;
 }
 
-export default function ImportPostsPage() {
+interface ImportPostsPageProps {
+  session: Session | null | undefined;
+}
+
+export default function ImportPostsPage({ session }: ImportPostsPageProps) {
   const router = useRouter();
-  const session = useSession();
-  const supabase = useSupabaseClient();
 
   const [mode, setMode] = useState<'manual' | 'csv'>('manual');
   const [manualPosts, setManualPosts] = useState<string[]>(['', '', '']);
@@ -33,9 +36,19 @@ export default function ImportPostsPage() {
   const [importProgress, setImportProgress] = useState(0);
 
   // Redirigir si no está autenticado
+  useEffect(() => {
+    if (!session) {
+      router.push('/signin');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
   if (!session) {
-    router.push('/signin');
-    return null;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader size={40} />
+      </div>
+    );
   }
 
   const handleManualImport = async () => {
@@ -61,10 +74,18 @@ export default function ImportPostsPage() {
 
       setImportProgress(30);
 
+      // Get access token
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        throw new Error('Sesión inválida. Por favor, inicia sesión de nuevo.');
+      }
+
       const response = await fetch('/api/user-style/ingest', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ posts }),
@@ -87,9 +108,10 @@ export default function ImportPostsPage() {
         router.push('/dashboard');
       }, 1500);
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error importing posts:', error);
-      toast.error(error.message || 'Error al importar posts');
+      const errorMessage = error instanceof Error ? error.message : 'Error al importar posts';
+      toast.error(errorMessage);
       setImportProgress(0);
     } finally {
       setImporting(false);
@@ -114,7 +136,7 @@ export default function ImportPostsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar session={session} />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         {/* Header */}
