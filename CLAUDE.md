@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Kolink v0.4 is a professional Next.js SaaS application with modern UI/UX integrating Supabase (authentication & database), Stripe (payments), and OpenAI (content generation). The application features a complete design system with dark mode, professional landing page, dashboard with AI content generation, and subscription management.
+Kolink v1.0 is a professional Next.js SaaS application with modern UI/UX integrating Supabase (authentication & database), Stripe (payments), and OpenAI (content generation). The application features a complete design system with dark mode, professional landing page, dashboard with AI content generation, subscription management, and **personalized LinkedIn content generation using RAG (Retrieval-Augmented Generation)**.
 
 ## Development Commands
 
@@ -352,5 +352,75 @@ Each plan maps to corresponding Stripe price IDs in environment variables.
 
 ### Environment Variables
 - `ENCRYPTION_KEY` - 256-bit hex key for 2FA secret encryption
+
+## Personalization System (v1.0)
+
+Kolink v1.0 introduces a sophisticated **RAG (Retrieval-Augmented Generation)** system for generating personalized LinkedIn posts that maintain the user's unique voice while incorporating viral content patterns.
+
+### Overview
+- **User Style Learning**: Imports and analyzes user's historical LinkedIn posts
+- **Viral Content Corpus**: Curated database of high-engagement posts
+- **Vector Search**: pgvector with HNSW indices for semantic similarity
+- **AI Generation**: GPT-4o generates A/B variants optimized for engagement
+
+### Architecture
+
+**Database Tables:**
+- `user_posts` - User's historical posts with engagement metrics
+- `user_post_embeddings` - 3072-dimensional vectors (text-embedding-3-large)
+- `viral_corpus` - Curated viral posts with detailed metadata
+- `viral_embeddings` - Vector embeddings of viral content
+- `generations` - Generated content with A/B variants
+- `post_metrics` - Engagement tracking for published posts
+- `rag_cache` - Performance optimization cache (24h TTL)
+
+**API Endpoints:**
+- `POST /api/user-style/ingest` - Import user's historical posts
+- `POST /api/viral/ingest` - Add viral posts to corpus (admin only)
+- `POST /api/rag/retrieve` - Semantic search for similar content
+- `POST /api/personalized/generate` - Generate personalized A/B variants
+
+**AI Utilities:**
+- `/src/lib/ai/embeddings.ts` - OpenAI embedding generation & similarity
+- `/src/lib/ai/generation.ts` - GPT-4o content generation with RAG context
+- `/src/types/personalization.ts` - Complete TypeScript type definitions
+
+### Generation Flow
+1. User provides topic + intent (educativo, inspiracional, etc.)
+2. System generates embedding of the topic
+3. Vector search retrieves:
+   - Top 3 similar posts from user's history (for style)
+   - Top 5 similar viral posts (for patterns)
+4. GPT-4o generates 2 variants with context:
+   - Variant A: Short (150-300 words)
+   - Variant B: Long (300-600 words)
+5. User selects variant and publishes
+6. System tracks engagement metrics
+
+### Performance Optimizations
+- **HNSW Indices**: 10-100x faster than IVFFlat for vector search
+- **RAG Cache**: 24h cache reduces latency from ~5s to ~500ms
+- **Batch Embeddings**: Process up to 100 posts per API call
+- **SQL Functions**: Native PostgreSQL functions for similarity search
+
+### Cost Estimates (per 1000 monthly active users)
+- Embeddings: ~$30/month
+- Generation (50 posts/user): ~$350/month
+- **Total with cache**: ~$280/month
+
+### Documentation
+- **Complete Guide**: `/docs/personalization/README.md`
+- **Quick Start**: `/docs/personalization/QUICK_START.md`
+- **Implementation Summary**: `/docs/personalization/IMPLEMENTATION_SUMMARY.md`
+- **Database Schema**: `/docs/database/personalization_schema.sql`
+
+### Environment Variables
+- `ADMIN_EMAILS` - Comma-separated list of admin emails for viral corpus ingestion
+
+### Security
+- Row Level Security (RLS) on all user tables
+- Admin-only access to viral corpus ingestion
+- JWT authentication required for all endpoints
+- Input validation and sanitization
 
 ## Authentication

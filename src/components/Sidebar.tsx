@@ -15,6 +15,8 @@ import {
   X,
   FilePenLine,
   LifeBuoy,
+  Brain,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -85,6 +87,19 @@ export default function Sidebar({ session }: SidebarProps) {
       name: "Inspiration Hub",
       icon: Lightbulb,
       href: "/inspiration",
+    },
+  ];
+
+  const personalizationItems = [
+    {
+      name: "Generador Personalizado",
+      icon: Brain,
+      href: "/personalized",
+    },
+    {
+      name: "Analytics Personalización",
+      icon: TrendingUp,
+      href: "/personalized-analytics",
     },
   ];
 
@@ -231,11 +246,36 @@ export default function Sidebar({ session }: SidebarProps) {
                 ))}
               </div>
             </div>
+
+            {/* Personalization */}
+            <div>
+              <h3 className="px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                Personalización con IA
+              </h3>
+              <div className="space-y-1">
+                {personalizationItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      isActive(item.href)
+                        ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </nav>
 
           {/* Version */}
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-            <p className="text-xs text-slate-400 text-center">v0.4</p>
+            <p className="text-xs text-slate-400 text-center">v1.0</p>
           </div>
         </div>
       </aside>
