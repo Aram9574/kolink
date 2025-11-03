@@ -1,176 +1,104 @@
 /**
  * LinkedIn OAuth - Callback Endpoint
- * Procesa la respuesta de LinkedIn después de la autenticación
+ * Valida state, intercambia el código por tokens y sincroniza el perfil del usuario.
  */
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
+import { exchangeCodeForToken, fetchLinkedInProfile, updateProfileWithLinkedInData } from "@/lib/linkedin";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const { code, state, error: oauthError, error_description } = req.query;
+
+  if (oauthError) {
+    const message = typeof error_description === "string" ? error_description : "Autenticación cancelada";
+    return res.redirect(`/profile?section=integrations&linkedin_error=${encodeURIComponent(message)}`);
+  }
+
+  if (typeof code !== "string" || typeof state !== "string") {
+    return res.redirect(
+      "/profile?section=integrations&linkedin_error=" + encodeURIComponent("Parámetros inválidos")
+    );
+  }
+
+  const [userId, nonce] = state.split(":");
+  if (!userId || !nonce) {
+    return res.redirect(
+      "/profile?section=integrations&linkedin_error=" + encodeURIComponent("Estado de sesión inválido")
+    );
+  }
+
   try {
-    const { code, state, error: oauthError, error_description } = req.query;
+    const admin = getSupabaseAdminClient();
 
-    // 1. Verificar errores de OAuth
-    if (oauthError) {
-      console.error("[LinkedIn Callback] OAuth error:", oauthError, error_description);
-      return res.redirect(
-        `/profile?error=${encodeURIComponent(
-          error_description as string || "Error al conectar con LinkedIn"
-        )}`
-      );
-    }
-
-    // 2. Validar parámetros requeridos
-    if (!code || !state) {
-      console.error("[LinkedIn Callback] Missing code or state");
-      return res.redirect(
-        "/profile?error=" + encodeURIComponent("Parámetros inválidos")
-      );
-    }
-
-    // 3. Extraer userId del state
-    const stateStr = state as string;
-    const [userId, expectedState] = stateStr.split(":");
-
-    if (!userId || !expectedState) {
-      console.error("[LinkedIn Callback] Invalid state format");
-      return res.redirect(
-        "/profile?error=" + encodeURIComponent("Estado inválido")
-      );
-    }
-
-    // 4. Verificar state (CSRF protection)
-    const { data: profile, error: profileError } = await supabase
+    const { data: profileRow, error: profileError } = await admin
       .from("profiles")
-      .select("linkedin_oauth_state, linkedin_oauth_started_at")
+      .select("features")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profile) {
+    if (profileError || !profileRow) {
       console.error("[LinkedIn Callback] Profile not found:", profileError);
       return res.redirect(
-        "/profile?error=" + encodeURIComponent("Usuario no encontrado")
+        "/profile?section=integrations&linkedin_error=" + encodeURIComponent("No se encontró el usuario")
       );
     }
 
-    if (profile.linkedin_oauth_state !== expectedState) {
-      console.error("[LinkedIn Callback] State mismatch");
+    const features =
+      (profileRow.features && typeof profileRow.features === "object"
+        ? (profileRow.features as Record<string, unknown>)
+        : {}) ?? {};
+
+    const oauthRaw = features.linkedin_oauth;
+    const oauthData =
+      oauthRaw && typeof oauthRaw === "object"
+        ? (oauthRaw as { state?: string; code_verifier?: string; started_at?: string })
+        : undefined;
+
+    if (!oauthData?.state || oauthData.state !== nonce || !oauthData.code_verifier) {
+      console.error("[LinkedIn Callback] State mismatch or missing verifier");
       return res.redirect(
-        "/profile?error=" + encodeURIComponent("Estado no coincide - posible ataque CSRF")
+        "/profile?section=integrations&linkedin_error=" +
+          encodeURIComponent("Estado inválido o expirado. Intenta de nuevo.")
       );
     }
 
-    // 5. Verificar que no haya expirado (máximo 10 minutos)
-    const startedAt = new Date(profile.linkedin_oauth_started_at);
-    const now = new Date();
-    const diffMinutes = (now.getTime() - startedAt.getTime()) / (1000 * 60);
-
-    if (diffMinutes > 10) {
-      console.error("[LinkedIn Callback] OAuth expired");
-      return res.redirect(
-        "/profile?error=" + encodeURIComponent("Sesión expirada. Intenta de nuevo.")
-      );
+    if (oauthData.started_at) {
+      const startedAt = new Date(oauthData.started_at);
+      if (Number.isFinite(startedAt.getTime())) {
+        const minutes = (Date.now() - startedAt.getTime()) / (1000 * 60);
+        if (minutes > 10) {
+          return res.redirect(
+            "/profile?section=integrations&linkedin_error=" +
+              encodeURIComponent("La sesión de autenticación expiró. Intenta nuevamente.")
+          );
+        }
+      }
     }
 
-    // 6. Intercambiar código por access_token
-    const { LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, LINKEDIN_REDIRECT_URI } = process.env;
+    // Intercambiar código por tokens
+    const tokens = await exchangeCodeForToken(code, oauthData.code_verifier);
 
-    if (!LINKEDIN_CLIENT_ID || !LINKEDIN_CLIENT_SECRET || !LINKEDIN_REDIRECT_URI) {
-      console.error("[LinkedIn Callback] Missing OAuth config");
-      return res.redirect(
-        "/profile?error=" + encodeURIComponent("Configuración incompleta")
-      );
-    }
+    // Obtener información del perfil
+    const profile = await fetchLinkedInProfile(tokens.accessToken);
 
-    const tokenResponse = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code: code as string,
-        redirect_uri: LINKEDIN_REDIRECT_URI,
-        client_id: LINKEDIN_CLIENT_ID,
-        client_secret: LINKEDIN_CLIENT_SECRET,
-      }),
-    });
+    // Persistir datos en Supabase
+    await updateProfileWithLinkedInData(admin, userId, tokens, profile);
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error("[LinkedIn Callback] Token exchange failed:", errorText);
-      return res.redirect(
-        "/profile?error=" + encodeURIComponent("Error al obtener token de LinkedIn")
-      );
-    }
+    // Limpiar metadatos temporales
+    const cleanedFeatures = { ...features };
+    delete cleanedFeatures.linkedin_oauth;
+    await admin.from("profiles").update({ features: cleanedFeatures }).eq("id", userId);
 
-    const tokenData = await tokenResponse.json();
-    const { access_token, expires_in } = tokenData;
-
-    // 7. Obtener perfil de LinkedIn
-    const profileResponse = await fetch("https://api.linkedin.com/v2/userinfo", {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-
-    if (!profileResponse.ok) {
-      const errorText = await profileResponse.text();
-      console.error("[LinkedIn Callback] Profile fetch failed:", errorText);
-      return res.redirect(
-        "/profile?error=" + encodeURIComponent("Error al obtener perfil de LinkedIn")
-      );
-    }
-
-    const linkedInProfile = await profileResponse.json();
-
-    // 8. Calcular fecha de expiración del token
-    const expiresAt = new Date();
-    expiresAt.setSeconds(expiresAt.getSeconds() + expires_in);
-
-    // 9. Guardar conexión en la base de datos
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        linkedin_id: linkedInProfile.sub,
-        linkedin_access_token: access_token,
-        linkedin_token_expires_at: expiresAt.toISOString(),
-        linkedin_profile_data: linkedInProfile,
-        linkedin_connected_at: new Date().toISOString(),
-        // Limpiar datos temporales de OAuth
-        linkedin_oauth_state: null,
-        linkedin_oauth_started_at: null,
-        // Datos adicionales del perfil
-        linkedin_email: linkedInProfile.email,
-        linkedin_name: linkedInProfile.name,
-        linkedin_picture: linkedInProfile.picture,
-      })
-      .eq("id", userId);
-
-    if (updateError) {
-      console.error("[LinkedIn Callback] Update failed:", updateError);
-      return res.redirect(
-        "/profile?error=" + encodeURIComponent("Error al guardar conexión")
-      );
-    }
-
-    console.log(`[LinkedIn Callback] Successfully connected for user ${userId}`);
-
-    // 10. Redirigir al perfil con éxito
-    return res.redirect(
-      "/profile?linkedin_success=" + encodeURIComponent("LinkedIn conectado exitosamente")
-    );
+    return res.redirect("/profile?section=integrations&linkedin_success=1");
   } catch (error) {
     console.error("[LinkedIn Callback] Unexpected error:", error);
     return res.redirect(
-      "/profile?error=" + encodeURIComponent("Error inesperado")
+      "/profile?section=integrations&linkedin_error=" + encodeURIComponent("No se pudo conectar LinkedIn")
     );
   }
 }

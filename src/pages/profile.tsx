@@ -5,7 +5,6 @@ import { supabaseClient } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 import {
   Settings,
-  Linkedin,
   Sparkles,
   Users,
   PenTool,
@@ -13,23 +12,23 @@ import {
   MessageSquare,
   Target,
   Chrome,
-  Link as LinkIcon,
   BarChart3,
   Bell,
   Download,
   FileJson,
   Trophy,
   Zap,
-  TrendingUp
+  TrendingUp,
+  Linkedin,
+  Link as LinkIcon,
 } from "lucide-react";
 import Button from "@/components/Button";
 import Loader from "@/components/Loader";
 import toast from "react-hot-toast";
 import Navbar from "@/components/Navbar";
-import { Tooltip } from "@/components/ui/Tooltip";
-import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import CookieSettingsCard from "@/components/compliance/CookieSettingsCard";
 import Link from "next/link";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 type ProfileProps = {
   session: Session | null | undefined;
@@ -52,23 +51,24 @@ type Profile = {
   total_posts?: number;
   last_activity_date?: string;
   // LinkedIn
-  bio?: string;
-  headline?: string;
-  expertise?: string[];
-  linkedin_profile_url?: string;
-  linkedin_id?: string;
-  linkedin_email?: string;
-  linkedin_name?: string;
-  linkedin_picture?: string;
-  linkedin_access_token?: string;
-  linkedin_token_expires_at?: string;
-  linkedin_connected_at?: string;
+  linkedin_id?: string | null;
+  linkedin_first_name?: string | null;
+  linkedin_last_name?: string | null;
+  linkedin_full_name?: string | null;
+  linkedin_headline?: string | null;
+  linkedin_summary?: string | null;
+  linkedin_industry?: string | null;
+  linkedin_profile_url?: string | null;
+  linkedin_picture?: string | null;
+  linkedin_email?: string | null;
+  linkedin_connected_at?: string | null;
+  linkedin_token_expires_at?: string | null;
 };
 
 type SettingsSection =
   | "general"
   | "gamification"
-  | "linkedin"
+  | "integrations"
   | "ai-language"
   | "members"
   | "writing-style"
@@ -83,7 +83,7 @@ type SettingsSection =
 const SETTINGS_MENU = [
   { id: "general" as SettingsSection, label: "General", icon: Settings },
   { id: "gamification" as SettingsSection, label: "Mi Progreso", icon: Trophy },
-  { id: "linkedin" as SettingsSection, label: "Cuentas de LinkedIn", icon: Linkedin },
+  { id: "integrations" as SettingsSection, label: "Integraciones", icon: Zap },
   { id: "ai-language" as SettingsSection, label: "IA y Lenguaje", icon: Sparkles },
   { id: "writing-style" as SettingsSection, label: "Estilo de Escritura", icon: PenTool },
   { id: "analytics" as SettingsSection, label: "Analytics", icon: BarChart3 },
@@ -105,10 +105,6 @@ export default function Profile({ session }: ProfileProps) {
   const sectionFromQuery = router.query.section as SettingsSection | undefined;
   const [activeSection, setActiveSection] = useState<SettingsSection>(sectionFromQuery || "general");
   const [workspaceName, setWorkspaceName] = useState("DEFAULT");
-  const [autoPostEnabled, setAutoPostEnabled] = useState(false);
-  const [linkedInRole, setLinkedInRole] = useState("individual_creator");
-  const [topics, setTopics] = useState<string[]>([]);
-  const [newTopic, setNewTopic] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState("es-ES");
   const [savingLanguage, setSavingLanguage] = useState(false);
   const [timezone, setTimezone] = useState("UTC");
@@ -123,8 +119,23 @@ export default function Profile({ session }: ProfileProps) {
   });
   const [savingSettings, setSavingSettings] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+  const [syncingLinkedIn, setSyncingLinkedIn] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [disconnectingLinkedIn, setDisconnectingLinkedIn] = useState(false);
+  const linkedInConnected = Boolean(profile?.linkedin_id);
+
+  const formatDateTime = (value?: string | null, options?: Intl.DateTimeFormatOptions) => {
+    if (!value) return "—";
+    try {
+      return new Date(value).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+        ...options,
+      });
+    } catch {
+      return "—";
+    }
+  };
 
   useEffect(() => {
     if (session === undefined) return;
@@ -147,21 +158,22 @@ export default function Profile({ session }: ProfileProps) {
     }
   }, [router.query.section]);
 
-  // Reload profile when returning from LinkedIn OAuth
   useEffect(() => {
-    if (router.query.success && session?.user) {
-      toast.success(decodeURIComponent(router.query.success as string));
-      loadProfile(); // Reload to show LinkedIn data
-      // Clean URL
-      router.replace('/profile?section=linkedin', undefined, { shallow: true });
+    if (router.query.linkedin_success && session?.user) {
+      toast.success("LinkedIn conectado correctamente");
+      loadProfile();
+      router.replace({ pathname: "/profile", query: { section: "integrations" } }, undefined, {
+        shallow: true,
+      });
     }
-    if (router.query.error) {
-      toast.error(decodeURIComponent(router.query.error as string));
-      // Clean URL
-      router.replace('/profile?section=linkedin', undefined, { shallow: true });
+    if (router.query.linkedin_error) {
+      toast.error(decodeURIComponent(String(router.query.linkedin_error)));
+      router.replace({ pathname: "/profile", query: { section: "integrations" } }, undefined, {
+        shallow: true,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.success, router.query.error]);
+  }, [router.query.linkedin_success, router.query.linkedin_error]);
 
   const loadProfile = async () => {
     if (!session?.user) return;
@@ -213,13 +225,6 @@ export default function Profile({ session }: ProfileProps) {
     } catch (error) {
       console.error("Error:", error);
       toast.error("Error al guardar");
-    }
-  };
-
-  const handleAddTopic = () => {
-    if (newTopic.trim()) {
-      setTopics([...topics, newTopic.trim()]);
-      setNewTopic("");
     }
   };
 
@@ -348,63 +353,95 @@ export default function Profile({ session }: ProfileProps) {
     }
   };
 
-  // Helper para conectar LinkedIn
+  const resolveAccessToken = async (): Promise<string | null> => {
+    const { data } = await supabaseClient.auth.getSession();
+    return data.session?.access_token ?? null;
+  };
+
   const handleConnectLinkedIn = async () => {
     try {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session?.access_token) {
-        toast.error("Sesión no encontrada. Inicia sesión de nuevo.");
+      const accessToken = await resolveAccessToken();
+      if (!accessToken) {
+        toast.error("No se pudo obtener tu sesión. Inicia sesión nuevamente.");
         return;
       }
 
-      // Crear un elemento de enlace y hacer clic programáticamente
-      const link = document.createElement('a');
-      link.href = `/api/auth/linkedin/connect?token=${encodeURIComponent(session.access_token)}`;
-      link.target = '_self';
+      const link = document.createElement("a");
+      link.href = `/api/auth/linkedin/start?token=${encodeURIComponent(accessToken)}`;
+      link.rel = "noopener";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error("Error connecting to LinkedIn:", error);
-      toast.error("Error al iniciar conexión con LinkedIn");
+      console.error("Error starting LinkedIn OAuth:", error);
+      toast.error("No se pudo iniciar la conexión con LinkedIn");
+    }
+  };
+
+  const handleSyncLinkedInProfile = async () => {
+    setSyncingLinkedIn(true);
+    try {
+      const accessToken = await resolveAccessToken();
+      if (!accessToken) {
+        toast.error("Sesión inválida. Inicia sesión de nuevo.");
+        setSyncingLinkedIn(false);
+        return;
+      }
+
+      const response = await fetch("/api/linkedin/sync-profile", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Error al sincronizar" }));
+        toast.error(data.error || "Error al sincronizar con LinkedIn");
+        setSyncingLinkedIn(false);
+        return;
+      }
+
+      toast.success("Perfil de LinkedIn sincronizado");
+      await loadProfile();
+    } catch (error) {
+      console.error("Error syncing LinkedIn profile:", error);
+      toast.error("No se pudo sincronizar con LinkedIn");
+    } finally {
+      setSyncingLinkedIn(false);
     }
   };
 
   const handleDisconnectLinkedIn = async () => {
-    if (!session?.user) return;
-
     setDisconnectingLinkedIn(true);
     try {
+      const accessToken = await resolveAccessToken();
+      if (!accessToken) {
+        toast.error("Sesión inválida. Inicia sesión de nuevo.");
+        setDisconnectingLinkedIn(false);
+        return;
+      }
+
       const response = await fetch("/api/auth/linkedin/disconnect", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || "Error al desconectar LinkedIn");
+        const data = await response.json().catch(() => ({ error: "Error" }));
+        toast.error(data.error || "No se pudo desconectar LinkedIn");
+        setDisconnectingLinkedIn(false);
+        return;
       }
 
-      toast.success("LinkedIn desconectado correctamente");
-      setProfile({
-        ...profile!,
-        linkedin_profile_url: undefined,
-        linkedin_id: undefined,
-        linkedin_email: undefined,
-        linkedin_name: undefined,
-        linkedin_picture: undefined,
-        headline: undefined,
-        bio: undefined,
-        expertise: undefined,
-      });
+      toast.success("LinkedIn desconectado");
       setShowDisconnectModal(false);
+      await loadProfile();
     } catch (error) {
       console.error("Error disconnecting LinkedIn:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error al desconectar LinkedIn";
-      toast.error(errorMessage);
+      toast.error("No se pudo desconectar LinkedIn");
     } finally {
       setDisconnectingLinkedIn(false);
     }
@@ -815,165 +852,139 @@ export default function Profile({ session }: ProfileProps) {
                 </div>
               )}
 
-              {/* LinkedIn Accounts Section */}
-              {activeSection === "linkedin" && (
+              {activeSection === "integrations" && (
                 <div className="space-y-8">
                   <div>
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-                      <div>
-                        <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white">
-                          Perfil de LinkedIn
-                        </h2>
-                        <p className="text-base md:text-sm text-slate-500 dark:text-slate-400">
-                          Tu información profesional de LinkedIn
-                        </p>
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                      Integraciones disponibles
+                    </h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Conecta tus cuentas externas para personalizar aún más tus recomendaciones.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-200">
+                          <Linkedin className="h-6 w-6" />
+                        </span>
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                            LinkedIn
+                          </h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Importa tu información profesional y mantén tu perfil sincronizado con la IA de Kolink.
+                          </p>
+                        </div>
                       </div>
-                      {!profile?.linkedin_profile_url && (
-                        <Button
-                          className="gap-2 min-h-[48px] md:min-h-0"
-                          onClick={handleConnectLinkedIn}
-                        >
-                          <Linkedin className="h-5 w-5 md:h-4 md:w-4" />
+
+                      {!linkedInConnected ? (
+                        <Button onClick={handleConnectLinkedIn} className="gap-2">
                           Conectar LinkedIn
                         </Button>
+                      ) : (
+                        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          Conectado
+                        </div>
                       )}
                     </div>
 
-                    {/* LinkedIn Profile Data or Empty State */}
-                    {profile?.linkedin_profile_url || profile?.headline || profile?.bio ? (
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6 space-y-6">
-                        {/* Connection Status Badge */}
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            Conectado
+                    {!linkedInConnected ? (
+                      <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-6 text-sm text-slate-500 dark:text-slate-400 space-y-3">
+                        <p className="font-medium text-slate-700 dark:text-slate-200">
+                          ¿Qué obtienes al conectar tu LinkedIn?
+                        </p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Sincronizamos tu headline, bio y áreas de expertise para adaptar la IA a tu voz.</li>
+                          <li>Próximamente guardaremos tus métricas y borradores favoritos para refinar recomendaciones.</li>
+                          <li>Siempre tendrás control para desconectar la cuenta cuando lo necesites.</li>
+                        </ul>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+                          <div className="flex-shrink-0">
+                            {profile?.linkedin_picture ? (
+                              <>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={profile.linkedin_picture}
+                                  alt="Foto de LinkedIn"
+                                  className="h-20 w-20 rounded-xl object-cover"
+                                />
+                              </>
+                            ) : (
+                              <span className="flex h-20 w-20 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-200 text-2xl font-semibold">
+                                {(profile?.linkedin_full_name ?? profile?.full_name ?? "?").charAt(0)}
+                              </span>
+                            )}
                           </div>
-                        </div>
 
-                        {/* Profile Info */}
-                        <div className="space-y-4">
-                          {/* Headline */}
-                          {profile.headline && (
+                          <div className="flex-1 space-y-2">
                             <div>
-                              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Headline
-                              </label>
-                              <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
-                                {profile.headline}
+                              <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                                {profile?.linkedin_full_name ?? profile?.full_name ?? "—"}
                               </p>
+                              {profile?.linkedin_headline && (
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                  {profile.linkedin_headline}
+                                </p>
+                              )}
                             </div>
-                          )}
 
-                          {/* Bio */}
-                          {profile.bio && (
-                            <div>
-                              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Bio
-                              </label>
-                              <p className="mt-1 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                                {profile.bio}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Expertise Tags */}
-                          {profile.expertise && profile.expertise.length > 0 && (
-                            <div>
-                              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Áreas de Expertise
-                              </label>
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {profile.expertise.map((skill, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium"
-                                  >
-                                    {skill}
-                                  </span>
-                                ))}
+                            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <span className="block text-slate-500 dark:text-slate-400">Correo</span>
+                                <span className="text-slate-900 dark:text-slate-200">{profile?.linkedin_email ?? "—"}</span>
+                              </div>
+                              <div>
+                                <span className="block text-slate-500 dark:text-slate-400">Industria</span>
+                                <span className="text-slate-900 dark:text-slate-200">{profile?.linkedin_industry ?? "—"}</span>
+                              </div>
+                              <div>
+                                <span className="block text-slate-500 dark:text-slate-400">Conectado el</span>
+                                <span className="text-slate-900 dark:text-slate-200">{formatDateTime(profile?.linkedin_connected_at)}</span>
+                              </div>
+                              <div>
+                                <span className="block text-slate-500 dark:text-slate-400">Expira</span>
+                                <span className="text-slate-900 dark:text-slate-200">{formatDateTime(profile?.linkedin_token_expires_at)}</span>
                               </div>
                             </div>
-                          )}
 
-                          {/* Profile Link */}
-                          {profile.linkedin_profile_url && (
-                            <div>
-                              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Perfil
-                              </label>
+                            {profile?.linkedin_summary && (
+                              <p className="text-sm text-slate-600 dark:text-slate-300">
+                                {profile.linkedin_summary}
+                              </p>
+                            )}
+
+                            {profile?.linkedin_profile_url && (
                               <a
                                 href={profile.linkedin_profile_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-1 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+                                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:underline"
                               >
                                 <LinkIcon className="h-4 w-4" />
-                                Ver en LinkedIn
+                                Ver perfil en LinkedIn
                               </a>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="pt-4 border-t border-blue-200 dark:border-blue-800 flex flex-col sm:flex-row gap-3">
-                          <Button
-                            variant="outline"
-                            className="gap-2"
-                            onClick={async () => {
-                              if (!session) return;
-                              try {
-                                toast.loading("Importando tus posts de LinkedIn...");
-                                const response = await fetch("/api/linkedin/fetch-posts", {
-                                  headers: {
-                                    Authorization: `Bearer ${session.access_token}`,
-                                  },
-                                });
-                                const data = await response.json();
-                                if (response.ok) {
-                                  toast.dismiss();
-                                  toast.success(`¡Importados ${data.samples_saved} posts para personalización!`);
-                                } else {
-                                  toast.dismiss();
-                                  toast.error(data.error || "Error al importar posts");
-                                }
-                              } catch (_error) {
-                                toast.dismiss();
-                                toast.error("Error al importar posts");
-                              }
-                            }}
-                          >
-                            <Linkedin className="h-4 w-4" />
-                            Importar Posts
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button onClick={handleSyncLinkedInProfile} disabled={syncingLinkedIn} className="sm:w-auto">
+                            {syncingLinkedIn ? "Sincronizando..." : "Sincronizar perfil"}
                           </Button>
                           <Button
                             variant="outline"
-                            className="gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
                             onClick={() => setShowDisconnectModal(true)}
+                            className="sm:w-auto"
                           >
                             Desconectar
                           </Button>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-16 px-8 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-                        <div className="mb-6">
-                          <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                            <Linkedin className="w-12 h-12 text-blue-600 dark:text-blue-400" />
-                          </div>
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                          Conecta tu LinkedIn
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6">
-                          Vincula tu cuenta de LinkedIn para acceder a tus datos profesionales, importar tu bio y headline, y potenciar la generación de contenido.
-                        </p>
-                        <Button
-                          className="gap-2"
-                          onClick={handleConnectLinkedIn}
-                        >
-                          <Linkedin className="h-4 w-4" />
-                          Conectar LinkedIn
-                        </Button>
                       </div>
                     )}
                   </div>
@@ -1040,104 +1051,10 @@ export default function Profile({ session }: ProfileProps) {
                     </div>
                   </div>
 
-                  {/* Divider */}
-                  <div className="border-t border-slate-200 dark:border-slate-800"></div>
-
-                  {/* AI Personal */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-6">
-                      <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                        Posts Automáticos Semanales
-                      </h2>
-                      <Tooltip content="La IA generará posts automáticamente según tus temas de interés y los guardará para que los revises antes de publicar" />
-                    </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-                      Configura la generación automática de contenido para LinkedIn. La IA creará borradores que podrás revisar y editar antes de publicar.
+                  <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 p-4 text-left">
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                      La automatización de publicaciones se reactivará más adelante.
                     </p>
-
-                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-4 mb-6">
-                      <p className="text-sm text-blue-800 dark:text-blue-200">
-                      ℹ️ Cada viernes generamos un borrador de post para cada tema que agregues. Encuentra estos borradores en tu bandeja &quot;Posts Automáticos&quot; listos para revisar y publicar.
-                      </p>
-                    </div>
-
-                    <div className="space-y-6">
-                      {/* Auto Post Generation Toggle */}
-                      <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-start gap-2 flex-1">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-slate-900 dark:text-white">
-                              Habilitar Generación Automática de Posts
-                            </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                              Genera borradores de posts cada viernes basados en tus temas de interés
-                            </p>
-                          </div>
-                          <Tooltip content="Los posts se generan automáticamente pero NO se publican. Siempre podrás revisarlos y editarlos antes de compartir." />
-                        </div>
-                        <button
-                          onClick={() => setAutoPostEnabled(!autoPostEnabled)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            autoPostEnabled ? "bg-green-500" : "bg-slate-300 dark:bg-slate-700"
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              autoPostEnabled ? "translate-x-6" : "translate-x-1"
-                            }`}
-                          />
-                        </button>
-                      </div>
-
-                      {/* LinkedIn Role */}
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                          ¿Quién eres en LinkedIn?
-                        </label>
-                        <select
-                          value={linkedInRole}
-                          onChange={(e) => setLinkedInRole(e.target.value)}
-                          className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="individual_creator">individual_creator</option>
-                          <option value="business">business</option>
-                          <option value="influencer">influencer</option>
-                        </select>
-                      </div>
-
-                      {/* Topics */}
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                          ¿Sobre qué temas publicas?
-                        </label>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                          Presiona &apos;Enter&apos; después de añadir cada tema
-                        </p>
-                        <input
-                          type="text"
-                          value={newTopic}
-                          onChange={(e) => setNewTopic(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleAddTopic()}
-                          placeholder="Añadir temas..."
-                          className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {topics.map((topic, index) => (
-                            <span
-                              key={index}
-                              className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm"
-                            >
-                              {topic}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3 pt-4">
-                        <Button>Guardar Cambios</Button>
-                        <Button variant="outline">Descartar</Button>
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}
@@ -1547,7 +1464,7 @@ export default function Profile({ session }: ProfileProps) {
               )}
 
               {/* Placeholder for other sections */}
-              {!["general", "gamification", "linkedin", "ai-language", "members", "writing-style", "analytics", "notifications", "data-export"].includes(activeSection) && (
+              {!["general", "gamification", "integrations", "ai-language", "members", "writing-style", "analytics", "notifications", "data-export"].includes(activeSection) && (
                 <div className="text-center py-16">
                   <p className="text-slate-500 dark:text-slate-400">
                     Esta sección está en desarrollo
@@ -1559,12 +1476,11 @@ export default function Profile({ session }: ProfileProps) {
         </div>
       </div>
 
-      {/* LinkedIn Disconnect Confirmation Modal */}
       <ConfirmationModal
         open={showDisconnectModal}
         onOpenChange={setShowDisconnectModal}
         title="Desconectar LinkedIn"
-        description="¿Estás seguro de que deseas desconectar tu cuenta de LinkedIn? Se eliminarán tu perfil, headline, bio y áreas de expertise. Esta acción no se puede deshacer."
+        description="Se eliminará la conexión con LinkedIn y los datos asociados. Podrás volver a conectarla cuando quieras."
         confirmText="Desconectar"
         cancelText="Cancelar"
         variant="danger"

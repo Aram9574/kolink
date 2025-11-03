@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import Button from "@/components/Button";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/posthog";
-import { Linkedin } from "lucide-react";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -52,12 +51,6 @@ export default function SignInPage() {
     router.push(!hasCompleted || !hasName ? "/account-setup" : "/dashboard");
   }
 
-  async function handleLinkedInSignIn() {
-    // LinkedIn OAuth login is not yet implemented
-    // Users should sign in with email and connect LinkedIn from their profile
-    setError("Por favor, inicia sesión con tu correo. Podrás conectar LinkedIn desde tu perfil después.");
-  }
-
   return (
     <>
       <Head>
@@ -80,28 +73,6 @@ export default function SignInPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="space-y-4">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={loading}
-                className="w-full rounded-full border border-slate-200 bg-white py-3 text-base font-semibold text-slate-600 transition hover:border-[#0A66C2] hover:text-[#0A66C2]"
-                onClick={handleLinkedInSignIn}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <Linkedin className="h-5 w-5 text-[#0A66C2]" />
-                  Continuar con LinkedIn
-                </span>
-              </Button>
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                  o ingresa con tu correo
-                </span>
-                <span className="h-px flex-1 bg-slate-200" />
-              </div>
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-5 text-left">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">

@@ -1,9 +1,9 @@
-// [Phase 5] Export modal for LinkedIn and downloads
+// Export modal for content downloads
 "use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Download, Share2, FileText, Loader2, Check } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import Button from "@/components/Button";
 import toast from "react-hot-toast";
@@ -16,39 +16,7 @@ interface ExportModalProps {
 }
 
 export default function ExportModal({ open, onOpenChange, content, title }: ExportModalProps) {
-  const [loadingLinkedIn, setLoadingLinkedIn] = useState(false);
   const [loadingDownload, setLoadingDownload] = useState(false);
-  const [linkedInSuccess, setLinkedInSuccess] = useState(false);
-
-  const handleLinkedInExport = async () => {
-    setLoadingLinkedIn(true);
-    try {
-      const response = await fetch("/api/export/linkedin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, title }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setLinkedInSuccess(true);
-        toast.success("Contenido listo para LinkedIn");
-
-        // Open LinkedIn in new tab
-        setTimeout(() => {
-          window.open(data.url, "_blank");
-        }, 500);
-      } else {
-        toast.error("Error al preparar contenido");
-      }
-    } catch (error) {
-      console.error("LinkedIn export error:", error);
-      toast.error("Error al conectar con LinkedIn");
-    } finally {
-      setLoadingLinkedIn(false);
-    }
-  };
 
   const handleDownload = async (format: "txt" | "md") => {
     setLoadingDownload(true);
@@ -96,46 +64,8 @@ export default function ExportModal({ open, onOpenChange, content, title }: Expo
         </DialogHeader>
 
         <div className="space-y-4 mt-6">
-          {/* LinkedIn Export */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Button
-              onClick={handleLinkedInExport}
-              disabled={loadingLinkedIn || linkedInSuccess}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              {loadingLinkedIn ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Preparando...
-                </>
-              ) : linkedInSuccess ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  Listo para LinkedIn
-                </>
-              ) : (
-                <>
-                  <Share2 className="h-4 w-4" />
-                  Publicar en LinkedIn
-                </>
-              )}
-            </Button>
-          </motion.div>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border-light dark:border-border-dark" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background-light dark:bg-surface-dark px-2 text-muted-foreground">
-                O descargar como
-              </span>
-            </div>
+          <div className="text-sm text-muted-foreground text-left">
+            Descarga tu contenido en el formato que prefieras.
           </div>
 
           {/* Download Options */}
