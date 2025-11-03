@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabaseClient } from '@/lib/supabaseClient';
 import Card from '@/components/Card';
@@ -14,6 +14,8 @@ import Loader from '@/components/Loader';
 import { toast } from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useRouter } from 'next/router';
+import Button from '@/components/Button';
 
 interface Generation {
   id: string;
@@ -28,13 +30,15 @@ interface Generation {
 
 interface GenerationsHistoryProps {
   session: Session | null | undefined;
+  onCreateFirstPost?: () => void;
 }
 
-export default function GenerationsHistory({ session }: GenerationsHistoryProps) {
+export default function GenerationsHistory({ session, onCreateFirstPost }: GenerationsHistoryProps) {
 
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (session) {
@@ -74,6 +78,14 @@ export default function GenerationsHistory({ session }: GenerationsHistoryProps)
     setExpandedId(expandedId === id ? null : id);
   };
 
+  const handleCreateClick = useCallback(() => {
+    if (onCreateFirstPost) {
+      onCreateFirstPost();
+      return;
+    }
+    router.push('/personalized');
+  }, [onCreateFirstPost, router]);
+
   const getIntentEmoji = (intent: string) => {
     const emojiMap: Record<string, string> = {
       'educativo': '📚',
@@ -104,6 +116,11 @@ export default function GenerationsHistory({ session }: GenerationsHistoryProps)
           <p className="text-text/60">
             Tus posts generados aparecerán aquí.
           </p>
+          <div className="mt-6 flex justify-center">
+            <Button onClick={handleCreateClick} className="min-h-[48px]">
+              Crear tu primer post
+            </Button>
+          </div>
         </div>
       </Card>
     );

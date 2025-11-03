@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import Button from "./Button";
 import { Textarea } from "./ui/textarea";
 import {
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
+import Loader from "@/components/Loader";
 
 type EditorAIProps = {
   value: string;
@@ -125,69 +126,104 @@ export default function EditorAI({
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showPromptValidation, setShowPromptValidation] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const valueRef = useRef(value);
 
   const labels = LANGUAGE_LABELS[language];
   const defaultPlaceholder = placeholder || LANGUAGE_PLACEHOLDERS[language];
 
   useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
+
+  useEffect(() => {
     // Check if speech recognition is supported
-    if (typeof window !== "undefined") {
-      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognitionAPI) {
-        setSpeechSupported(true);
-        const recognition = new SpeechRecognitionAPI();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = language;
-
-        recognition.onresult = (event: SpeechRecognitionEvent) => {
-          let finalTranscript = "";
-
-          for (let i = event.results.length - 1; i >= 0; i--) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript = transcript;
-            }
-          }
-
-          if (finalTranscript) {
-            onChange(value + " " + finalTranscript);
-          }
-        };
-
-        recognition.onerror = (event) => {
-          console.error("Speech recognition error:", event);
-          setIsListening(false);
-          toast.error("Error en reconocimiento de voz");
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognitionRef.current = recognition;
-      }
+    if (typeof window === "undefined") {
+      return;
     }
 
-    return () => {
-      if (recognitionRef.current && isListening) {
-        recognitionRef.current.stop();
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionAPI) {
+      setSpeechSupported(false);
+      recognitionRef.current = null;
+      return;
+    }
+
+    setSpeechSupported(true);
+    const recognition = new SpeechRecognitionAPI();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = language;
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let finalTranscript = "";
+
+      for (let i = event.results.length - 1; i >= 0; i--) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript = transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        const currentValue = valueRef.current ?? "";
+        const separator = currentValue.trim().length > 0 ? " " : "";
+        onChange(`${currentValue}${separator}${finalTranscript}`);
       }
     };
-  }, [isListening, onChange, value, language]);
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event);
+      setIsListening(false);
+      toast.error(language === 'es-ES' ? "Error en reconocimiento de voz" : language === 'en-US' ? "Voice recognition error" : "Erro no reconhecimento de voz");
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, [language, onChange]);
 
   const toggleVoiceInput = () => {
-    if (!recognitionRef.current) return;
+    if (!recognitionRef.current) {
+      toast.error(language === 'es-ES' ? "Reconocimiento de voz no disponible" : language === 'en-US' ? "Voice recognition unavailable" : "Reconhecimento de voz indisponível");
+      return;
+    }
 
-    if (isListening) {
-      recognitionRef.current.stop();
+    try {
+      if (isListening) {
+        recognitionRef.current.stop();
+        setIsListening(false);
+        toast.success(
+          language === 'es-ES'
+            ? "Reconocimiento de voz detenido"
+            : language === 'en-US'
+              ? "Voice recognition stopped"
+              : "Reconhecimento de voz parado"
+        );
+      } else {
+        recognitionRef.current.start();
+        setIsListening(true);
+        toast.success(
+          language === 'es-ES'
+            ? "Escuchando... Habla ahora"
+            : language === 'en-US'
+              ? "Listening... Speak now"
+              : "Ouvindo... Fale agora"
+        );
+      }
+    } catch (error) {
+      console.error("Speech recognition toggle error:", error);
+      toast.error(language === 'es-ES' ? "No se pudo iniciar el reconocimiento" : language === 'en-US' ? "Could not start recognition" : "Não foi possível iniciar o reconhecimento");
       setIsListening(false);
-      toast.success(language === 'es-ES' ? "Reconocimiento de voz detenido" : language === 'en-US' ? "Voice recognition stopped" : "Reconhecimento de voz parado");
-    } else {
-      recognitionRef.current.start();
-      setIsListening(true);
-      toast.success(language === 'es-ES' ? "Escuchando... Habla ahora" : language === 'en-US' ? "Listening... Speak now" : "Ouvindo... Fale agora");
     }
   };
 
@@ -230,43 +266,126 @@ export default function EditorAI({
     return "Necesita mejoras";
   };
 
+  const handleGenerateClick = async () => {
+    if (loading) {
+      return;
+    }
+
+    if (!value.trim()) {
+      setShowPromptValidation(true);
+      const message =
+        language === 'es-ES'
+          ? "Escribe un prompt o selecciona una plantilla antes de generar"
+          : language === 'en-US'
+            ? "Write a prompt or choose a template before generating"
+            : "Escreva um prompt ou selecione um template antes de gerar";
+      toast.error(message);
+      return;
+    }
+
+    try {
+      await onGenerate();
+    } catch (error) {
+      console.error("Generate action error:", error);
+      const message =
+        language === 'es-ES'
+          ? "No se pudo iniciar la generación"
+          : language === 'en-US'
+            ? "Generation failed to start"
+            : "Não foi possível iniciar a geração";
+      toast.error(message);
+    }
+  };
+
+  const handlePromptChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    if (showPromptValidation) {
+      setShowPromptValidation(false);
+    }
+    onChange(event.target.value);
+  };
+
   return (
     <div className={cn("space-y-4", className)}>
       {/* Editor */}
-      <div className="relative">
-        <Textarea
-          name="prompt"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={defaultPlaceholder}
-          className="min-h-[200px] md:min-h-[150px] pr-14 md:pr-12 resize-none text-base"
-          disabled={loading || isListening}
-        />
+      <div className="space-y-2">
+        <div className="relative">
+          <Textarea
+            name="prompt"
+            value={value}
+            onChange={handlePromptChange}
+            placeholder={defaultPlaceholder}
+            className="min-h-[200px] md:min-h-[150px] pr-14 md:pr-12 resize-none text-base"
+            disabled={loading || isListening}
+          />
 
-        {/* Voice Input Button */}
-        {speechSupported && (
-          <button
-            onClick={toggleVoiceInput}
-            type="button"
-            disabled={loading}
-            className={cn(
-              "absolute right-3 top-3 p-3 md:p-2 rounded-lg transition-colors min-h-[48px] min-w-[48px] md:min-h-0 md:min-w-0 flex items-center justify-center",
-              isListening
-                ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
-            )}
-            title={isListening ? labels.stopRecording : labels.startRecording}
-          >
-            {isListening ? <MicOff className="w-6 h-6 md:w-5 md:h-5" /> : <Mic className="w-6 h-6 md:w-5 md:h-5" />}
-          </button>
+          {/* Voice Input Button */}
+          {speechSupported ? (
+            <button
+              onClick={toggleVoiceInput}
+              type="button"
+              disabled={loading}
+              className={cn(
+                "absolute right-3 top-3 p-3 md:p-2 rounded-lg transition-colors min-h-[48px] min-w-[48px] md:min-h-0 md:min-w-0 flex items-center justify-center",
+                isListening
+                  ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-300"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+              )}
+              title={isListening ? labels.stopRecording : labels.startRecording}
+              aria-pressed={isListening}
+            >
+              {isListening ? <MicOff className="w-6 h-6 md:w-5 md:h-5" /> : <Mic className="w-6 h-6 md:w-5 md:h-5" />}
+            </button>
+          ) : (
+            <div className="absolute right-3 top-3 rounded-lg bg-gray-100 px-3 py-2 text-xs text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+              {language === 'es-ES'
+                ? "El dictado por voz no está disponible en este navegador"
+                : language === 'en-US'
+                  ? "Voice dictation is not available on this browser"
+                  : "Ditado por voz indisponível neste navegador"}
+            </div>
+          )}
+        </div>
+
+        {showPromptValidation && !value.trim() && (
+          <p className="text-sm text-red-500 dark:text-red-400">
+            {language === 'es-ES'
+              ? "Escribe un prompt o selecciona una plantilla antes de generar."
+              : language === 'en-US'
+                ? "Write a prompt or choose a template before generating."
+                : "Escreva um prompt ou selecione um template antes de gerar."}
+          </p>
         )}
       </div>
 
+      {speechSupported && (
+        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-300">
+          <span
+            className={cn(
+              "inline-flex h-2.5 w-2.5 rounded-full transition",
+              isListening ? "bg-red-500 animate-pulse" : "bg-gray-400"
+            )}
+            aria-hidden="true"
+          />
+          <span aria-live="polite">
+            {isListening ? labels.listening : labels.startRecording}
+          </span>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={onGenerate} disabled={loading || !value.trim()} className="flex-shrink-0 min-h-[48px] text-base md:text-sm">
-          <Sparkles className="w-5 h-5 md:w-4 md:h-4 mr-2" />
-          {loading ? labels.generating : labels.generate}
+        <Button onClick={handleGenerateClick} disabled={loading} className="flex-shrink-0 min-h-[48px] text-base md:text-sm">
+          {loading ? (
+            <>
+              <Loader size={18} className="mr-2 border-t-white" />
+              {labels.generating}
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+              {labels.generate}
+            </>
+          )}
         </Button>
 
         {onRegenerate && value && (

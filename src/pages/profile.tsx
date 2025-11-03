@@ -56,6 +56,13 @@ type Profile = {
   headline?: string;
   expertise?: string[];
   linkedin_profile_url?: string;
+  linkedin_id?: string;
+  linkedin_email?: string;
+  linkedin_name?: string;
+  linkedin_picture?: string;
+  linkedin_access_token?: string;
+  linkedin_token_expires_at?: string;
+  linkedin_connected_at?: string;
 };
 
 type SettingsSection =
@@ -341,38 +348,57 @@ export default function Profile({ session }: ProfileProps) {
     }
   };
 
+  // Helper para conectar LinkedIn
+  const handleConnectLinkedIn = async () => {
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Sesión no encontrada. Inicia sesión de nuevo.");
+        return;
+      }
+
+      window.location.href = `/api/auth/linkedin/connect?token=${encodeURIComponent(session.access_token)}`;
+    } catch (error) {
+      console.error("Error connecting to LinkedIn:", error);
+      toast.error("Error al iniciar conexión con LinkedIn");
+    }
+  };
+
   const handleDisconnectLinkedIn = async () => {
     if (!session?.user) return;
 
     setDisconnectingLinkedIn(true);
     try {
-      const { error } = await supabaseClient
-        .from("profiles")
-        .update({
-          linkedin_profile_url: null,
-          headline: null,
-          bio: null,
-          expertise: null,
-        })
-        .eq("id", session.user.id);
+      const response = await fetch("/api/auth/linkedin/disconnect", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-      if (error) {
-        console.error("Error disconnecting LinkedIn:", error);
-        toast.error("Error al desconectar LinkedIn");
-      } else {
-        toast.success("LinkedIn desconectado correctamente");
-        setProfile({
-          ...profile!,
-          linkedin_profile_url: undefined,
-          headline: undefined,
-          bio: undefined,
-          expertise: undefined,
-        });
-        setShowDisconnectModal(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al desconectar LinkedIn");
       }
+
+      toast.success("LinkedIn desconectado correctamente");
+      setProfile({
+        ...profile!,
+        linkedin_profile_url: undefined,
+        linkedin_id: undefined,
+        linkedin_email: undefined,
+        linkedin_name: undefined,
+        linkedin_picture: undefined,
+        headline: undefined,
+        bio: undefined,
+        expertise: undefined,
+      });
+      setShowDisconnectModal(false);
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error al desconectar LinkedIn");
+      console.error("Error disconnecting LinkedIn:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error al desconectar LinkedIn";
+      toast.error(errorMessage);
     } finally {
       setDisconnectingLinkedIn(false);
     }
@@ -799,14 +825,7 @@ export default function Profile({ session }: ProfileProps) {
                       {!profile?.linkedin_profile_url && (
                         <Button
                           className="gap-2 min-h-[48px] md:min-h-0"
-                          onClick={async () => {
-                            const { data: { session } } = await supabaseClient.auth.getSession();
-                            if (session?.access_token) {
-                              window.location.href = `/api/auth/linkedin/authorize?token=${session.access_token}`;
-                            } else {
-                              toast.error("No se pudo obtener la sesión. Por favor, inicia sesión de nuevo.");
-                            }
-                          }}
+                          onClick={handleConnectLinkedIn}
                         >
                           <Linkedin className="h-5 w-5 md:h-4 md:w-4" />
                           Conectar LinkedIn
@@ -944,14 +963,7 @@ export default function Profile({ session }: ProfileProps) {
                         </p>
                         <Button
                           className="gap-2"
-                          onClick={async () => {
-                            const { data: { session } } = await supabaseClient.auth.getSession();
-                            if (session?.access_token) {
-                              window.location.href = `/api/auth/linkedin/authorize?token=${session.access_token}`;
-                            } else {
-                              toast.error("No se pudo obtener la sesión. Por favor, inicia sesión de nuevo.");
-                            }
-                          }}
+                          onClick={handleConnectLinkedIn}
                         >
                           <Linkedin className="h-4 w-4" />
                           Conectar LinkedIn

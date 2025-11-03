@@ -21,6 +21,7 @@ const variantStyles: Record<ButtonVariant, string> = {
 export default function Button({
   variant = "primary",
   className = "",
+  type = "button",
   ...props
 }: ButtonProps) {
   return (
@@ -30,6 +31,7 @@ export default function Button({
         variantStyles[variant],
         className
       )}
+      type={type}
       {...props}
     />
   );

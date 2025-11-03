@@ -167,7 +167,12 @@ export default function PersonalizedPage({ session }: PersonalizedPageProps) {
           />
         )}
 
-        {activeTab === 'history' && <GenerationsHistory session={session} />}
+        {activeTab === 'history' && (
+          <GenerationsHistory
+            session={session}
+            onCreateFirstPost={() => setActiveTab('generate')}
+          />
+        )}
 
         {/* Help Section */}
         <Card className="mt-8">

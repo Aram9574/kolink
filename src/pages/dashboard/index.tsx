@@ -34,6 +34,7 @@ import { ViralScoreTooltip } from "@/components/dashboard/ViralScoreTooltip";
 import { PostPreviewModal } from "@/components/dashboard/PostPreviewModal";
 import { PromptSuggestions } from "@/components/dashboard/PromptSuggestions";
 import { ContentControls } from "@/components/dashboard/ContentControls";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 const TOPIC_OPTIONS = [
   "Inteligencia artificial en salud",
@@ -131,6 +132,7 @@ export default function Dashboard({ session }: DashboardProps) {
   const [formality, setFormality] = useState<number>(50);
   const [length, setLength] = useState<number>(200);
   const [profileFeatures, setProfileFeatures] = useState<ProfileFeatures>({});
+  const [showClearPromptModal, setShowClearPromptModal] = useState(false);
   const { isReady, query } = router;
   const { notifySuccess, notifyError, notifyInfo, checkCreditReminder, setupRealtimeNotifications, cleanupRealtimeNotifications } = useNotifications();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -600,11 +602,7 @@ export default function Dashboard({ session }: DashboardProps) {
         title: "Generar post con IA",
         description: "Activa una plantilla curada y ajusta el mensaje antes de publicar.",
         icon: Sparkles,
-        action: () =>
-          triggerQuickIdea(
-            "Comparte una victoria reciente y explica cómo impactó a tu equipo. Cierra con un CTA abierto.",
-            "insight"
-          ),
+        action: () => router.push("/write"),
         highlight: false,
       },
       {
@@ -643,8 +641,22 @@ export default function Dashboard({ session }: DashboardProps) {
         highlight: false,
       },
     ],
-    [autopilotEnabled, autopilotFrequencyLabel, router, triggerQuickIdea, linkedinConnected]
+    [autopilotEnabled, autopilotFrequencyLabel, router, linkedinConnected]
   );
+
+  const handleConfirmClearPrompt = () => {
+    setPrompt("");
+    setViralScore(undefined);
+    setRecommendations([]);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("kolink-draft");
+      } catch (error) {
+        console.warn("[dashboard] No se pudo limpiar el borrador local", error);
+      }
+    }
+    notifyInfo("Borrador limpiado. Usa Ctrl+Z para revertir si lo necesitas.");
+  };
 
   const scrollToHistory = () => {
     if (typeof document !== "undefined") {
@@ -854,11 +866,7 @@ export default function Dashboard({ session }: DashboardProps) {
                   <Button
                     variant="ghost"
                     className="min-h-[44px]"
-                    onClick={() => {
-                      setPrompt("");
-                      setViralScore(undefined);
-                      setRecommendations([]);
-                    }}
+                    onClick={() => setShowClearPromptModal(true)}
                   >
                     Limpiar
                   </Button>
@@ -1211,6 +1219,16 @@ export default function Dashboard({ session }: DashboardProps) {
           </section>
         </div>
 
+        <ConfirmationModal
+          open={showClearPromptModal}
+          onOpenChange={setShowClearPromptModal}
+          title="¿Limpiar el borrador?"
+          description="Perderás el contenido escrito hasta ahora. Puedes usar Ctrl+Z justo después para recuperarlo si cambias de opinión."
+          confirmText="Limpiar"
+          cancelText="Cancelar"
+          onConfirm={handleConfirmClearPrompt}
+          variant="warning"
+        />
         <PlansModal open={showPlansModal} onOpenChange={setShowPlansModal} userId={userId || undefined} />
         <ThankYouModal
           open={showThankYouModal}

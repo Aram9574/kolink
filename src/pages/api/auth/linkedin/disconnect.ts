@@ -1,10 +1,11 @@
+/**
+ * LinkedIn OAuth - Disconnect Endpoint
+ * Desconecta la cuenta de LinkedIn del usuario
+ */
+
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 
-/**
- * LinkedIn Disconnect Endpoint
- * Removes LinkedIn connection from user profile
- */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -14,23 +15,23 @@ export default async function handler(
   }
 
   try {
-    // Get user from auth header
+    // 1. Verificar autenticación
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: "Unauthorized" });
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "No autorizado" });
     }
 
     const token = authHeader.replace("Bearer ", "");
     const {
       data: { user },
-      error: userError,
+      error: authError,
     } = await supabase.auth.getUser(token);
 
-    if (userError || !user) {
-      return res.status(401).json({ error: "Unauthorized" });
+    if (authError || !user) {
+      return res.status(401).json({ error: "Sesión inválida" });
     }
 
-    // Clear LinkedIn data from profile
+    // 2. Limpiar todos los datos de LinkedIn del perfil
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
@@ -38,19 +39,29 @@ export default async function handler(
         linkedin_access_token: null,
         linkedin_refresh_token: null,
         linkedin_token_expires_at: null,
-        linkedin_profile_data: {},
+        linkedin_profile_data: null,
         linkedin_connected_at: null,
+        linkedin_oauth_state: null,
+        linkedin_oauth_started_at: null,
+        linkedin_email: null,
+        linkedin_name: null,
+        linkedin_picture: null,
       })
       .eq("id", user.id);
 
     if (updateError) {
-      console.error("Failed to disconnect LinkedIn:", updateError);
-      return res.status(500).json({ error: "Failed to disconnect LinkedIn" });
+      console.error("[LinkedIn Disconnect] Error:", updateError);
+      return res.status(500).json({ error: "Error al desconectar LinkedIn" });
     }
 
-    return res.status(200).json({ success: true, message: "LinkedIn disconnected successfully" });
+    console.log(`[LinkedIn Disconnect] User ${user.id} disconnected`);
+
+    return res.status(200).json({
+      success: true,
+      message: "LinkedIn desconectado exitosamente",
+    });
   } catch (error) {
-    console.error("Error disconnecting LinkedIn:", error);
-    return res.status(500).json({ error: "An unexpected error occurred" });
+    console.error("[LinkedIn Disconnect] Unexpected error:", error);
+    return res.status(500).json({ error: "Error inesperado" });
   }
 }
