@@ -357,7 +357,13 @@ export default function Profile({ session }: ProfileProps) {
         return;
       }
 
-      window.location.href = `/api/auth/linkedin/connect?token=${encodeURIComponent(session.access_token)}`;
+      // Crear un elemento de enlace y hacer clic programáticamente
+      const link = document.createElement('a');
+      link.href = `/api/auth/linkedin/connect?token=${encodeURIComponent(session.access_token)}`;
+      link.target = '_self';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error("Error connecting to LinkedIn:", error);
       toast.error("Error al iniciar conexión con LinkedIn");
