@@ -6,13 +6,7 @@
  */
 
 import * as dotenv from "dotenv";
-import {
-  encryptToken,
-  decryptToken,
-  encryptLinkedInTokens,
-  decryptLinkedInTokens,
-  isEncryptionConfigured
-} from "../src/lib/encryption";
+import { encryptToken, decryptToken, isEncryptionConfigured } from "../src/lib/encryption";
 
 // Load environment variables
 dotenv.config({ path: ".env.local" });
@@ -53,49 +47,8 @@ if (!matches) {
 }
 
 // Test 3: LinkedIn tokens encryption
-console.log("Test 3: LinkedIn Tokens Encryption");
-console.log("-----------------------------------");
-const linkedInTokens = {
-  accessToken: "linkedin_access_token_abcdef123456",
-  refreshToken: "linkedin_refresh_token_xyz789",
-  expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-};
-
-console.log("Original LinkedIn tokens:");
-console.log(`  Access token: ${linkedInTokens.accessToken}`);
-console.log(`  Refresh token: ${linkedInTokens.refreshToken}`);
-console.log(`  Expires at: ${linkedInTokens.expiresAt}`);
-
-const encryptedLinkedIn = encryptLinkedInTokens(linkedInTokens);
-console.log("\nEncrypted LinkedIn tokens:");
-console.log(`  Access token: ${encryptedLinkedIn.accessTokenEncrypted.substring(0, 50)}...`);
-console.log(`  Refresh token: ${encryptedLinkedIn.refreshTokenEncrypted.substring(0, 50)}...`);
-
-const decryptedLinkedIn = decryptLinkedInTokens(encryptedLinkedIn);
-if (!decryptedLinkedIn) {
-  console.error("❌ Failed to decrypt LinkedIn tokens");
-  process.exit(1);
-}
-
-console.log("\nDecrypted LinkedIn tokens:");
-console.log(`  Access token: ${decryptedLinkedIn.accessToken}`);
-console.log(`  Refresh token: ${decryptedLinkedIn.refreshToken}`);
-console.log(`  Expires at: ${decryptedLinkedIn.expiresAt}`);
-
-const linkedInMatches =
-  linkedInTokens.accessToken === decryptedLinkedIn.accessToken &&
-  linkedInTokens.refreshToken === decryptedLinkedIn.refreshToken &&
-  linkedInTokens.expiresAt === decryptedLinkedIn.expiresAt;
-
-console.log(`${linkedInMatches ? "✅" : "❌"} LinkedIn tokens match: ${linkedInMatches}\n`);
-
-if (!linkedInMatches) {
-  console.error("❌ Test failed: Decrypted LinkedIn tokens don't match original");
-  process.exit(1);
-}
-
-// Test 4: Null/undefined handling
-console.log("Test 4: Null/Undefined Handling");
+// Test 3: Null/undefined handling
+console.log("Test 3: Null/Undefined Handling");
 console.log("--------------------------------");
 const encryptedNull = encryptToken(null);
 console.log(`Encrypt null: ${encryptedNull}`);
@@ -109,8 +62,8 @@ const decryptedNull = decryptToken(null);
 console.log(`Decrypt null: ${decryptedNull}`);
 console.log(`${decryptedNull === null ? "✅" : "❌"} Returns null for null input\n`);
 
-// Test 5: Multiple encryptions produce different results
-console.log("Test 5: Randomized Encryption");
+// Test 4: Multiple encryptions producen resultados distintos
+console.log("Test 4: Randomized Encryption");
 console.log("------------------------------");
 const token1 = encryptToken(testToken);
 const token2 = encryptToken(testToken);
@@ -120,8 +73,8 @@ console.log(`Second encryption: ${token2?.substring(0, 30)}...`);
 console.log(`${areDifferent ? "✅" : "❌"} Encryptions are different: ${areDifferent}`);
 console.log(`Note: Different encryptions of same data is GOOD (uses random IV)\n`);
 
-// Test 6: Decryption of invalid data
-console.log("Test 6: Invalid Data Handling");
+// Test 5: Decryption of invalid data
+console.log("Test 5: Invalid Data Handling");
 console.log("------------------------------");
 const invalidToken = "this_is_not_encrypted_data";
 const decryptedInvalid = decryptToken(invalidToken);
@@ -135,7 +88,6 @@ console.log("================================\n");
 console.log("Summary:");
 console.log("  ✅ Encryption configured correctly");
 console.log("  ✅ Basic encryption/decryption works");
-console.log("  ✅ LinkedIn tokens encryption works");
 console.log("  ✅ Null/undefined handling works");
 console.log("  ✅ Randomized IV works (different ciphertexts)");
 console.log("  ✅ Invalid data handling works");
