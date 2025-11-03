@@ -16,7 +16,6 @@ import {
   TrendingUp,
   CalendarClock,
   Lightbulb,
-  LifeBuoy,
   Globe,
   NotebookPen,
 } from "lucide-react";
@@ -35,6 +34,8 @@ import { PostPreviewModal } from "@/components/dashboard/PostPreviewModal";
 import { PromptSuggestions } from "@/components/dashboard/PromptSuggestions";
 import { ContentControls } from "@/components/dashboard/ContentControls";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const TOPIC_OPTIONS = [
   "Inteligencia artificial en salud",
@@ -93,6 +94,15 @@ type ProfileFeatures = {
   linkedin_connected?: boolean;
   tone_trained?: boolean;
   onboarding_completed?: boolean;
+  topic_preferences?: {
+    selected_topics?: string[];
+    updated_at?: string;
+  };
+  autopilot_next_post?: Record<string, unknown>;
+  next_autopilot_post?: Record<string, unknown>;
+  autopilot_next_post_at?: string;
+  autopilot_next_post_title?: string;
+  autopilot_next_post_topic?: string;
   [key: string]: unknown;
 };
 
@@ -133,7 +143,10 @@ export default function Dashboard({ session }: DashboardProps) {
   const [length, setLength] = useState<number>(200);
   const [profileFeatures, setProfileFeatures] = useState<ProfileFeatures>({});
   const [showClearPromptModal, setShowClearPromptModal] = useState(false);
+  const [savingTopics, setSavingTopics] = useState(false);
+  const [autopilotUpdating, setAutopilotUpdating] = useState(false);
   const { isReady, query } = router;
+  const { language: uiLanguage, loading: languageLoading } = useLanguage();
   const { notifySuccess, notifyError, notifyInfo, checkCreditReminder, setupRealtimeNotifications, cleanupRealtimeNotifications } = useNotifications();
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -179,6 +192,21 @@ export default function Dashboard({ session }: DashboardProps) {
 
     const features = (data?.features as ProfileFeatures) ?? {};
     setProfileFeatures(features);
+
+    let storedTopics: string[] = [];
+    if (Array.isArray(features.topic_preferences?.selected_topics)) {
+      storedTopics = features.topic_preferences.selected_topics.filter(
+        (topic): topic is string => typeof topic === "string"
+      );
+    } else {
+      const rawTopics = (features as Record<string, unknown>).autopilot_topics;
+      if (Array.isArray(rawTopics)) {
+        storedTopics = (rawTopics as unknown[]).filter((topic): topic is string => typeof topic === "string");
+      }
+    }
+    if (storedTopics.length > 0) {
+      setSelectedTopics(storedTopics);
+    }
     const onboardingCompleted = Boolean(features.onboarding_completed);
     const hasName = Boolean(data?.full_name && data.full_name.trim().length > 0);
 
@@ -194,6 +222,12 @@ export default function Dashboard({ session }: DashboardProps) {
   useEffect(() => {
     loadCredits();
   }, [loadCredits]);
+
+  useEffect(() => {
+    if (!languageLoading && uiLanguage && uiLanguage !== preferredLanguage) {
+      setPreferredLanguage(uiLanguage as 'es-ES' | 'en-US' | 'pt-BR');
+    }
+  }, [uiLanguage, languageLoading, preferredLanguage]);
 
   useEffect(() => {
     if (userId) {
@@ -520,11 +554,22 @@ export default function Dashboard({ session }: DashboardProps) {
   };
 
   const firstName = useMemo(() => {
-    if (fullName.trim()) {
-      return fullName.split(" ")[0];
+    const profileName = fullName.trim() || String(session?.user?.user_metadata?.full_name ?? "").trim();
+    if (profileName) {
+      const first = profileName.split(" ")[0];
+      return first.charAt(0).toUpperCase() + first.slice(1);
     }
-    return session?.user?.email?.split("@")[0] ?? "creador";
-  }, [fullName, session?.user?.email]);
+    const emailPrefix = session?.user?.email?.split("@")[0] ?? "";
+    if (!emailPrefix) {
+      return "Creador";
+    }
+    const sanitized = emailPrefix.replace(/[\W_]+/g, " ").trim();
+    if (!sanitized) {
+      return "Creador";
+    }
+    const firstSanitized = sanitized.split(" ")[0];
+    return firstSanitized.charAt(0).toUpperCase() + firstSanitized.slice(1);
+  }, [fullName, session?.user?.email, session?.user?.user_metadata?.full_name]);
 
   const latestPost = posts[0] ?? null;
 
@@ -555,6 +600,78 @@ export default function Dashboard({ session }: DashboardProps) {
   const linkedinConnected = Boolean(profileFeatures.linkedin_connected);
   const toneTrainingActive =
     Boolean(profileFeatures.tone_trained) || (typeof toneProfile === "string" && toneProfile !== "professional");
+  const autopilotNextPost = useMemo(() => {
+    const extractDetails = (source: Record<string, unknown> | undefined | null) => {
+      if (!source) return null;
+      const scheduledAt =
+        typeof source.scheduled_at === "string"
+          ? source.scheduled_at
+          : typeof source.schedule_at === "string"
+            ? source.schedule_at
+            : typeof source.date === "string"
+              ? source.date
+              : undefined;
+      const title =
+        typeof source.title === "string"
+          ? source.title
+          : typeof source.name === "string"
+            ? source.name
+            : undefined;
+      const topic =
+        typeof source.topic === "string"
+          ? source.topic
+          : typeof source.category === "string"
+            ? source.category
+            : undefined;
+      if (!scheduledAt && !title && !topic) {
+        return null;
+      }
+      return { scheduledAt, title, topic };
+    };
+
+    const candidate =
+      extractDetails(profileFeatures.autopilot_next_post as Record<string, unknown> | undefined) ??
+      extractDetails(profileFeatures.next_autopilot_post as Record<string, unknown> | undefined);
+
+    if (candidate) {
+      return candidate;
+    }
+
+    const scheduleFromStrings =
+      typeof profileFeatures.autopilot_next_post_at === "string"
+        ? profileFeatures.autopilot_next_post_at
+        : undefined;
+
+    if (!scheduleFromStrings) {
+      return null;
+    }
+
+    return {
+      scheduledAt: scheduleFromStrings,
+      title:
+        typeof profileFeatures.autopilot_next_post_title === "string"
+          ? profileFeatures.autopilot_next_post_title
+          : undefined,
+      topic:
+        typeof profileFeatures.autopilot_next_post_topic === "string"
+          ? profileFeatures.autopilot_next_post_topic
+          : undefined,
+    };
+  }, [profileFeatures]);
+
+  const formattedNextAutopilot = useMemo(() => {
+    if (!autopilotNextPost?.scheduledAt) return null;
+    try {
+      const locale = preferredLanguage === "pt-BR" ? "pt-BR" : preferredLanguage === "en-US" ? "en-US" : "es-ES";
+      return new Date(autopilotNextPost.scheduledAt).toLocaleString(locale, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    } catch (error) {
+      console.warn("[dashboard] No se pudo formatear la fecha del próximo post de Auto-Pilot", error);
+      return autopilotNextPost.scheduledAt;
+    }
+  }, [autopilotNextPost, preferredLanguage]);
 
   const heroMetrics = useMemo(
     () => [
@@ -625,24 +742,78 @@ export default function Dashboard({ session }: DashboardProps) {
         action: () => router.push("/inspiration"),
         highlight: false,
       },
-      {
-        id: "support",
-        title: "Reportar bug / feedback",
-        description: "Habla directo con soporte y prioriza mejoras para tu equipo.",
-        icon: LifeBuoy,
-        action: () => {
-          if (typeof window !== "undefined") {
-            window.open(
-              "mailto:soporte@kolink.es?subject=Feedback%20dashboard%20Kolink&body=Describe%20el%20bug%20o%20idea%20que%20tienes:",
-              "_blank"
-            );
-          }
-        },
-        highlight: false,
-      },
     ],
     [autopilotEnabled, autopilotFrequencyLabel, router, linkedinConnected]
   );
+
+  const handleToggleAutopilot = async () => {
+    if (!userId) {
+      notifyError("Inicia sesión para gestionar Auto-Pilot");
+      return;
+    }
+
+    const nextState = !autopilotEnabled;
+    setAutopilotUpdating(true);
+
+    const updatedFeatures: ProfileFeatures = {
+      ...profileFeatures,
+      autopilot_enabled: nextState,
+    };
+
+    const { error } = await supabaseClient
+      .from("profiles")
+      .update({ features: updatedFeatures })
+      .eq("id", userId);
+
+    if (error) {
+      console.error("Error updating Auto-Pilot:", error);
+      notifyError("No pudimos actualizar Auto-Pilot. Inténtalo nuevamente.");
+      setAutopilotUpdating(false);
+      return;
+    }
+
+    setProfileFeatures(updatedFeatures);
+    notifySuccess(nextState ? "Auto-Pilot activado. Programaremos tus próximos posts automáticos." : "Auto-Pilot pausado.");
+    setAutopilotUpdating(false);
+  };
+
+  const handleSaveTopics = async () => {
+    if (!userId) {
+      notifyError("Inicia sesión para guardar tus temas");
+      return;
+    }
+
+    setSavingTopics(true);
+    const existingPreferences =
+      (profileFeatures.topic_preferences && typeof profileFeatures.topic_preferences === "object"
+        ? profileFeatures.topic_preferences
+        : {}) || {};
+
+    const updatedFeatures: ProfileFeatures = {
+      ...profileFeatures,
+      topic_preferences: {
+        ...(existingPreferences as Record<string, unknown>),
+        selected_topics: selectedTopics,
+        updated_at: new Date().toISOString(),
+      },
+    };
+
+    const { error } = await supabaseClient
+      .from("profiles")
+      .update({ features: updatedFeatures })
+      .eq("id", userId);
+
+    if (error) {
+      console.error("Error saving topics:", error);
+      notifyError("No pudimos guardar los temas. Intenta nuevamente.");
+      setSavingTopics(false);
+      return;
+    }
+
+    setProfileFeatures(updatedFeatures);
+    notifySuccess("Temas guardados. La IA priorizará estas ideas en tus sugerencias y Auto-Pilot.");
+    setSavingTopics(false);
+  };
 
   const handleConfirmClearPrompt = () => {
     setPrompt("");
@@ -876,29 +1047,69 @@ export default function Dashboard({ session }: DashboardProps) {
 
             <motion.aside initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
               <Card className="border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Auto-Pilot</h3>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Auto-Pilot</h3>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          autopilotEnabled
+                            ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-200"
+                            : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        }`}
+                      >
+                        {autopilotEnabled ? "Activo" : "Pausado"}
+                      </span>
+                    </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {autopilotEnabled
                         ? "Tus posts automáticos están listos. Ajusta la cadencia cuando lo necesites."
-                        : "Activa Auto-Pilot para mantener tu calendario lleno."}
+                        : "Activa Auto-Pilot para mantener tu calendario lleno y sin fricciones."}
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      autopilotEnabled
-                        ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-200"
-                        : "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                    }`}
-                  >
-                    {autopilotEnabled ? "Activo" : "Pausado"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={autopilotEnabled}
+                      aria-label={autopilotEnabled ? "Pausar Auto-Pilot" : "Activar Auto-Pilot"}
+                      onClick={handleToggleAutopilot}
+                      disabled={autopilotUpdating}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition ${
+                        autopilotEnabled ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
+                      } ${autopilotUpdating ? "cursor-wait opacity-70" : "cursor-pointer"}`}
+                    >
+                      <span className="sr-only">
+                        {autopilotEnabled ? "Pausar Auto-Pilot" : "Activar Auto-Pilot"}
+                      </span>
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                          autopilotEnabled ? "translate-x-5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                    {autopilotUpdating && <Loader size={16} className="border-t-emerald-200" />}
+                  </div>
                 </div>
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <CalendarClock className="h-4 w-4 text-blue-500 dark:text-blue-300" />
                     Frecuencia {autopilotFrequencyLabel ?? "personalizable"}
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                    {autopilotEnabled ? (
+                      formattedNextAutopilot ? (
+                        <span>
+                          Próximo post programado: <strong>{formattedNextAutopilot}</strong>
+                          {autopilotNextPost?.topic ? ` · Tema: ${autopilotNextPost.topic}` : ""}
+                          {autopilotNextPost?.title ? ` · "${autopilotNextPost.title}"` : ""}
+                        </span>
+                      ) : (
+                        "Auto-Pilot está activo. Aún no hay publicaciones programadas."
+                      )
+                    ) : (
+                      "Activa Auto-Pilot para programar publicaciones automáticas alineadas con tus temas."
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {selectedTopics.slice(0, 4).map((topic) => (
@@ -919,6 +1130,13 @@ export default function Dashboard({ session }: DashboardProps) {
                         Añade tus temas clave
                       </span>
                     )}
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <Tooltip
+                      content="Auto-Pilot y el generador priorizan estos temas para tus próximas ideas y agenda semanal."
+                      position="right"
+                    />
+                    <span>Los temas seleccionados orientan las sugerencias automáticas de la IA.</span>
                   </div>
                 </div>
                 <Button
@@ -1102,7 +1320,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Planificador de temas</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Selecciona los focos clave de esta semana. Los usaremos en sugerencias y Auto-Pilot.
+                  Selecciona los focos clave de esta semana. La IA los sincroniza con Auto-Pilot y las sugerencias del generador.
                 </p>
               </div>
               <Button
@@ -1132,9 +1350,29 @@ export default function Dashboard({ session }: DashboardProps) {
                 );
               })}
             </div>
+            <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <Tooltip
+                content="Tus plantillas y Auto-Pilot priorizarán estos temas cuando propongan ideas o programen publicaciones."
+                position="right"
+              />
+              <span>Confirma los temas para que la IA adapte las ideas automáticas de esta semana.</span>
+            </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-slate-400">{selectedTopics.length} temas seleccionados</p>
-              <Button className="sm:w-auto">Confirmar temas</Button>
+              <Button
+                className="sm:w-auto"
+                onClick={handleSaveTopics}
+                disabled={savingTopics}
+              >
+                {savingTopics ? (
+                  <>
+                    <Loader size={18} className="mr-2 border-t-white" />
+                    Guardando temas...
+                  </>
+                ) : (
+                  "Confirmar temas"
+                )}
+              </Button>
             </div>
           </motion.section>
 
