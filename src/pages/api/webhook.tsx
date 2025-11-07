@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 import { logPayment, logError } from "@/lib/logger";
 import { getResendClient, FROM_EMAIL } from "@/lib/resend";
+import * as Sentry from "@sentry/nextjs";
 import fs from "fs/promises";
 import path from "path";
 
@@ -131,9 +132,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rawBody = await buffer(req);
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
     console.log(`📦 Evento recibido: ${event.type}`);
+
+    // Log successful webhook verification
+    Sentry.addBreadcrumb({
+      category: "payment",
+      message: "Webhook event verified",
+      level: "info",
+      data: { eventType: event.type, eventId: event.id }
+    });
   } catch (error) {
     const err = error as Error;
     console.error("⚠️ Webhook signature verification failed:", err.message);
+
+    // Log signature verification failure
+    Sentry.captureException(error, {
+      tags: {
+        endpoint: "webhook",
+        error_type: "signature_verification_failed"
+      },
+      level: "error"
+    });
+
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -177,6 +196,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           "Failed to fetch profile during payment processing",
           { error: fetchError.message }
         );
+
+        // Log profile fetch error
+        Sentry.captureException(new Error("Failed to fetch profile"), {
+          tags: {
+            endpoint: "webhook",
+            event_type: "checkout.session.completed",
+            error_type: "profile_fetch_failed"
+          },
+          extra: { userId, error: fetchError.message }
+        });
+
         return res.status(500).send("No se pudo obtener el perfil del usuario.");
       }
 
@@ -237,6 +267,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           "Failed to update profile after payment",
           { error: updateError.message, plan: planInfo.plan }
         );
+
+        // Log profile update error
+        Sentry.captureException(new Error("Failed to update profile"), {
+          tags: {
+            endpoint: "webhook",
+            event_type: "checkout.session.completed",
+            error_type: "profile_update_failed"
+          },
+          extra: { userId, plan: planInfo.plan, error: updateError.message }
+        });
+
         return res.status(500).send("Error actualizando plan.");
       }
 
@@ -244,6 +285,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `✅ Plan actualizado a ${planInfo.displayName} para usuario ${userId} (${profile?.email})`
       );
       console.log(`   Créditos: ${currentCredits} → ${newCredits} (+${planInfo.credits})`);
+
+      // Log successful payment processing
+      Sentry.addBreadcrumb({
+        category: "payment",
+        message: "Payment processed successfully",
+        level: "info",
+        data: {
+          userId,
+          plan: planInfo.plan,
+          creditsAdded: planInfo.credits,
+          newCredits,
+          email: profile?.email
+        }
+      });
 
       // Log successful payment
       await logPayment(
@@ -274,6 +329,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         "Exception during payment processing",
         { error: err.message, stack: err.stack }
       );
+
+      // Log general exception
+      Sentry.captureException(error, {
+        tags: {
+          endpoint: "webhook",
+          event_type: "checkout.session.completed",
+          error_type: "general_exception"
+        },
+        extra: { userId, errorMessage: err.message, stack: err.stack }
+      });
+
       return res.status(500).send("Error procesando webhook.");
     }
   }

@@ -3,11 +3,12 @@ import type Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 import { limiter } from "@/lib/rateLimiter";
+import * as Sentry from "@sentry/nextjs";
 
 type PlanTier = "basic" | "standard" | "premium";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Dominio de producción (fallback a kolink.es si no hay variable definida)
 const YOUR_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL || "https://kolink.es";
@@ -41,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Continuar sin rate limiting si hay error
   }
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     console.error("❌ Supabase env vars missing.");
     return res.status(500).json({ error: "Error de configuración del servidor." });
   }
@@ -79,7 +80,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Usuario requerido" });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { persistSession: false },
+  });
   let customerEmail: string | undefined;
 
   try {
@@ -130,10 +133,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `✅ Sesión de checkout creada para ${userId}: sessionId=${session.id} priceId=${priceId} redirectTo=${YOUR_DOMAIN}`
     );
 
+    // Log successful checkout session creation
+    Sentry.addBreadcrumb({
+      category: "payment",
+      message: "Checkout session created",
+      level: "info",
+      data: {
+        userId,
+        plan: normalizedPlan,
+        sessionId: session.id,
+        priceId
+      }
+    });
+
     return res.status(200).json({ url: session.url });
   } catch (error) {
     const err = error as Error;
     console.error("❌ Error creando sesión de checkout:", err.message);
+
+    // Log checkout creation error
+    Sentry.captureException(error, {
+      tags: {
+        endpoint: "checkout",
+        error_type: "session_creation_failed"
+      },
+      extra: {
+        userId,
+        plan: normalizedPlan,
+        error: err.message
+      }
+    });
+
     return res.status(500).json({ error: "No se pudo iniciar el checkout." });
   }
 }
