@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { Session } from "@supabase/supabase-js";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
@@ -1123,14 +1124,14 @@ export default function Profile({ session }: ProfileProps) {
                         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                           <div className="flex-shrink-0">
                             {profile?.linkedin_picture ? (
-                              <>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={profile.linkedin_picture}
-                                  alt="Foto de LinkedIn"
-                                  className="h-20 w-20 rounded-xl object-cover"
-                                />
-                              </>
+                              <Image
+                                src={profile.linkedin_picture}
+                                alt="Foto de LinkedIn"
+                                width={80}
+                                height={80}
+                                className="h-20 w-20 rounded-xl object-cover"
+                                unoptimized={true}
+                              />
                             ) : (
                               <span className="flex h-20 w-20 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-200 text-2xl font-semibold">
                                 {(profile?.linkedin_full_name ?? profile?.full_name ?? "?").charAt(0)}
