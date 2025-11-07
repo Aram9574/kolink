@@ -11,6 +11,7 @@
     "schema:check": "ts-node scripts/checkSchema.ts",
     "lint": "eslint . --max-warnings 50",
     "lint:fix": "eslint . --fix",
+    "lint:console": "grep -r 'console\\.log\\|console\\.info' src/pages/api/ --include='*.ts' --include='*.tsx' && echo '\u274c Console statements found' || echo '\u2705 No problematic console statements found'",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",

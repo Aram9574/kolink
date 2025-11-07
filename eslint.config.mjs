@@ -38,6 +38,12 @@ const eslintConfig = [
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+      "no-console": [
+        "warn",
+        {
+          allow: ["warn", "error"], // Allow console.warn and console.error for debugging
+        },
+      ],
     },
   },
   {
