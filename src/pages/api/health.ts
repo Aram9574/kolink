@@ -91,13 +91,14 @@ export default async function handler(
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[Health] Health check failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Health check failed';
     return res.status(500).json({
       status: 'error',
       timestamp,
       version,
-      message: error.message || 'Health check failed',
+      message: errorMessage,
     });
   }
 }

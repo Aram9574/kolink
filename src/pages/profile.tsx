@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Linkedin,
   Link as LinkIcon,
+  CreditCard,
 } from "lucide-react";
 import Button from "@/components/Button";
 import Loader from "@/components/Loader";
@@ -29,6 +30,7 @@ import Navbar from "@/components/Navbar";
 import CookieSettingsCard from "@/components/compliance/CookieSettingsCard";
 import Link from "next/link";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import PlansModal from "@/components/PlansModal";
 
 type ProfileProps = {
   session: Session | null | undefined;
@@ -65,8 +67,29 @@ type Profile = {
   linkedin_token_expires_at?: string | null;
 };
 
+type SubscriptionInfo = {
+  hasSubscription: boolean;
+  plan: string;
+  credits: number;
+  subscription?: {
+    id: string;
+    status: string;
+    current_period_start: number;
+    current_period_end: number;
+    cancel_at_period_end: boolean;
+    priceId: string;
+  };
+  paymentMethod?: {
+    brand: string;
+    last4: string;
+    exp_month: number;
+    exp_year: number;
+  };
+};
+
 type SettingsSection =
   | "general"
+  | "subscription"
   | "gamification"
   | "integrations"
   | "ai-language"
@@ -82,6 +105,7 @@ type SettingsSection =
 
 const SETTINGS_MENU = [
   { id: "general" as SettingsSection, label: "General", icon: Settings },
+  { id: "subscription" as SettingsSection, label: "Suscripción y Pagos", icon: CreditCard },
   { id: "gamification" as SettingsSection, label: "Mi Progreso", icon: Trophy },
   { id: "integrations" as SettingsSection, label: "Integraciones", icon: Zap },
   { id: "ai-language" as SettingsSection, label: "IA y Lenguaje", icon: Sparkles },
@@ -123,6 +147,13 @@ export default function Profile({ session }: ProfileProps) {
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [disconnectingLinkedIn, setDisconnectingLinkedIn] = useState(false);
   const linkedInConnected = Boolean(profile?.linkedin_id);
+
+  // Subscription state
+  const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showPlansModal, setShowPlansModal] = useState(false);
 
   const formatDateTime = (value?: string | null, options?: Intl.DateTimeFormatOptions) => {
     if (!value) return "—";
@@ -174,6 +205,14 @@ export default function Profile({ session }: ProfileProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.linkedin_success, router.query.linkedin_error]);
+
+  // Load subscription info when subscription section is active
+  useEffect(() => {
+    if (activeSection === "subscription" && session?.user && !subscriptionInfo) {
+      loadSubscriptionInfo();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSection, session]);
 
   const loadProfile = async () => {
     if (!session?.user) return;
@@ -447,6 +486,64 @@ export default function Profile({ session }: ProfileProps) {
     }
   };
 
+  const loadSubscriptionInfo = async () => {
+    setLoadingSubscription(true);
+    try {
+      const accessToken = await resolveAccessToken();
+      if (!accessToken) {
+        return;
+      }
+
+      const response = await fetch("/api/subscription/info", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSubscriptionInfo(data);
+      }
+    } catch (error) {
+      console.error("Error loading subscription:", error);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setCancelingSubscription(true);
+    try {
+      const accessToken = await resolveAccessToken();
+      if (!accessToken) {
+        toast.error("Sesión inválida");
+        return;
+      }
+
+      const response = await fetch("/api/subscription/cancel", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("Suscripción cancelada. Seguirás teniendo acceso hasta el fin del periodo de facturación");
+        setShowCancelModal(false);
+        await loadSubscriptionInfo();
+      } else {
+        toast.error(data.error || "No se pudo cancelar la suscripción");
+      }
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      toast.error("Error al cancelar la suscripción");
+    } finally {
+      setCancelingSubscription(false);
+    }
+  };
+
   if (loading || session === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -664,6 +761,125 @@ export default function Profile({ session }: ProfileProps) {
                         </Button>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Subscription Section */}
+              {activeSection === "subscription" && (
+                <div className="space-y-8">
+                  <div>
+                    <h2 className="text-lg md:text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                      Suscripción y Pagos
+                    </h2>
+                    <p className="text-base md:text-sm text-slate-500 dark:text-slate-400 mb-6">
+                      Gestiona tu plan, métodos de pago e historial de facturación
+                    </p>
+
+                    {loadingSubscription ? (
+                      <div className="flex justify-center py-12">
+                        <Loader size={40} />
+                      </div>
+                    ) : subscriptionInfo?.hasSubscription ? (
+                      <div className="space-y-6">
+                        {/* Current Plan Card */}
+                        <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-800">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-xl font-bold text-slate-900 dark:text-white capitalize mb-1">
+                                Plan {subscriptionInfo.plan}
+                              </h3>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {subscriptionInfo.credits} créditos disponibles
+                              </p>
+                            </div>
+                            <div className="px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-sm font-semibold">
+                              Activo
+                            </div>
+                          </div>
+
+                          {subscriptionInfo.subscription?.cancel_at_period_end ? (
+                            <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-4">
+                              <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+                                Tu suscripción se cancelará el{" "}
+                                {new Date(subscriptionInfo.subscription.current_period_end * 1000).toLocaleDateString("es-ES")}
+                              </p>
+                              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                                Seguirás teniendo acceso completo hasta esa fecha
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                              <div className="flex justify-between">
+                                <span>Próxima facturación:</span>
+                                <span className="font-medium text-slate-900 dark:text-white">
+                                  {subscriptionInfo.subscription && new Date(subscriptionInfo.subscription.current_period_end * 1000).toLocaleDateString("es-ES")}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Payment Method */}
+                        {subscriptionInfo.paymentMethod && (
+                          <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                              Método de Pago
+                            </h3>
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
+                                <CreditCard className="h-6 w-6 text-slate-600 dark:text-slate-400" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-slate-900 dark:text-white capitalize">
+                                  {subscriptionInfo.paymentMethod.brand} •••• {subscriptionInfo.paymentMethod.last4}
+                                </p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  Expira {subscriptionInfo.paymentMethod.exp_month}/{subscriptionInfo.paymentMethod.exp_year}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            onClick={() => setShowPlansModal(true)}
+                            className="sm:w-auto"
+                          >
+                            Cambiar Plan
+                          </Button>
+                          {!subscriptionInfo.subscription?.cancel_at_period_end && (
+                            <Button
+                              variant="outline"
+                              onClick={() => setShowCancelModal(true)}
+                              className="sm:w-auto text-red-600 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                              Cancelar Suscripción
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      /* No Subscription */
+                      <div className="text-center py-12">
+                        <div className="inline-flex p-4 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                          <CreditCard className="h-12 w-12 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                          No tienes una suscripción activa
+                        </h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
+                          Plan actual: <span className="font-semibold capitalize">{subscriptionInfo?.plan || "Free"}</span>
+                          <br />
+                          Créditos disponibles: <span className="font-semibold">{subscriptionInfo?.credits || 0}</span>
+                        </p>
+                        <Button onClick={() => setShowPlansModal(true)}>
+                          Ver Planes Disponibles
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1464,7 +1680,7 @@ export default function Profile({ session }: ProfileProps) {
               )}
 
               {/* Placeholder for other sections */}
-              {!["general", "gamification", "integrations", "ai-language", "members", "writing-style", "analytics", "notifications", "data-export"].includes(activeSection) && (
+              {!["general", "subscription", "gamification", "integrations", "ai-language", "members", "writing-style", "analytics", "notifications", "data-export"].includes(activeSection) && (
                 <div className="text-center py-16">
                   <p className="text-slate-500 dark:text-slate-400">
                     Esta sección está en desarrollo
@@ -1486,6 +1702,24 @@ export default function Profile({ session }: ProfileProps) {
         variant="danger"
         onConfirm={handleDisconnectLinkedIn}
         loading={disconnectingLinkedIn}
+      />
+
+      <ConfirmationModal
+        open={showCancelModal}
+        onOpenChange={setShowCancelModal}
+        title="¿Cancelar suscripción?"
+        description="Tu suscripción se cancelará al finalizar el periodo de facturación actual. Seguirás teniendo acceso a todas las funciones hasta esa fecha."
+        confirmText="Sí, cancelar"
+        cancelText="No, mantener"
+        variant="danger"
+        onConfirm={handleCancelSubscription}
+        loading={cancelingSubscription}
+      />
+
+      <PlansModal
+        open={showPlansModal}
+        onOpenChange={setShowPlansModal}
+        userId={session?.user?.id}
       />
     </>
   );
