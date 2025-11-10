@@ -148,12 +148,28 @@ export function formatZodErrors(error: z.ZodError): Record<string, string[]> {
  * API endpoint validation schemas
  */
 export const apiEndpointSchemas = {
-  // POST /api/generate
+  // POST /api/generate (legacy)
   generate: z.object({
     userId: userSchemas.userId,
     prompt: contentSchemas.prompt,
     tone: contentSchemas.tone.optional(),
     format: contentSchemas.format.optional(),
+  }),
+
+  // POST /api/post/generate (new)
+  postGenerate: z.object({
+    prompt: contentSchemas.prompt,
+    style: z.string().optional(),
+    language: z.enum(['es-ES', 'en-US', 'pt-BR']).optional().default('es-ES'),
+    toneProfile: z.string().optional(),
+    preset: z.string().optional(),
+    metadata: z.object({
+      objective: z.string().optional(),
+      audience: z.string().optional(),
+      callToAction: z.string().optional(),
+      format: z.string().optional(),
+      extraInstructions: z.array(z.string()).optional(),
+    }).optional(),
   }),
 
   // POST /api/checkout
@@ -224,5 +240,39 @@ export const apiEndpointSchemas = {
     plan: userSchemas.plan.optional(),
     credits: userSchemas.credits.optional(),
     email: userSchemas.email.optional(),
+  }),
+
+  // POST /api/user-style/ingest (already defined above, keeping for reference)
+
+  // POST /api/rag/retrieve (already defined above)
+
+  // POST /api/security/password/request-reset
+  passwordRequestReset: z.object({
+    email: userSchemas.email,
+  }),
+
+  // POST /api/security/sessions/revoke
+  sessionRevoke: z.object({
+    sessionId: securitySchemas.sessionId.optional(),
+    revokeAll: z.boolean().optional().default(false),
+  }),
+
+  // POST /api/admin/delete-user
+  adminDeleteUser: z.object({
+    userId: userSchemas.userId,
+    confirmEmail: userSchemas.email,
+  }),
+
+  // POST /api/subscription/cancel
+  subscriptionCancel: z.object({
+    userId: userSchemas.userId,
+    reason: z.string().min(1, "Reason required").max(500).optional(),
+  }),
+
+  // POST /api/export/user-data
+  exportUserData: z.object({
+    userId: userSchemas.userId,
+    format: z.enum(['json', 'csv'], { errorMap: () => ({ message: "Format must be json or csv" }) }),
+    includeDeleted: z.boolean().optional().default(false),
   }),
 };

@@ -22,6 +22,7 @@ import { createClient } from '@supabase/supabase-js';
 import { generateEmbedding } from '@/lib/ai/embeddings';
 import { generateLinkedInPost } from '@/lib/ai/generation';
 import { logger } from '@/lib/logger';
+import { apiEndpointSchemas, validateRequest, formatZodErrors } from '@/lib/validation';
 import type {
   GenerateContentRequest,
   GenerateContentResponse,
@@ -36,7 +37,7 @@ const supabase = createClient(
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<GenerateContentResponse | { error: string }>
+  res: NextApiResponse<GenerateContentResponse | { error: string; details?: Record<string, string[]> }>
 ) {
   // Solo permitir POST
   if (req.method !== 'POST') {
@@ -65,23 +66,23 @@ export default async function handler(
 
     const userId = user.id;
 
-    // 2. VALIDAR REQUEST BODY
+    // 2. VALIDAR REQUEST BODY con Zod
+    const validation = validateRequest(apiEndpointSchemas.personalizedGenerate, {
+      ...req.body,
+      userId,
+    });
+
+    if (!validation.success) {
+      const errors = formatZodErrors(validation.errors);
+      logger.warn('[personalized/generate] Invalid request', { userId, errors });
+      return res.status(400).json({
+        error: 'Datos de solicitud inválidos',
+        details: errors,
+      });
+    }
+
+    const { topic, intent } = validation.data;
     const body: GenerateContentRequest = req.body;
-
-    if (!body.topic || body.topic.trim().length === 0) {
-      return res.status(400).json({
-        error: 'El campo "topic" es requerido',
-      });
-    }
-
-    if (!body.intent || body.intent.trim().length === 0) {
-      return res.status(400).json({
-        error: 'El campo "intent" es requerido',
-      });
-    }
-
-    const topic = body.topic.trim();
-    const intent = body.intent.trim();
     const additionalContext = body.additional_context?.trim();
     const temperature = body.temperature ?? 0.7;
     const topKUser = Math.min(body.top_k_user ?? 3, 10);

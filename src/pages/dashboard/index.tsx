@@ -857,114 +857,115 @@ export default function Dashboard({ session }: DashboardProps) {
   return (
     <>
       <Navbar session={session} />
-      <div className="min-h-screen bg-slate-50 pb-20 pt-20 lg:pl-64 dark:bg-slate-950">
-        <div className="mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
+      <div className="relative min-h-screen bg-transparent pb-24 pt-24 lg:pl-64">
+        <div className="absolute inset-0 -z-10 neon-grid" aria-hidden="true">
+          <div className="texture-noise" />
+          <span className="glow-orb top-24 left-10 h-72 w-72 rounded-full bg-primary/15" />
+          <span className="glow-orb floating-delay-2 bottom-10 right-16 h-80 w-80 rounded-full bg-complementary-coral/20" />
+        </div>
+        <div className="relative mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
           <motion.section
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-xl"
+            className="glass-panel gradient-border relative overflow-hidden rounded-[32px] p-8 text-slate-900 md:p-12"
           >
-            <div className="absolute -right-12 top-6 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-            <div className="relative z-10 flex flex-col gap-8 p-8 text-white md:p-10 lg:p-12">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-2xl space-y-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/70">Panel principal</p>
-                  <h1 className="text-3xl font-semibold md:text-4xl">
-                    Hola {firstName}, hoy es un buen día para publicar algo memorable ✨
-                  </h1>
-                  <p className="text-white/80 md:text-base">
-                    Resume tus aprendizajes, activa Auto-Pilot o revisa el rendimiento reciente. Kolink te acompaña con insights accionables.
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    <Button
-                      className="min-h-[46px] rounded-full px-6"
-                      onClick={() =>
-                        triggerQuickIdea(
-                          "Comparte lo que tu audiencia debería evitar esta semana y ofrece un consejo accionable.",
-                          "insight"
-                        )
-                      }
-                    >
-                      Crear insight rápido
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="min-h-[46px] rounded-full border-white/60 px-6 text-white hover:border-white hover:bg-white/10"
-                      onClick={() => setShowPlansModal(true)}
-                    >
-                      Gestionar créditos
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="min-h-[46px] rounded-full px-6 text-white/80 hover:text-white"
-                      onClick={scrollToHistory}
-                    >
-                      Ver historial
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid w-full max-w-xl gap-4 sm:grid-cols-2">
-                  {heroMetrics.map((metric) => (
-                    <div
-                      key={metric.label}
-                      className="rounded-2xl border border-white/15 bg-white/10 p-6 backdrop-blur"
-                    >
-                      <p className="text-xs uppercase tracking-[0.3em] text-white/70">{metric.label}</p>
-                      <p className="mt-3 text-3xl font-semibold">{metric.value}</p>
-                      <p className="mt-1 text-xs text-white/70">{metric.sublabel}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.3em] text-white/70">Objetivo sugerido</p>
-                <p className="mt-3 text-sm text-white/90">
-                  Genera al menos <strong>3 publicaciones</strong> esta semana para mantener tu ritmo. Ya llevas{" "}
-                  <strong>{postsThisWeek}</strong>. ¿Necesitas inspiración rápida? Revisa las acciones destacadas debajo.
+            <span className="shine-line" aria-hidden="true" />
+            <div className="relative z-10 flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl space-y-5 text-left">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary">Panel principal</p>
+                <h1 className="text-balance text-3xl font-semibold md:text-5xl">
+                  Hola {firstName}, hoy es un buen día para publicar algo memorable ✨
+                </h1>
+                <p className="text-base text-slate-600 md:text-lg">
+                  Resume tus aprendizajes, activa Auto-Pilot o revisa el rendimiento reciente. Kolink te acompaña con
+                  insights accionables.
                 </p>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    className="min-h-[46px] rounded-full px-6"
+                    onClick={() =>
+                      triggerQuickIdea(
+                        "Comparte lo que tu audiencia debería evitar esta semana y ofrece un consejo accionable.",
+                        "insight"
+                      )
+                    }
+                  >
+                    Crear insight rápido
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="min-h-[46px] rounded-full border-white/80 bg-white/70 px-6 text-slate-700 shadow-depth-sm hover:border-primary/50 hover:text-primary"
+                    onClick={() => setShowPlansModal(true)}
+                  >
+                    Gestionar créditos
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="min-h-[46px] rounded-full px-6 text-slate-500 hover:text-primary"
+                    onClick={scrollToHistory}
+                  >
+                    Ver historial
+                  </Button>
+                </div>
               </div>
+              <div className="grid w-full max-w-xl gap-4 sm:grid-cols-2">
+                {heroMetrics.map((metric) => (
+                  <div
+                    key={metric.label}
+                    className="rounded-2xl border border-white/80 bg-white/80 p-6 text-slate-700 shadow-depth-md backdrop-blur dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200"
+                  >
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{metric.label}</p>
+                    <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">{metric.value}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{metric.sublabel}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-10 rounded-2xl border border-white/60 bg-white/70 p-6 text-sm text-slate-600 shadow-depth-md dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-200">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">Objetivo sugerido</p>
+              <p className="mt-3 leading-relaxed">
+                Genera al menos <strong>3 publicaciones</strong> esta semana para mantener tu ritmo. Ya llevas{" "}
+                <strong>{postsThisWeek}</strong>. ¿Necesitas inspiración rápida? Revisa las acciones destacadas debajo.
+              </p>
             </div>
           </motion.section>
 
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {quickActions.map((action) => (
-              <Card
+              <div
                 key={action.id}
-                className={`border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 ${
-                  action.highlight ? "border-primary/40 shadow-primary/10" : ""
+                className={`glass-panel gradient-border group relative flex h-full flex-col gap-4 overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-6 shadow-depth-lg transition hover:-translate-y-1 hover:shadow-depth-2xl dark:border-white/10 dark:bg-slate-900/70 ${
+                  action.highlight ? "ring-2 ring-primary/20" : ""
                 }`}
               >
-                <div className="flex flex-col gap-4">
-                  <span
-                    className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${
-                      action.highlight
-                        ? "bg-primary/20 text-primary"
-                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                    }`}
-                  >
-                    <action.icon className="h-5 w-5" />
-                  </span>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{action.title}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{action.description}</p>
-                  </div>
-                  <Button
-                    variant={action.highlight ? "primary" : "ghost"}
-                    className="mt-2 justify-center"
-                    onClick={action.action}
-                  >
-                    Abrir
-                  </Button>
+                <span
+                  className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl text-lg ${
+                    action.highlight
+                      ? "bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-depth-md"
+                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                  }`}
+                >
+                  <action.icon className="h-5 w-5" />
+                </span>
+                <div className="space-y-2">
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white">{action.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-300">{action.description}</p>
                 </div>
-              </Card>
+                <Button
+                  variant={action.highlight ? "action" : "outline"}
+                  className="mt-auto justify-center"
+                  onClick={action.action}
+                >
+                  Abrir
+                </Button>
+              </div>
             ))}
           </section>
 
           <div className="grid gap-6 xl:grid-cols-[2.2fr_1.1fr]">
             <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-blue-100 bg-white p-8 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+              <Card className="glass-panel gradient-border border-white/70 bg-white/80 p-8 shadow-depth-2xl dark:border-white/10 dark:bg-slate-900/70">
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
                     <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Estudio creativo</h2>
@@ -1008,24 +1009,26 @@ export default function Dashboard({ session }: DashboardProps) {
                   </div>
                 )}
 
-                <div className="mt-6 space-y-6">
-                  <ContentControls
-                    tone={toneProfile}
-                    onToneChange={setToneProfile}
-                    formality={formality}
-                    onFormalityChange={setFormality}
-                    length={length}
-                    onLengthChange={setLength}
-                  />
-                  <EditorAI
-                    value={prompt}
-                    onChange={setPrompt}
-                    onGenerate={handleGenerate}
-                    loading={loading}
-                    viralScore={viralScore}
-                    recommendations={recommendations}
-                    language={preferredLanguage}
-                  />
+                <div className="mt-6 rounded-3xl border border-white/70 bg-white/80 p-6 shadow-depth-lg dark:border-white/10 dark:bg-slate-900/60">
+                  <div className="space-y-6">
+                    <ContentControls
+                      tone={toneProfile}
+                      onToneChange={setToneProfile}
+                      formality={formality}
+                      onFormalityChange={setFormality}
+                      length={length}
+                      onLengthChange={setLength}
+                    />
+                    <EditorAI
+                      value={prompt}
+                      onChange={setPrompt}
+                      onGenerate={handleGenerate}
+                      loading={loading}
+                      viralScore={viralScore}
+                      recommendations={recommendations}
+                      language={preferredLanguage}
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1046,7 +1049,7 @@ export default function Dashboard({ session }: DashboardProps) {
             </motion.section>
 
             <motion.aside initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <Card className="border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <Card className="glass-panel gradient-border border-white/70 bg-white/80 p-6 shadow-depth-xl dark:border-white/10 dark:bg-slate-900/70">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -1096,7 +1099,7 @@ export default function Dashboard({ session }: DashboardProps) {
                     <CalendarClock className="h-4 w-4 text-blue-500 dark:text-blue-300" />
                     Frecuencia {autopilotFrequencyLabel ?? "personalizable"}
                   </div>
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+                  <div className="rounded-2xl border border-white/70 bg-white/80 p-4 text-xs text-slate-600 shadow-depth-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200">
                     {autopilotEnabled ? (
                       formattedNextAutopilot ? (
                         <span>
@@ -1148,7 +1151,7 @@ export default function Dashboard({ session }: DashboardProps) {
                 </Button>
               </Card>
 
-              <Card className="border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <Card className="glass-panel gradient-border border-white/70 bg-white/80 p-6 shadow-depth-xl dark:border-white/10 dark:bg-slate-900/70">
                 <div className="flex items-start gap-3">
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                     <NotebookPen className="h-5 w-5" />
@@ -1188,7 +1191,7 @@ export default function Dashboard({ session }: DashboardProps) {
                 </Button>
               </Card>
 
-              <Card className="border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <Card className="glass-panel gradient-border border-white/70 bg-white/80 p-6 shadow-depth-xl dark:border-white/10 dark:bg-slate-900/70">
                 <div className="flex items-start gap-3">
                   <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                     <BarChart3 className="h-5 w-5" />
@@ -1229,7 +1232,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
           <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+              <Card className="glass-panel gradient-border border-white/70 bg-white/80 p-6 shadow-depth-xl dark:border-white/10 dark:bg-slate-900/70">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Tu último post</h2>
                   {latestPost && (
@@ -1292,7 +1295,7 @@ export default function Dashboard({ session }: DashboardProps) {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
-              <Card className="border-blue-100 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-slate-900">
+              <Card className="glass-panel gradient-border border-white/70 bg-white/80 p-6 shadow-depth-xl dark:border-white/10 dark:bg-slate-900/70">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Comparte Kolink</h2>
                 <p className="mt-3 text-sm text-slate-500 dark:text-slate-300">
                   Invita a un colega y consigue 15% de comisión de por vida. Ellos reciben USD 30 en crédito inicial.
@@ -1314,7 +1317,7 @@ export default function Dashboard({ session }: DashboardProps) {
           <motion.section
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-3xl border border-blue-100 bg-white p-8 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+            className="glass-panel gradient-border rounded-3xl border-white/70 bg-white/80 p-8 shadow-depth-2xl dark:border-white/10 dark:bg-slate-900/70"
           >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1386,7 +1389,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <p className="text-xs text-slate-400 dark:text-slate-500">Ordenado por más recientes</p>
             </div>
             {posts.length === 0 ? (
-              <Card className="border-slate-200 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+              <Card className="glass-panel gradient-border border-white/70 bg-white/80 p-8 text-center text-sm text-slate-500 shadow-depth-xl dark:border-white/10 dark:bg-slate-900/70">
                 No hay publicaciones aún. Genera tu primer post para poblar este espacio.
               </Card>
             ) : (
@@ -1394,7 +1397,7 @@ export default function Dashboard({ session }: DashboardProps) {
                 {posts.map((post) => (
                   <Card
                     key={post.id}
-                    className="border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-[1px] hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
+                    className="glass-panel gradient-border border-white/70 bg-white/80 p-5 shadow-depth-lg transition hover:-translate-y-[2px] hover:shadow-depth-2xl dark:border-white/10 dark:bg-slate-900/70"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-2 flex-1">
@@ -1419,7 +1422,7 @@ export default function Dashboard({ session }: DashboardProps) {
                       <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
                         <button
                           onClick={() => handleExport(post.generated_text, post.prompt)}
-                          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                          className="rounded-xl border border-white/70 bg-white/80 px-4 py-2 text-sm text-slate-500 shadow-depth-sm transition hover:border-primary/50 hover:text-primary dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200"
                         >
                           <div className="flex items-center gap-1.5">
                             <Share2 className="h-4 w-4" />
@@ -1428,7 +1431,7 @@ export default function Dashboard({ session }: DashboardProps) {
                         </button>
                         <button
                           onClick={() => handleCopy(post.generated_text, post.id)}
-                          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-500 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:text-slate-300"
+                          className="rounded-xl border border-white/70 bg-white/80 px-4 py-2 text-sm text-slate-500 shadow-depth-sm transition hover:border-primary/50 hover:text-primary dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-200"
                         >
                           <div className="flex items-center gap-1.5">
                             {copiedId === post.id ? (
@@ -1441,7 +1444,7 @@ export default function Dashboard({ session }: DashboardProps) {
                         </button>
                         <button
                           onClick={() => handleDelete(post.id)}
-                          className="rounded-xl border border-red-200 px-4 py-2 text-sm text-red-500 transition hover:bg-red-50 dark:border-red-600/50 dark:hover:bg-red-950"
+                          className="rounded-xl border border-red-200/70 bg-red-50/60 px-4 py-2 text-sm text-red-500 transition hover:border-red-400 hover:bg-red-50 dark:border-red-600/40 dark:bg-red-950/30"
                         >
                           <div className="flex items-center gap-1.5">
                             <Trash2 className="h-4 w-4" />

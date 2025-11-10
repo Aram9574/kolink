@@ -2,9 +2,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { generatePostWithContext } from "@/server/services/writerService";
 import { logger } from "@/lib/logger";
-import { limiter } from "@/lib/rateLimiter"; // 🚦 Rate limiter agregado
+import { limiter } from "@/lib/rateLimiter";
+import { apiEndpointSchemas, validateRequest, formatZodErrors } from "@/lib/validation";
 
-type GenerateRequestBody = {
+type _GenerateRequestBody = {
   prompt?: string;
   style?: string;
   language?: 'es-ES' | 'en-US' | 'pt-BR';
@@ -59,11 +60,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // En caso de fallo del limitador, no bloquea al usuario
   }
 
-  // 4️⃣ Validar el prompt
-  const body = req.body as GenerateRequestBody;
-  if (!body.prompt || body.prompt.trim().length < 10) {
-    return res.status(400).json({ error: "Prompt inválido. Proporciona más contexto." });
+  // 4️⃣ Validar request body con Zod
+  const validation = validateRequest(apiEndpointSchemas.postGenerate, req.body);
+
+  if (!validation.success) {
+    const errors = formatZodErrors(validation.errors);
+    logger.warn("[post/generate] Invalid request", { userId: user.id, errors });
+    return res.status(400).json({
+      error: "Datos de solicitud inválidos",
+      details: errors
+    });
   }
+
+  const body = validation.data;
 
   // 5️⃣ Generar el contenido con IA
   try {

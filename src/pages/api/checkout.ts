@@ -119,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // URLs seguras para redirección en dominio propio
       success_url: `${YOUR_DOMAIN}/dashboard?status=success`,
       cancel_url: `${YOUR_DOMAIN}/dashboard?status=cancel`,
-      metadata: { user_id: userId, selected_plan: normalizedPlan },
+      metadata: { user_id: userId, selected_plan: plan },
     };
 
     if (customerEmail) {
@@ -139,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       level: "info",
       data: {
         userId,
-        plan: normalizedPlan,
+        plan,
         sessionId: session.id,
         priceId
       }
@@ -158,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       extra: {
         userId,
-        plan: normalizedPlan,
+        plan,
         error: err.message
       }
     });
