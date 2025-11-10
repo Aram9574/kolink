@@ -23,6 +23,7 @@ import { generateEmbedding } from '@/lib/ai/embeddings';
 import { generateLinkedInPost } from '@/lib/ai/generation';
 import { logger } from '@/lib/logger';
 import { apiEndpointSchemas, validateRequest, formatZodErrors } from '@/lib/validation';
+import { applyRateLimit } from '@/lib/middleware/rateLimit';
 import type {
   GenerateContentRequest,
   GenerateContentResponse,
@@ -42,6 +43,12 @@ export default async function handler(
   // Solo permitir POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
+  }
+
+  // Apply rate limiting for generation endpoints
+  const rateLimitPassed = await applyRateLimit(req, res, 'generation');
+  if (!rateLimitPassed) {
+    return; // Response already sent
   }
 
   const startTime = Date.now();
