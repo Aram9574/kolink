@@ -4,6 +4,8 @@ import { generatePostWithContext } from "@/server/services/writerService";
 import { logger } from "@/lib/logger";
 import { limiter } from "@/lib/rateLimiter";
 import { apiEndpointSchemas, validateRequest, formatZodErrors } from "@/lib/validation";
+import { withErrorHandler, safeExternalApiCall } from "@/lib/middleware/errorHandler";
+import { UnauthorizedError, InsufficientCreditsError, BadRequestError } from "@/lib/errors/ApiError";
 
 type _GenerateRequestBody = {
   prompt?: string;
@@ -20,7 +22,7 @@ type _GenerateRequestBody = {
   };
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   // 1️⃣ Validar método
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
@@ -29,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // 2️⃣ Validar autenticación
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ error: "No autorizado" });
+    throw new UnauthorizedError("Token requerido");
   }
 
   const token = authHeader.replace("Bearer ", "");
@@ -40,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } = await supabase.auth.getUser(token);
 
   if (userError || !user) {
-    return res.status(401).json({ error: "Sesión inválida" });
+    throw new UnauthorizedError("Sesión inválida");
   }
 
   // 3️⃣ Aplicar rate limiter antes de generar contenido
@@ -66,10 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!validation.success) {
     const errors = formatZodErrors(validation.errors);
     logger.warn("[post/generate] Invalid request", { userId: user.id, errors });
-    return res.status(400).json({
-      error: "Datos de solicitud inválidos",
-      details: errors
-    });
+    throw new BadRequestError("Datos de solicitud inválidos", { errors });
   }
 
   const body = validation.data;
@@ -111,18 +110,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         plan: err.plan,
       });
 
-      return res.status(402).json({
-        ok: false,
-        error: err.message,
-        plan: err.plan,
-      });
+      throw new InsufficientCreditsError(1, 0);
     }
 
-    // Log de errores generales
-    logger.error(`Content generation failed for user ${user.id}`, err, {
-      prompt_length: body.prompt?.length || 0,
-    });
-
-    return res.status(500).json({ ok: false, error: err.message });
+    // Re-throw para que withErrorHandler lo maneje
+    throw error;
   }
 }
+
+export default withErrorHandler(handler);

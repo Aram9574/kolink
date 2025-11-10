@@ -24,6 +24,8 @@ import { generateLinkedInPost } from '@/lib/ai/generation';
 import { logger } from '@/lib/logger';
 import { apiEndpointSchemas, validateRequest, formatZodErrors } from '@/lib/validation';
 import { applyRateLimit } from '@/lib/middleware/rateLimit';
+import { withErrorHandler, safeExternalApiCall, safeDatabaseOperation } from '@/lib/middleware/errorHandler';
+import { UnauthorizedError, InsufficientCreditsError, NotFoundError } from '@/lib/errors/ApiError';
 import type {
   GenerateContentRequest,
   GenerateContentResponse,
@@ -36,7 +38,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GenerateContentResponse | { error: string; details?: Record<string, string[]> }>
 ) {
@@ -57,7 +59,7 @@ export default async function handler(
     // 1. VALIDAR AUTENTICACIÓN
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No autorizado. Token requerido.' });
+      throw new UnauthorizedError('Token requerido');
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -68,7 +70,7 @@ export default async function handler(
     } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      return res.status(401).json({ error: 'Token inválido o expirado' });
+      throw new UnauthorizedError('Token inválido o expirado');
     }
 
     const userId = user.id;
@@ -106,31 +108,20 @@ export default async function handler(
       .single();
 
     if (!profile) {
-      return res.status(404).json({
-        error: 'Perfil de usuario no encontrado',
-      });
+      throw new NotFoundError('Perfil de usuario');
     }
 
     if (profile.credits <= 0) {
-      return res.status(403).json({
-        error: 'Sin créditos disponibles. Por favor, actualiza tu plan.',
-      });
+      throw new InsufficientCreditsError(1, 0);
     }
 
     logger.debug(`[Generate] Usuario tiene ${profile.credits} créditos`);
 
     // 4. GENERAR EMBEDDING DEL TOPIC
-    let queryEmbedding: number[];
-
-    try {
-      queryEmbedding = await generateEmbedding(topic);
-    } catch (embeddingError) {
-      logger.error('[Generate] Error al generar embedding:', embeddingError);
-      const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
-      return res.status(500).json({
-        error: `Error al procesar el tema: ${errorMessage}`,
-      });
-    }
+    const queryEmbedding = await safeExternalApiCall(
+      () => generateEmbedding(topic),
+      'OpenAI Embeddings'
+    );
 
     // 5. RECUPERAR POSTS SIMILARES DEL USUARIO (RAG)
     const { data: userPostsData } = await supabase.rpc('search_similar_user_posts', {
@@ -189,11 +180,8 @@ export default async function handler(
     }
 
     // 7. GENERAR VARIANTES A/B CON GPT-4o
-    let variantA: string;
-    let variantB: string;
-
-    try {
-      const generation = await generateLinkedInPost(
+    const generation = await safeExternalApiCall(
+      () => generateLinkedInPost(
         topic,
         intent,
         userPosts,
@@ -204,19 +192,14 @@ export default async function handler(
           temperature: temperature,
           max_tokens: 2000,
         }
-      );
+      ),
+      'OpenAI GPT-4o'
+    );
 
-      variantA = generation.variantA;
-      variantB = generation.variantB;
+    const variantA = generation.variantA;
+    const variantB = generation.variantB;
 
-      logger.debug(`[Generate] Variantes generadas exitosamente`);
-    } catch (generationError) {
-      logger.error('[Generate] Error al generar contenido:', generationError);
-      const errorMessage = generationError instanceof Error ? generationError.message : 'Unknown error';
-      return res.status(500).json({
-        error: `Error al generar contenido: ${errorMessage}`,
-      });
-    }
+    logger.debug(`[Generate] Variantes generadas exitosamente`);
 
     // 8. GUARDAR GENERACIÓN EN LA BASE DE DATOS
     const { data: generationRecord, error: saveError } = await supabase
@@ -275,3 +258,5 @@ export default async function handler(
     });
   }
 }
+
+export default withErrorHandler(handler);

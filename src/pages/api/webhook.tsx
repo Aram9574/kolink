@@ -7,6 +7,8 @@ import * as Sentry from "@sentry/nextjs";
 import fs from "fs/promises";
 import path from "path";
 import { logger } from '@/lib/logger';
+import { withErrorHandler } from '@/lib/middleware/errorHandler';
+import { InternalServerError, BadRequestError } from '@/lib/errors/ApiError';
 
 export const config = {
   api: { bodyParser: false },
@@ -104,7 +106,7 @@ async function sendPaymentEmail(
   }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
   }
@@ -329,3 +331,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return res.status(200).send("success");
 }
+
+export default withErrorHandler(handler);

@@ -6,6 +6,8 @@ import { limiter } from "@/lib/rateLimiter";
 import * as Sentry from "@sentry/nextjs";
 import { logger } from '@/lib/logger';
 import { apiEndpointSchemas, validateRequest, formatZodErrors } from '@/lib/validation';
+import { withErrorHandler } from '@/lib/middleware/errorHandler';
+import { InternalServerError, ValidationError, ExternalApiError } from '@/lib/errors/ApiError';
 
 type PlanTier = "basic" | "standard" | "premium";
 
@@ -22,7 +24,7 @@ const priceMap: Record<PlanTier, string | undefined> = {
   premium: process.env.STRIPE_PRICE_ID_PREMIUM,
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
   }
@@ -46,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!supabaseUrl || !supabaseServiceKey) {
     logger.error("❌ Supabase env vars missing.");
-    return res.status(500).json({ error: "Error de configuración del servidor." });
+    throw new InternalServerError("Server configuration error");
   }
 
   // Log para verificar el dominio activo
@@ -72,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!priceId) {
     logger.error(`❌ Price ID no configurado para el plan ${plan}.`);
-    return res.status(500).json({ error: "Plan no disponible temporalmente." });
+    throw new InternalServerError(`Plan ${plan} not configured`, { plan });
   }
 
   logger.debug(
@@ -163,6 +165,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    return res.status(500).json({ error: "No se pudo iniciar el checkout." });
+    // Throw wrapped error for global handler
+    throw new ExternalApiError('Stripe', err, {
+      userId,
+      plan,
+    });
   }
 }
+
+// Export with error handling middleware
+export default withErrorHandler(handler);
