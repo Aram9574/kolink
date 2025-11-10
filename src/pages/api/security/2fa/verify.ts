@@ -2,63 +2,63 @@ import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '@/lib/supabase';
 import { verifyTOTP, verifyBackupCode, decryptSecret, checkRateLimit, recordAttempt, resetAttempts } from '@/lib/security/twoFactor';
+import { withErrorHandler, safeDatabaseOperation } from '@/lib/middleware/errorHandler';
+import { UnauthorizedError, BadRequestError, NotFoundError, InternalServerError, RateLimitError } from '@/lib/errors/ApiError';
 
 /**
  * POST /api/security/2fa/verify
  * Verify 2FA code and enable 2FA or authenticate
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const { code, isSetup = false } = req.body;
+  const { code, isSetup = false } = req.body;
 
-    if (!code) {
-      return res.status(400).json({ error: 'Code is required' });
-    }
+  if (!code) {
+    throw new BadRequestError('Code is required');
+  }
 
-    // Get user from session
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+  // Get user from session
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    throw new UnauthorizedError('Token requerido');
+  }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const token = authHeader.replace('Bearer ', '');
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-    if (authError || !user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+  if (authError || !user) {
+    throw new UnauthorizedError('Sesión inválida');
+  }
 
-    // Rate limiting
-    const rateLimitKey = `2fa_verify:${user.id}`;
-    const rateLimit = checkRateLimit(rateLimitKey, 5, 300);
+  // Rate limiting
+  const rateLimitKey = `2fa_verify:${user.id}`;
+  const rateLimit = checkRateLimit(rateLimitKey, 5, 300);
 
-    if (!rateLimit.allowed) {
-      return res.status(429).json({
-        error: 'Too many attempts',
-        retryAfter: rateLimit.retryAfter,
-      });
-    }
+  if (!rateLimit.allowed) {
+    throw new RateLimitError(rateLimit.retryAfter, {
+      remainingAttempts: 0
+    });
+  }
 
-    // Get 2FA settings
-    const { data: tfaSettings, error: fetchError } = await supabase
-      .from('user_2fa_settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+  // Get 2FA settings
+  const { data: tfaSettings, error: fetchError } = await supabase
+    .from('user_2fa_settings')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
 
-    if (fetchError || !tfaSettings) {
-      return res.status(404).json({ error: '2FA not configured' });
-    }
+  if (fetchError || !tfaSettings) {
+    throw new NotFoundError('2FA configuration');
+  }
 
-    // Decrypt secret
-    const encryptionKey = process.env.ENCRYPTION_KEY;
-    if (!encryptionKey) {
-      throw new Error('Encryption key not configured');
-    }
+  // Decrypt secret
+  const encryptionKey = process.env.ENCRYPTION_KEY;
+  if (!encryptionKey) {
+    throw new InternalServerError('Encryption key not configured');
+  }
 
     const secret = decryptSecret(tfaSettings.secret, encryptionKey);
 
@@ -133,17 +133,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    res.status(200).json({
-      success: true,
-      verified: true,
-      usedBackupCode,
-      remainingBackupCodes: usedBackupCode ? (tfaSettings.backup_codes?.length || 0) - 1 : tfaSettings.backup_codes?.length || 0,
-    });
-  } catch (error) {
-    logger.error('2FA verification error:', error);
-    res.status(500).json({
-      error: 'Failed to verify 2FA',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+  res.status(200).json({
+    success: true,
+    verified: true,
+    usedBackupCode,
+    remainingBackupCodes: usedBackupCode ? (tfaSettings.backup_codes?.length || 0) - 1 : tfaSettings.backup_codes?.length || 0,
+  });
 }
+
+export default withErrorHandler(handler);
