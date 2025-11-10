@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import React from "react";
 import { supabase } from "@/lib/supabase";
@@ -97,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (alertError) {
-      console.error("Error registrando alerta de seguridad (reset password):", alertError);
+      logger.error("Error registrando alerta de seguridad (reset password):", alertError);
     }
 
     // Send confirmation email
@@ -118,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           />,
         });
       } catch (emailError) {
-        console.error("Failed to send confirmation email:", emailError);
+        logger.error("Failed to send confirmation email:", emailError);
       }
     }
 
@@ -127,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: "Contraseña cambiada exitosamente",
     });
   } catch (error) {
-    console.error("Password reset error:", error);
+    logger.error("Password reset error:", error);
     res.status(500).json({
       error: "Failed to reset password",
       message: error instanceof Error ? error.message : "Unknown error",

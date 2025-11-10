@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '@/lib/supabase';
 import { generateTOTPSecret, generateBackupCodes, generateQRCodeURL, hashBackupCode, encryptSecret } from '@/lib/security/twoFactor';
@@ -71,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (error) {
-    console.error('2FA setup error:', error);
+    logger.error('2FA setup error:', error);
     res.status(500).json({
       error: 'Failed to setup 2FA',
       message: error instanceof Error ? error.message : 'Unknown error'

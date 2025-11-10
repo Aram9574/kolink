@@ -4,6 +4,7 @@
  */
 
 import { createHash } from "crypto";
+import { logger } from "./logger";
 
 type RedisClient = {
   get: (key: string) => Promise<string | null>;
@@ -26,7 +27,7 @@ function getRedisClient(): RedisClient | null {
   const redisUrl = process.env.REDIS_URL;
 
   if (!redisUrl) {
-    console.warn("[Redis] REDIS_URL not configured. Caching disabled.");
+    logger.warn("[Redis] REDIS_URL not configured. Caching disabled.");
     return null;
   }
 
@@ -45,7 +46,7 @@ function getRedisClient(): RedisClient | null {
           const data = await response.json();
           return data.result;
         } catch (error) {
-          console.error("[Redis] GET error:", error);
+          logger.error("[Redis] GET error:", error);
           return null;
         }
       },
@@ -67,7 +68,7 @@ function getRedisClient(): RedisClient | null {
           const data = await response.json();
           return data.result;
         } catch (error) {
-          console.error("[Redis] SET error:", error);
+          logger.error("[Redis] SET error:", error);
           return "ERR";
         }
       },
@@ -81,7 +82,7 @@ function getRedisClient(): RedisClient | null {
           const data = await response.json();
           return data.result;
         } catch (error) {
-          console.error("[Redis] DEL error:", error);
+          logger.error("[Redis] DEL error:", error);
           return 0;
         }
       },
@@ -94,7 +95,7 @@ function getRedisClient(): RedisClient | null {
           const data = await response.json();
           return data.result;
         } catch (error) {
-          console.error("[Redis] PING error:", error);
+          logger.error("[Redis] PING error:", error);
           return "PONG";
         }
       },
@@ -102,7 +103,7 @@ function getRedisClient(): RedisClient | null {
   } else {
     // Standard Redis connection (requires ioredis or redis package)
     // For now, we'll use a simple fetch-based approach or require package installation
-    console.warn("[Redis] Standard Redis connections require ioredis package. Using no-op client.");
+    logger.warn("[Redis] Standard Redis connections require ioredis package. Using no-op client.");
 
     // Return a no-op client for development
     redisClient = {
@@ -129,7 +130,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
     if (!value) return null;
     return JSON.parse(value) as T;
   } catch (error) {
-    console.error("[Redis] Cache GET error:", error);
+    logger.error("[Redis] Cache GET error:", error);
     return null;
   }
 }
@@ -147,7 +148,7 @@ export async function cacheSet<T>(
     await client.set(key, serialized, { ex: ttlSeconds });
     return true;
   } catch (error) {
-    console.error("[Redis] Cache SET error:", error);
+    logger.error("[Redis] Cache SET error:", error);
     return false;
   }
 }
@@ -160,7 +161,7 @@ export async function cacheDelete(key: string): Promise<boolean> {
     await client.del(key);
     return true;
   } catch (error) {
-    console.error("[Redis] Cache DELETE error:", error);
+    logger.error("[Redis] Cache DELETE error:", error);
     return false;
   }
 }
@@ -185,10 +186,10 @@ export async function testRedisConnection(): Promise<boolean> {
 
   try {
     const result = await client.ping();
-    console.log("[Redis] Connection test:", result);
+    logger.debug("[Redis] Connection test:", result);
     return result === "PONG";
   } catch (error) {
-    console.error("[Redis] Connection test failed:", error);
+    logger.error("[Redis] Connection test failed:", error);
     return false;
   }
 }
@@ -205,17 +206,17 @@ export async function withCache<T>(
   // Try to get from cache first
   const cached = await cacheGet<T>(cacheKey);
   if (cached !== null) {
-    console.log(`[Redis] Cache HIT: ${cacheKey}`);
+    logger.debug(`[Redis] Cache HIT: ${cacheKey}`);
     return cached;
   }
 
   // Cache miss - fetch data
-  console.log(`[Redis] Cache MISS: ${cacheKey}`);
+  logger.debug(`[Redis] Cache MISS: ${cacheKey}`);
   const data = await fetchFn();
 
   // Store in cache (fire and forget)
   cacheSet(cacheKey, data, ttlSeconds).catch((err) =>
-    console.error("[Redis] Background cache SET failed:", err)
+    logger.error("[Redis] Background cache SET failed:", err)
   );
 
   return data;

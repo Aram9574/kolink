@@ -34,7 +34,7 @@ import { PostPreviewModal } from "@/components/dashboard/PostPreviewModal";
 import { PromptSuggestions } from "@/components/dashboard/PromptSuggestions";
 import { ContentControls } from "@/components/dashboard/ContentControls";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { Tooltip } from "@/components/ui/Tooltip";
+import { Tooltip } from "@/components/ui/tooltip-legacy";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const TOPIC_OPTIONS = [

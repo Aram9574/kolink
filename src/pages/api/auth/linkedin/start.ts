@@ -3,6 +3,7 @@
  * Inicia el flujo PKCE con LinkedIn
  */
 
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
@@ -51,7 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       .maybeSingle();
 
     if (profileError) {
-      console.error("[LinkedIn Start] Error fetching profile:", profileError);
+      logger.error("[LinkedIn Start] Error fetching profile:", profileError);
       return res.status(500).json({ error: "No se pudo preparar la autenticación" });
     }
 
@@ -78,14 +79,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       .eq("id", user.id);
 
     if (updateError) {
-      console.error("[LinkedIn Start] Error storing OAuth metadata:", updateError);
+      logger.error("[LinkedIn Start] Error storing OAuth metadata:", updateError);
       return res.status(500).json({ error: "No se pudo preparar la autenticación" });
     }
 
     const authorizationUrl = buildLinkedInAuthorizationUrl(state, codeChallenge);
     return res.redirect(authorizationUrl);
   } catch (error) {
-    console.error("[LinkedIn Start] Unexpected error:", error);
+    logger.error("[LinkedIn Start] Unexpected error:", error);
     return res.status(500).json({ error: "Error inesperado" });
   }
 };

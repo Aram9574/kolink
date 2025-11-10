@@ -6,6 +6,7 @@
 
 'use client';
 
+import { logger } from '@/lib/logger';
 import { useState, useEffect, useCallback } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabaseClient } from '@/lib/supabaseClient';
@@ -62,7 +63,7 @@ export default function GenerationsHistory({ session, onCreateFirstPost }: Gener
 
       setGenerations(data || []);
     } catch (error) {
-      console.error('Error fetching generations:', error);
+      logger.error('Error fetching generations:', error);
       toast.error('Error al cargar historial');
     } finally {
       setLoading(false);

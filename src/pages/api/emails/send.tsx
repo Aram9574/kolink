@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getResendClient, FROM_EMAIL } from "@/lib/resend";
 import { supabaseClient } from "@/lib/supabaseClient";
@@ -44,7 +45,7 @@ async function loadEmailTemplate(type: EmailType, data: Record<string, unknown>)
     const html = await fs.readFile(templatePath, "utf-8");
     return replaceTemplateVars(html, data);
   } catch (error) {
-    console.error(`Error loading email template ${type}:`, error);
+    logger.error(`Error loading email template ${type}:`, error);
     throw new Error(`Email template ${type} not found`);
   }
 }
@@ -263,7 +264,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (result.error) {
-      console.error("Resend error:", result.error);
+      logger.error("Resend error:", result.error);
       return res.status(500).json({ error: "Failed to send email", details: result.error });
     }
 
@@ -273,7 +274,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: `${type} email sent successfully`,
     });
   } catch (error) {
-    console.error("Email send error:", error);
+    logger.error("Email send error:", error);
     return res.status(500).json({
       error: "Internal server error",
       message: error instanceof Error ? error.message : "Unknown error",

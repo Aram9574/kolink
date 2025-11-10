@@ -3,6 +3,7 @@
  * Valida state, intercambia el código por tokens y sincroniza el perfil del usuario.
  */
 
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { exchangeCodeForToken, fetchLinkedInProfile, updateProfileWithLinkedInData } from "@/lib/linkedin";
@@ -42,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .maybeSingle();
 
     if (profileError || !profileRow) {
-      console.error("[LinkedIn Callback] Profile not found:", profileError);
+      logger.error("[LinkedIn Callback] Profile not found:", profileError);
       return res.redirect(
         "/profile?section=integrations&linkedin_error=" + encodeURIComponent("No se encontró el usuario")
       );
@@ -60,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : undefined;
 
     if (!oauthData?.state || oauthData.state !== nonce || !oauthData.code_verifier) {
-      console.error("[LinkedIn Callback] State mismatch or missing verifier");
+      logger.error("[LinkedIn Callback] State mismatch or missing verifier");
       return res.redirect(
         "/profile?section=integrations&linkedin_error=" +
           encodeURIComponent("Estado inválido o expirado. Intenta de nuevo.")
@@ -96,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.redirect("/profile?section=integrations&linkedin_success=1");
   } catch (error) {
-    console.error("[LinkedIn Callback] Unexpected error:", error);
+    logger.error("[LinkedIn Callback] Unexpected error:", error);
     return res.redirect(
       "/profile?section=integrations&linkedin_error=" + encodeURIComponent("No se pudo conectar LinkedIn")
     );

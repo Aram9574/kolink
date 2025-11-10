@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
@@ -87,7 +88,7 @@ export default function PlansModal({ open, onOpenChange, userId }: PlansModalPro
             data.url.startsWith('https://billing.stripe.com/')) {
           window.location.href = data.url;
         } else {
-          console.error('Invalid checkout URL:', data.url);
+          logger.error('Invalid checkout URL:', data.url);
           toast.error("URL de pago inválida");
           setLoading(null);
         }
@@ -96,7 +97,7 @@ export default function PlansModal({ open, onOpenChange, userId }: PlansModalPro
         setLoading(null);
       }
     } catch (error) {
-      console.error("Error:", error);
+      logger.error("Error:", error);
       toast.error("Error al procesar la solicitud");
       setLoading(null);
     }

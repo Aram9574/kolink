@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 
@@ -73,7 +74,7 @@ export default async function handler(
 
     return res.status(200).json({ logs });
   } catch (error) {
-    console.error("Admin audit-logs error:", error);
+    logger.error("Admin audit-logs error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

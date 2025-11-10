@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import type { Session } from "@supabase/supabase-js";
@@ -136,7 +137,7 @@ export default function AdminPage() {
       await fetchUsers();
       await fetchAuditLogs();
     } catch (error) {
-      console.error("Admin access check error:", error);
+      logger.error("Admin access check error:", error);
       router.push("/dashboard");
     } finally {
       setLoading(false);
@@ -164,7 +165,7 @@ export default function AdminPage() {
       setUsers(data.users);
       setFilteredUsers(data.users);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      logger.error("Error fetching users:", error);
       toast.error("Failed to load users");
     }
   };
@@ -189,7 +190,7 @@ export default function AdminPage() {
       const data = await response.json();
       setAuditLogs(data.logs);
     } catch (error) {
-      console.error("Error fetching audit logs:", error);
+      logger.error("Error fetching audit logs:", error);
       toast.error("Failed to load audit logs");
     }
   };
@@ -240,7 +241,7 @@ export default function AdminPage() {
       await fetchUsers();
       await fetchAuditLogs();
     } catch (error) {
-      console.error("Error updating user:", error);
+      logger.error("Error updating user:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to update user";
       toast.error(errorMessage);
     }
@@ -276,7 +277,7 @@ export default function AdminPage() {
       await fetchUsers();
       await fetchAuditLogs();
     } catch (error) {
-      console.error("Error deleting user:", error);
+      logger.error("Error deleting user:", error);
       const errorMessage = error instanceof Error ? error.message : "Failed to delete user";
       toast.error(errorMessage);
     }
@@ -318,7 +319,7 @@ export default function AdminPage() {
         toast.error(data.error || "Failed to generate embeddings");
       }
     } catch (error) {
-      console.error("Bulk embeddings error:", error);
+      logger.error("Bulk embeddings error:", error);
       toast.error("Error generating embeddings");
     } finally {
       setEmbeddingInProgress(false);

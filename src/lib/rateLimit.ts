@@ -6,6 +6,7 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 import Redis from "ioredis";
+import { logger } from "./logger";
 
 // Redis client (shared instance)
 let redis: Redis | null = null;
@@ -21,7 +22,7 @@ function getRedisClient(): Redis | null {
 
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
-    console.warn("[RateLimit] REDIS_URL not configured. Using in-memory fallback.");
+    logger.warn("[RateLimit] REDIS_URL not configured. Using in-memory fallback.");
     return null;
   }
 
@@ -30,7 +31,7 @@ function getRedisClient(): Redis | null {
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
         if (times > 3) {
-          console.error("[RateLimit] Redis connection failed. Using in-memory fallback.");
+          logger.error("[RateLimit] Redis connection failed. Using in-memory fallback.");
           return null;
         }
         return Math.min(times * 50, 2000);
@@ -38,13 +39,13 @@ function getRedisClient(): Redis | null {
     });
 
     redis.on("error", (err) => {
-      console.error("[RateLimit] Redis error:", err);
+      logger.error("[RateLimit] Redis error:", err);
     });
 
-    console.log("[RateLimit] Redis client initialized");
+    logger.debug("[RateLimit] Redis client initialized");
     return redis;
   } catch (err) {
-    console.error("[RateLimit] Failed to initialize Redis:", err);
+    logger.error("[RateLimit] Failed to initialize Redis:", err);
     return null;
   }
 }
@@ -205,7 +206,7 @@ async function checkRateLimitRedis(
       resetAt,
     };
   } catch (err) {
-    console.error("[RateLimit] Redis error, falling back to in-memory:", err);
+    logger.error("[RateLimit] Redis error, falling back to in-memory:", err);
     return checkRateLimitInMemory(key, config);
   }
 }

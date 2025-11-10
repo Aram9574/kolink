@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 import {
@@ -64,7 +65,7 @@ export default async function handler(
       .single();
 
     if (profileError || !profile) {
-      console.error("Profile error:", profileError);
+      logger.error("Profile error:", profileError);
       return res.status(404).json({
         error: "Profile not found",
         details: profileError?.message
@@ -196,7 +197,7 @@ export default async function handler(
         });
 
         if (insertError) {
-          console.error("Error saving generated post:", insertError);
+          logger.error("Error saving generated post:", insertError);
         }
 
         // 6.6 Registrar comportamiento
@@ -225,7 +226,7 @@ export default async function handler(
         .eq("id", user.id);
 
       if (updateError) {
-        console.error("Error updating credits:", updateError);
+        logger.error("Error updating credits:", updateError);
       }
     }
 
@@ -239,7 +240,7 @@ export default async function handler(
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error in AI viral generation:", error);
+    logger.error("Error in AI viral generation:", error);
     return res.status(500).json({
       error: "Error al generar contenido",
       details: error instanceof Error ? error.message : "Unknown error",

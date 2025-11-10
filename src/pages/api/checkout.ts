@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 import { limiter } from "@/lib/rateLimiter";
 import * as Sentry from "@sentry/nextjs";
+import { logger } from '@/lib/logger';
+import { apiEndpointSchemas, validateRequest, formatZodErrors } from '@/lib/validation';
 
 type PlanTier = "basic" | "standard" | "premium";
 
@@ -38,47 +40,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (error) {
-    console.error("❌ Error en rate limiter:", error);
+    logger.error("❌ Error en rate limiter:", error);
     // Continuar sin rate limiting si hay error
   }
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error("❌ Supabase env vars missing.");
+    logger.error("❌ Supabase env vars missing.");
     return res.status(500).json({ error: "Error de configuración del servidor." });
   }
 
   // Log para verificar el dominio activo
-  console.log(`🌐 Using domain for Stripe redirects: ${YOUR_DOMAIN}`);
+  logger.debug(`🌐 Using domain for Stripe redirects: ${YOUR_DOMAIN}`);
   if (YOUR_DOMAIN.includes("vercel.app")) {
-    console.warn("⚠️ Atención: estás usando un dominio temporal de Vercel, no el dominio final kolink.es");
+    logger.warn("⚠️ Atención: estás usando un dominio temporal de Vercel, no el dominio final kolink.es");
   }
 
-  const { userId, plan } = req.body as { userId?: string; plan?: string };
-  const normalizedPlan = typeof plan === "string" ? plan.toLowerCase() : undefined;
+  // Validate request body with Zod
+  const validation = validateRequest(apiEndpointSchemas.checkout, req.body);
 
-  const isValidPlan = (value: string): value is PlanTier =>
-    (["basic", "standard", "premium"] as const).includes(value as PlanTier);
-
-  if (!normalizedPlan || !isValidPlan(normalizedPlan)) {
-    console.warn(`⚠️ Plan inválido recibido en checkout: ${plan}`);
-    return res.status(400).json({ error: "Plan seleccionado inválido." });
+  if (!validation.success) {
+    const errors = formatZodErrors(validation.errors);
+    logger.warn("⚠️ Invalid checkout request", { errors });
+    return res.status(400).json({
+      error: "Invalid request data",
+      details: errors
+    });
   }
 
-  const priceId = priceMap[normalizedPlan];
+  const { userId, plan } = validation.data;
+  const priceId = priceMap[plan];
 
   if (!priceId) {
-    console.error(`❌ Price ID no configurado para el plan ${normalizedPlan}.`);
+    logger.error(`❌ Price ID no configurado para el plan ${plan}.`);
     return res.status(500).json({ error: "Plan no disponible temporalmente." });
   }
 
-  console.log(
-    `🧾 Checkout request recibida. userId=${userId ?? "undefined"} plan=${normalizedPlan} priceId=${priceId}`
+  logger.debug(
+    `🧾 Checkout request recibida. userId=${userId} plan=${plan} priceId=${priceId}`
   );
-
-  if (!userId) {
-    console.warn("⚠️ userId faltante en petición de checkout.");
-    return res.status(400).json({ error: "Usuario requerido" });
-  }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
@@ -93,17 +92,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
 
     if (profileError) {
-      console.error("❌ Error obteniendo perfil en checkout:", profileError.message);
+      logger.error("❌ Error obteniendo perfil en checkout:", profileError.message);
     } else {
       customerEmail = profile?.email ?? undefined;
 
       if (!customerEmail && profile?.full_name) {
-        console.warn(`⚠️ Usuario ${userId} no tiene email registrado, continuando sin customer_email.`);
+        logger.warn(`⚠️ Usuario ${userId} no tiene email registrado, continuando sin customer_email.`);
       }
     }
   } catch (error) {
     const err = error as Error;
-    console.error("❌ Excepción consultando perfil:", err.message);
+    logger.error("❌ Excepción consultando perfil:", err.message);
   }
 
   try {
@@ -129,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    console.log(
+    logger.debug(
       `✅ Sesión de checkout creada para ${userId}: sessionId=${session.id} priceId=${priceId} redirectTo=${YOUR_DOMAIN}`
     );
 
@@ -149,7 +148,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ url: session.url });
   } catch (error) {
     const err = error as Error;
-    console.error("❌ Error creando sesión de checkout:", err.message);
+    logger.error("❌ Error creando sesión de checkout:", err.message);
 
     // Log checkout creation error
     Sentry.captureException(error, {

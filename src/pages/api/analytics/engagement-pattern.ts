@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 
@@ -86,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       patterns: patterns.slice(0, 10), // Top 10 patterns
     });
   } catch (error) {
-    console.error("[api/analytics/engagement-pattern] Error:", error);
+    logger.error("[api/analytics/engagement-pattern] Error:", error);
     return res.status(500).json({ error: "Error analyzing engagement patterns" });
   }
 }

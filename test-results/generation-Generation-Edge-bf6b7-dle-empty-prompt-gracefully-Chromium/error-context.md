@@ -1,7 +1,7 @@
 # Page snapshot
 
 ```yaml
-- generic [active] [ref=e1]:
+- generic [ref=e1]:
   - generic [ref=e2]:
     - complementary [ref=e3]:
       - generic [ref=e4]:
@@ -25,113 +25,299 @@
               - /url: /stats
               - img [ref=e27]
               - text: Estadísticas
-          - generic [ref=e29]:
-            - heading "Creación de Contenido" [level=3] [ref=e30]
-            - link "Generador de Posts" [ref=e32] [cursor=pointer]:
+            - link "Centro de ayuda" [ref=e29] [cursor=pointer]:
+              - /url: /support
+              - img [ref=e30]
+              - text: Centro de ayuda
+          - generic [ref=e37]:
+            - heading "Creación de Contenido" [level=3] [ref=e38]
+            - link "Generador de Posts" [ref=e40] [cursor=pointer]:
               - /url: /write
-              - img [ref=e33]
+              - img [ref=e41]
               - text: Generador de Posts
-          - generic [ref=e36]:
-            - heading "Borradores y Programación" [level=3] [ref=e37]
-            - link "Calendario" [ref=e39] [cursor=pointer]:
-              - /url: /calendar
-              - img [ref=e40]
-              - text: Calendario
-          - generic [ref=e42]:
-            - heading "Inspiración de Contenido" [level=3] [ref=e43]
-            - link "Inspiración" [ref=e45] [cursor=pointer]:
+          - generic [ref=e44]:
+            - heading "Borradores y Programación" [level=3] [ref=e45]
+            - generic [ref=e46]:
+              - link "Mis posts" [ref=e47] [cursor=pointer]:
+                - /url: /my-posts
+                - img [ref=e48]
+                - text: Mis posts
+              - link "Calendario" [ref=e51] [cursor=pointer]:
+                - /url: /calendar
+                - img [ref=e52]
+                - text: Calendario
+          - generic [ref=e54]:
+            - heading "Inspiration Hub" [level=3] [ref=e55]
+            - link "Inspiration Hub" [ref=e57] [cursor=pointer]:
               - /url: /inspiration
-              - img [ref=e46]
-              - text: Inspiración
-        - paragraph [ref=e49]: v0.4
-    - navigation [ref=e50]:
-      - generic [ref=e52]:
-        - generic [ref=e53]:
-          - img [ref=e54]
-          - generic [ref=e59]: "5"
-        - generic [ref=e61]: free
-        - button "Toggle theme" [ref=e62] [cursor=pointer]:
-          - img [ref=e63]
-        - button "ET" [ref=e66] [cursor=pointer]
-    - generic [ref=e68]:
-      - banner [ref=e69]:
-        - generic [ref=e70]:
-          - heading "Hey E2E 👋" [level=1] [ref=e71]
-          - paragraph [ref=e72]: ¿Listo para crear contenido que se haga viral?
-        - generic [ref=e73]:
-          - generic [ref=e74]:
-            - img [ref=e76]
-            - generic [ref=e79]:
-              - paragraph [ref=e80]: Plan actual
-              - paragraph [ref=e81]: free
-          - generic [ref=e82]: "Créditos disponibles: 5"
-          - button "Ver planes" [ref=e83] [cursor=pointer]
-      - generic [ref=e85]:
-        - generic [ref=e86]:
-          - paragraph [ref=e87]: Cuéntale a Kolink AI
-          - paragraph [ref=e88]: Describe la idea, objetivo o formato que necesitas...
-        - generic [ref=e89]:
-          - generic [ref=e90]:
-            - textbox "Escribe tu prompt o usa el micrófono..." [ref=e91]
-            - button "Iniciar reconocimiento de voz" [ref=e92] [cursor=pointer]:
-              - img [ref=e93]
-          - generic [ref=e96]:
-            - button "Generar" [disabled]:
-              - img
-              - text: Generar
-        - generic [ref=e97]:
-          - button "Escribe un post de insights del sector" [ref=e98] [cursor=pointer]
-          - button "Crea un post PAS" [ref=e99] [cursor=pointer]
-          - button "Reformula mi último post viral" [ref=e100] [cursor=pointer]
-        - generic [ref=e101]:
-          - generic [ref=e102]: "Consejo: sé específico con tu audiencia y CTA"
-          - button "Limpiar" [ref=e104] [cursor=pointer]
-      - generic [ref=e106]:
-        - generic [ref=e107]:
-          - paragraph [ref=e108]: Temas frescos
-          - paragraph [ref=e109]: Selecciona los temas sobre los que quieres escribir esta semana
-        - generic [ref=e110]:
-          - button "Inteligencia artificial en salud" [ref=e111] [cursor=pointer]
-          - button "Crecimiento de SaaS B2B" [ref=e112] [cursor=pointer]
-          - button "Storytelling para founders" [ref=e113] [cursor=pointer]
-          - button "Productividad con IA" [ref=e114] [cursor=pointer]
-          - button "Transformación digital" [ref=e115] [cursor=pointer]
-          - button "Estrategia de contenidos" [ref=e116] [cursor=pointer]
-          - button "Marketing de comunidad" [ref=e117] [cursor=pointer]
-        - generic [ref=e118]:
-          - paragraph [ref=e119]: 3 temas seleccionados
-          - button "Confirmar temas" [ref=e120] [cursor=pointer]
-      - generic [ref=e121]:
-        - generic [ref=e122]:
-          - heading "Tu último post" [level=2] [ref=e124]
-          - paragraph [ref=e125]: Aún no has generado publicaciones. Empieza con alguna idea en la parte superior.
-        - generic [ref=e126]:
-          - heading "Comparte Kolink" [level=2] [ref=e127]
-          - paragraph [ref=e128]: Da acceso a un colega y consigue 15% de comisión de por vida.
-          - generic [ref=e129]: $30 de crédito para ellos · 15% para ti
-          - button "Compartir Kolink" [ref=e130] [cursor=pointer]
-      - generic [ref=e131]:
-        - generic [ref=e132]:
-          - generic [ref=e133]:
-            - paragraph [ref=e134]: Esta semana
-            - paragraph [ref=e135]: "0"
-          - img [ref=e136]
-        - generic [ref=e138]:
-          - generic [ref=e139]:
-            - paragraph [ref=e140]: Este mes
-            - paragraph [ref=e141]: "0"
-          - img [ref=e142]
+              - img [ref=e58]
+              - text: Inspiration Hub
+          - generic [ref=e60]:
+            - heading "Personalización con IA" [level=3] [ref=e61]
+            - generic [ref=e62]:
+              - link "Generador Personalizado" [ref=e63] [cursor=pointer]:
+                - /url: /personalized
+                - img [ref=e64]
+                - text: Generador Personalizado
+              - link "Analytics Personalización" [ref=e72] [cursor=pointer]:
+                - /url: /personalized-analytics
+                - img [ref=e73]
+                - text: Analytics Personalización
+        - paragraph [ref=e77]: v1.0
+    - navigation [ref=e78]:
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - img [ref=e82]
+          - generic [ref=e87]: "5"
+        - link "Lv 1" [ref=e88] [cursor=pointer]:
+          - /url: /profile?section=gamification
+          - img [ref=e89]
+          - generic [ref=e95]: Lv 1
+        - link "Notificaciones" [ref=e96] [cursor=pointer]:
+          - /url: /inbox
+          - img [ref=e97]
+        - generic [ref=e101]: free
+        - button "Toggle theme" [ref=e102] [cursor=pointer]:
+          - img [ref=e103]
+        - button "Español" [ref=e106] [cursor=pointer]:
+          - img [ref=e107]
+          - generic [ref=e110]: Español
+        - button "ET" [ref=e112] [cursor=pointer]
+    - generic [ref=e114]:
+      - generic [ref=e118]:
+        - generic [ref=e119]:
+          - generic [ref=e120]:
+            - paragraph [ref=e121]: Panel principal
+            - heading "Hola E2E, hoy es un buen día para publicar algo memorable ✨" [level=1] [ref=e122]
+            - paragraph [ref=e123]: Resume tus aprendizajes, activa Auto-Pilot o revisa el rendimiento reciente. Kolink te acompaña con insights accionables.
+            - generic [ref=e124]:
+              - button "Crear insight rápido" [ref=e125] [cursor=pointer]
+              - button "Gestionar créditos" [ref=e126] [cursor=pointer]
+              - button "Ver historial" [ref=e127] [cursor=pointer]
+          - generic [ref=e128]:
+            - generic [ref=e129]:
+              - paragraph [ref=e130]: Créditos disponibles
+              - paragraph [ref=e131]: "5"
+              - paragraph [ref=e132]: Plan free
+            - generic [ref=e133]:
+              - paragraph [ref=e134]: Actividad semanal
+              - paragraph [ref=e135]: "0"
+              - paragraph [ref=e136]: 0 este mes
+            - generic [ref=e137]:
+              - paragraph [ref=e138]: Auto-Pilot
+              - paragraph [ref=e139]: Pausado
+              - paragraph [ref=e140]: Configura tu cadencia ideal
+            - generic [ref=e141]:
+              - paragraph [ref=e142]: Viral score
+              - paragraph [ref=e143]: —
+              - paragraph [ref=e144]: Promedio últimos 50 posts
         - generic [ref=e145]:
-          - generic [ref=e146]:
-            - paragraph [ref=e147]: Score promedio
-            - paragraph [ref=e148]: "0"
-          - img [ref=e149]
-      - generic [ref=e151]:
+          - paragraph [ref=e146]: Objetivo sugerido
+          - paragraph [ref=e147]:
+            - text: Genera al menos
+            - strong [ref=e148]: 3 publicaciones
+            - text: esta semana para mantener tu ritmo. Ya llevas
+            - strong [ref=e149]: "0"
+            - text: . ¿Necesitas inspiración rápida? Revisa las acciones destacadas debajo.
+      - generic [ref=e150]:
         - generic [ref=e152]:
-          - heading "Historial" [level=2] [ref=e153]
-          - generic [ref=e154]: 0 posts generados
-        - generic [ref=e155]: No hay publicaciones aún. Genera tu primer post para poblar este espacio.
-  - button "Open Next.js Dev Tools" [ref=e161] [cursor=pointer]:
-    - img [ref=e162]
-  - alert [ref=e165]
+          - img [ref=e154]
+          - generic [ref=e157]:
+            - heading "Generar post con IA" [level=3] [ref=e158]
+            - paragraph [ref=e159]: Activa una plantilla curada y ajusta el mensaje antes de publicar.
+          - button "Abrir" [ref=e160] [cursor=pointer]
+        - generic [ref=e162]:
+          - img [ref=e164]
+          - generic [ref=e168]:
+            - heading "Activa Auto-Pilot" [level=3] [ref=e169]
+            - paragraph [ref=e170]: Conecta tu LinkedIn para activar Auto-Pilot sin fricciones.
+          - button "Abrir" [ref=e171] [cursor=pointer]
+        - generic [ref=e173]:
+          - img [ref=e175]
+          - generic [ref=e177]:
+            - heading "Explorar inspiración" [level=3] [ref=e178]
+            - paragraph [ref=e179]: Descubre ejemplos de alto rendimiento y captura ideas.
+          - button "Abrir" [ref=e180] [cursor=pointer]
+      - generic [ref=e181]:
+        - generic [ref=e183]:
+          - generic [ref=e184]:
+            - generic [ref=e185]:
+              - heading "Estudio creativo" [level=2] [ref=e186]
+              - paragraph [ref=e187]: Define tu objetivo, ajusta tono y deja que la IA proponga el mejor borrador.
+            - button "¿Qué es el Viral Score?" [ref=e189] [cursor=pointer]:
+              - img [ref=e190]
+              - generic [ref=e193]: ¿Qué es el Viral Score?
+          - button "Sugerencias de prompts Inspírate con estos ejemplos probados" [ref=e196] [cursor=pointer]:
+            - generic [ref=e197]:
+              - img [ref=e199]
+              - generic [ref=e202]:
+                - heading "Sugerencias de prompts" [level=3] [ref=e203]
+                - paragraph [ref=e204]: Inspírate con estos ejemplos probados
+            - img [ref=e206]
+          - generic [ref=e208]:
+            - button "Escribe un post de insights del sector Comparte aprendizajes accionables del mercado" [ref=e209] [cursor=pointer]:
+              - generic [ref=e210]:
+                - generic [ref=e211]: Escribe un post de insights del sector
+                - generic [ref=e212]: Comparte aprendizajes accionables del mercado
+            - button "Crea un post PAS Estructura Problema-Agitación-Solución" [ref=e213] [cursor=pointer]:
+              - generic [ref=e214]:
+                - generic [ref=e215]: Crea un post PAS
+                - generic [ref=e216]: Estructura Problema-Agitación-Solución
+            - button "Reformula mi último post viral Genera una versión con nuevo ángulo" [ref=e217] [cursor=pointer]:
+              - generic [ref=e218]:
+                - generic [ref=e219]: Reformula mi último post viral
+                - generic [ref=e220]: Genera una versión con nuevo ángulo
+          - generic [ref=e221]:
+            - button "Mostrar controles avanzados" [ref=e223] [cursor=pointer]:
+              - img [ref=e224]
+              - text: Mostrar controles avanzados
+            - generic [ref=e225]:
+              - generic [ref=e226]:
+                - generic [ref=e227]:
+                  - textbox "Escribe tu prompt o usa el micrófono..." [ref=e228]
+                  - button "Iniciar reconocimiento de voz" [ref=e229] [cursor=pointer]:
+                    - img [ref=e230]
+                - paragraph [ref=e233]: Escribe un prompt o selecciona una plantilla antes de generar.
+              - generic [ref=e236]: Iniciar reconocimiento de voz
+              - button "Generar" [active] [ref=e238] [cursor=pointer]:
+                - img [ref=e239]
+                - text: Generar
+          - generic [ref=e242]:
+            - paragraph [ref=e243]: "Consejo rápido: concreta tu audiencia, CTA y propósito."
+            - button "Limpiar" [ref=e244] [cursor=pointer]
+        - complementary [ref=e245]:
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - generic [ref=e249]:
+                  - heading "Auto-Pilot" [level=3] [ref=e250]
+                  - generic [ref=e251]: Pausado
+                - paragraph [ref=e252]: Activa Auto-Pilot para mantener tu calendario lleno y sin fricciones.
+              - switch "Activar Auto-Pilot" [ref=e254] [cursor=pointer]:
+                - generic [ref=e255]: Activar Auto-Pilot
+            - generic [ref=e257]:
+              - generic [ref=e258]:
+                - img [ref=e259]
+                - text: Frecuencia personalizable
+              - generic [ref=e263]: Activa Auto-Pilot para programar publicaciones automáticas alineadas con tus temas.
+              - generic [ref=e264]:
+                - generic [ref=e265]: Inteligencia artificial en salud
+                - generic [ref=e266]: Crecimiento de SaaS B2B
+                - generic [ref=e267]: Storytelling para founders
+              - generic [ref=e268]:
+                - img [ref=e270]
+                - generic [ref=e273]: Los temas seleccionados orientan las sugerencias automáticas de la IA.
+            - button "Ajustar calendario" [ref=e274] [cursor=pointer]
+          - generic [ref=e275]:
+            - generic [ref=e276]:
+              - img [ref=e278]
+              - generic [ref=e281]:
+                - heading "Tono y estilo" [level=3] [ref=e282]
+                - paragraph [ref=e283]: Ajusta el tono, la formalidad y la longitud objetivo de tus publicaciones.
+            - generic [ref=e284]:
+              - paragraph [ref=e285]: "Tono actual: Profesional"
+              - paragraph [ref=e286]: "Formalidad: 50/100 · Longitud: 200 palabras aprox."
+              - paragraph [ref=e287]: "Entrenamiento personalizado: Activado"
+              - paragraph [ref=e288]:
+                - img [ref=e289]
+                - generic [ref=e292]: Español como idioma preferido
+            - button "Editar preferencias" [ref=e293] [cursor=pointer]
+          - generic [ref=e294]:
+            - generic [ref=e295]:
+              - img [ref=e297]
+              - generic [ref=e299]:
+                - heading "Insights rápidos" [level=3] [ref=e300]
+                - paragraph [ref=e301]: Visualiza la actividad reciente y accede a reportes detallados.
+            - generic [ref=e302]:
+              - generic [ref=e303]:
+                - generic [ref=e304]:
+                  - img [ref=e305]
+                  - text: Posts esta semana
+                - generic [ref=e307]: "0"
+              - generic [ref=e308]:
+                - generic [ref=e309]:
+                  - img [ref=e310]
+                  - text: Viral score medio
+                - generic [ref=e313]: —
+            - button "Ver reportes" [ref=e314] [cursor=pointer]
+      - generic [ref=e315]:
+        - generic [ref=e317]:
+          - heading "Tu último post" [level=2] [ref=e319]
+          - paragraph [ref=e320]: Aún no has generado publicaciones. Escribe una idea arriba y obtén tu primer borrador en segundos.
+        - generic [ref=e322]:
+          - heading "Comparte Kolink" [level=2] [ref=e323]
+          - paragraph [ref=e324]: Invita a un colega y consigue 15% de comisión de por vida. Ellos reciben USD 30 en crédito inicial.
+          - generic [ref=e325]: Recompensa disponible · Código personal en tu perfil
+          - button "Compartir Kolink" [ref=e326] [cursor=pointer]
+      - generic [ref=e327]:
+        - generic [ref=e328]:
+          - generic [ref=e329]:
+            - heading "Planificador de temas" [level=3] [ref=e330]
+            - paragraph [ref=e331]: Selecciona los focos clave de esta semana. La IA los sincroniza con Auto-Pilot y las sugerencias del generador.
+          - button "Resetear selección" [ref=e332] [cursor=pointer]
+        - generic [ref=e333]:
+          - button "Inteligencia artificial en salud" [ref=e334] [cursor=pointer]
+          - button "Crecimiento de SaaS B2B" [ref=e335] [cursor=pointer]
+          - button "Storytelling para founders" [ref=e336] [cursor=pointer]
+          - button "Productividad con IA" [ref=e337] [cursor=pointer]
+          - button "Transformación digital" [ref=e338] [cursor=pointer]
+          - button "Estrategia de contenidos" [ref=e339] [cursor=pointer]
+          - button "Marketing de comunidad" [ref=e340] [cursor=pointer]
+        - generic [ref=e341]:
+          - img [ref=e343]
+          - generic [ref=e346]: Confirma los temas para que la IA adapte las ideas automáticas de esta semana.
+        - generic [ref=e347]:
+          - paragraph [ref=e348]: 3 temas seleccionados
+          - button "Confirmar temas" [ref=e349] [cursor=pointer]
+      - generic [ref=e350]:
+        - generic [ref=e351]:
+          - generic [ref=e352]:
+            - heading "Historial de publicaciones" [level=2] [ref=e353]
+            - paragraph [ref=e354]: 0 posts generados
+          - paragraph [ref=e355]: Ordenado por más recientes
+        - generic [ref=e356]: No hay publicaciones aún. Genera tu primer post para poblar este espacio.
+    - button "Reportar bug / sugerencia" [ref=e357] [cursor=pointer]:
+      - img [ref=e358]
+      - text: Reportar bug / sugerencia
+    - generic [ref=e362]:
+      - generic [ref=e363]:
+        - heading "Tu privacidad en Kolink" [level=2] [ref=e364]
+        - paragraph [ref=e365]:
+          - text: Usamos cookies esenciales para que la plataforma funcione. Activa opcionalmente analíticas para ayudarnos a mejorar tu experiencia. Lee nuestra
+          - link "política de cookies" [ref=e366] [cursor=pointer]:
+            - /url: /legal/cookies
+          - text: "y"
+          - link "política de privacidad" [ref=e367] [cursor=pointer]:
+            - /url: /legal/privacidad
+          - text: .
+      - generic [ref=e368]:
+        - button "Solo esenciales" [ref=e369] [cursor=pointer]
+        - button "Personalizar" [ref=e370] [cursor=pointer]:
+          - img [ref=e371]
+          - text: Personalizar
+        - button "Aceptar todo" [ref=e374] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e380] [cursor=pointer]:
+    - img [ref=e381]
+  - alert [ref=e384]
+  - generic [ref=e386]:
+    - generic [ref=e387]:
+      - heading "Guía rápida de Kolink" [level=3] [ref=e388]:
+        - img [ref=e389]
+        - text: Guía rápida de Kolink
+      - paragraph [ref=e392]: Descubre en menos de un minuto los puntos clave para comenzar. Siempre podrás volver a esta guía desde el Centro de ayuda.
+    - generic [ref=e393]:
+      - generic [ref=e394]:
+        - img [ref=e396]
+        - generic [ref=e401]:
+          - heading "Panel inteligente" [level=3] [ref=e402]
+          - paragraph [ref=e403]: Analiza tu rendimiento semanal, recibe ideas de IA y accede a tus posts automáticos con un sólo clic.
+          - generic [ref=e404]: Panel → Resumen diario
+      - generic [ref=e405]:
+        - generic [ref=e406]: Paso 1
+        - generic [ref=e411]: 3 pasos
+      - generic [ref=e412]:
+        - button "Omitir tour" [ref=e413] [cursor=pointer]
+        - generic [ref=e414]:
+          - button "Siguiente" [ref=e415] [cursor=pointer]
+          - button "Entendido" [ref=e416] [cursor=pointer]
 ```

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { logger } from '@/lib/logger';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -93,7 +94,7 @@ export default async function handler(
       usageStats = stats;
     } catch {
       // Usage stats table might not exist yet
-      console.log("Usage stats not available");
+      logger.debug("Usage stats not available");
     }
 
     // 5. Compile all data
@@ -126,7 +127,7 @@ export default async function handler(
 
     return res.status(200).json(exportData);
   } catch (error: unknown) {
-    console.error("Export error:", error);
+    logger.error("Export error:", error);
     return res.status(500).json({
       error: "Error exporting data",
       message: error instanceof Error ? error.message : "Unknown error",

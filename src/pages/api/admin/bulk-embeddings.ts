@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import OpenAI from "openai";
@@ -120,7 +121,7 @@ export default async function handler(
               id: post.id,
               error: error instanceof Error ? error.message : "Unknown error",
             });
-            console.error(`Error embedding post ${post.id}:`, error);
+            logger.error(`Error embedding post ${post.id}:`, error);
           }
         })
       );
@@ -141,7 +142,7 @@ export default async function handler(
       total: posts.length,
     });
   } catch (error) {
-    console.error("[bulk-embeddings] Error:", error);
+    logger.error("[bulk-embeddings] Error:", error);
     return res.status(500).json({
       error: "Error generating embeddings",
       message: error instanceof Error ? error.message : "Unknown error",

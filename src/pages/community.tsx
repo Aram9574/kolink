@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import type { Session } from "@supabase/supabase-js";
@@ -159,7 +160,7 @@ export default function CommunityPage() {
 
       setFeedPosts(postsWithStats as CommunityPost[]);
     } catch (error) {
-      console.error("Error loading feed:", error);
+      logger.error("Error loading feed:", error);
       toast.error("Error al cargar el feed");
     } finally {
       setLoadingFeed(false);
@@ -201,7 +202,7 @@ export default function CommunityPage() {
 
       setForumThreads(threadsWithCounts as ForumThread[]);
     } catch (error) {
-      console.error("Error loading forum:", error);
+      logger.error("Error loading forum:", error);
       toast.error("Error al cargar el foro");
     } finally {
       setLoadingForum(false);
@@ -221,7 +222,7 @@ export default function CommunityPage() {
       if (error) throw error;
       setMentorshipSessions((sessions as MentorshipSession[]) || []);
     } catch (error) {
-      console.error("Error loading mentorship:", error);
+      logger.error("Error loading mentorship:", error);
       toast.error("Error al cargar sesiones");
     } finally {
       setLoadingMentorship(false);
@@ -249,7 +250,7 @@ export default function CommunityPage() {
       setNewPostContent("");
       loadFeed();
     } catch (error) {
-      console.error("Error creating post:", error);
+      logger.error("Error creating post:", error);
       toast.error("Error al publicar");
     } finally {
       setPostingContent(false);
@@ -283,7 +284,7 @@ export default function CommunityPage() {
       // Reload feed to update counts
       loadFeed();
     } catch (error) {
-      console.error("Error toggling upvote:", error);
+      logger.error("Error toggling upvote:", error);
       toast.error("Error al votar");
     }
   };

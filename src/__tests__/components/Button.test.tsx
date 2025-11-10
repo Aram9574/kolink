@@ -1,61 +1,156 @@
 /**
- * Unit tests for Button component
+ * Tests for Button component
+ * 
+ * Core UI component used throughout the application
  */
 
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Button from '@/components/Button';
 
-describe('Button Component', () => {
-  test('renders button with text', () => {
-    render(<Button>Click me</Button>);
-    const button = screen.getByRole('button', { name: /click me/i });
-    expect(button).toBeInTheDocument();
+describe('Button', () => {
+  describe('Rendering', () => {
+    it('should render button with text', () => {
+      render(<Button>Click me</Button>);
+      expect(screen.getByText('Click me')).toBeInTheDocument();
+    });
+
+    it('should render as button element by default', () => {
+      render(<Button>Click me</Button>);
+      const button = screen.getByRole('button');
+      expect(button.tagName).toBe('BUTTON');
+    });
+
+    it('should accept custom className', () => {
+      render(<Button className="custom-class">Click me</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveClass('custom-class');
+    });
   });
 
-  test('handles click events', () => {
-    const handleClick = jest.fn();
-    render(<Button onClick={handleClick}>Click me</Button>);
+  describe('Variants', () => {
+    it('should apply primary variant styles', () => {
+      render(<Button variant="primary">Primary</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('bg-gradient');
+    });
 
-    const button = screen.getByRole('button', { name: /click me/i });
-    fireEvent.click(button);
+    it('should apply secondary variant styles', () => {
+      render(<Button variant="secondary">Secondary</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('bg-secondary');
+    });
 
-    expect(handleClick).toHaveBeenCalledTimes(1);
+    it('should apply ghost variant styles', () => {
+      render(<Button variant="ghost">Ghost</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('bg-transparent');
+    });
+
+    it('should apply outline variant styles', () => {
+      render(<Button variant="outline">Outline</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('border');
+    });
   });
 
-  test('renders primary variant by default', () => {
-    render(<Button>Primary Button</Button>);
-    const button = screen.getByRole('button', { name: /primary button/i });
-    expect(button).toHaveClass('bg-primary');
+  describe('Sizes', () => {
+    it('should apply small size', () => {
+      render(<Button size="sm">Small</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('text-sm');
+    });
+
+    it('should apply medium size by default', () => {
+      render(<Button>Medium</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('text-base');
+    });
+
+    it('should apply large size', () => {
+      render(<Button size="lg">Large</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('text-lg');
+    });
   });
 
-  test('renders secondary variant when specified', () => {
-    render(<Button variant="secondary">Secondary Button</Button>);
-    const button = screen.getByRole('button', { name: /secondary button/i });
-    expect(button).toHaveClass('bg-secondary');
+  describe('Interactions', () => {
+    it('should call onClick handler when clicked', () => {
+      const handleClick = jest.fn();
+      render(<Button onClick={handleClick}>Click me</Button>);
+      
+      fireEvent.click(screen.getByRole('button'));
+      
+      expect(handleClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call onClick when disabled', () => {
+      const handleClick = jest.fn();
+      render(<Button onClick={handleClick} disabled>Click me</Button>);
+      
+      fireEvent.click(screen.getByRole('button'));
+      
+      expect(handleClick).not.toHaveBeenCalled();
+    });
+
+    it('should have disabled attribute when disabled prop is true', () => {
+      render(<Button disabled>Disabled</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toBeDisabled();
+    });
   });
 
-  test('applies disabled state', () => {
-    render(<Button disabled>Disabled Button</Button>);
-    const button = screen.getByRole('button', { name: /disabled button/i });
-    expect(button).toBeDisabled();
-    // Tailwind's disabled:opacity-50 is applied via CSS, not as a direct class
-    expect(button).toHaveAttribute('disabled');
+  describe('States', () => {
+    it('should show disabled state visually', () => {
+      render(<Button disabled>Disabled</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('opacity-50');
+    });
+
+    it('should have cursor-not-allowed when disabled', () => {
+      render(<Button disabled>Disabled</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toContain('cursor-not-allowed');
+    });
   });
 
-  test('applies custom className', () => {
-    render(<Button className="custom-class">Custom Button</Button>);
-    const button = screen.getByRole('button', { name: /custom button/i });
-    expect(button).toHaveClass('custom-class');
+  describe('Additional Features', () => {
+    it('should support glow effect', () => {
+      render(<Button glow>Glow</Button>);
+      const button = screen.getByRole('button');
+      expect(button.className).toMatch(/shadow-glow/);
+    });
+
+    it('should accept type attribute', () => {
+      render(<Button type="submit">Submit</Button>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('type', 'submit');
+    });
+
+    it('should render children correctly', () => {
+      render(
+        <Button>
+          <span>Icon</span>
+          <span>Text</span>
+        </Button>
+      );
+      expect(screen.getByText('Icon')).toBeInTheDocument();
+      expect(screen.getByText('Text')).toBeInTheDocument();
+    });
   });
 
-  test('does not trigger onClick when disabled', () => {
-    const handleClick = jest.fn();
-    render(<Button onClick={handleClick} disabled>Disabled Button</Button>);
+  describe('Accessibility', () => {
+    it('should be keyboard accessible', () => {
+      const handleClick = jest.fn();
+      render(<Button onClick={handleClick}>Accessible</Button>);
+      const button = screen.getByRole('button');
+      
+      button.focus();
+      expect(button).toHaveFocus();
+    });
 
-    const button = screen.getByRole('button', { name: /disabled button/i });
-    fireEvent.click(button);
-
-    expect(handleClick).not.toHaveBeenCalled();
+    it('should have proper role', () => {
+      render(<Button>Button</Button>);
+      expect(screen.getByRole('button')).toBeInTheDocument();
+    });
   });
 });

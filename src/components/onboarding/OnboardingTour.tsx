@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useEffect, useMemo, useState } from "react";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -71,7 +72,7 @@ export default function OnboardingTour({ userId }: OnboardingTourProps) {
       if (cancelled) return;
 
       if (error) {
-        console.error("[OnboardingTour] Failed to load profile features", error);
+        logger.error("[OnboardingTour] Failed to load profile features", error);
         setLoading(false);
         return;
       }
@@ -118,7 +119,7 @@ export default function OnboardingTour({ userId }: OnboardingTourProps) {
       .eq("id", userId);
 
     if (error) {
-      console.error("[OnboardingTour] Failed to persist completion", error);
+      logger.error("[OnboardingTour] Failed to persist completion", error);
     }
   };
 

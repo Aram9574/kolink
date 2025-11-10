@@ -2,37 +2,61 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - main [ref=e3]:
-    - generic [ref=e4]:
-      - generic [ref=e5]:
-        - link "K" [ref=e6] [cursor=pointer]:
-          - /url: /
-        - generic [ref=e7]:
-          - heading "Bienvenido de nuevo a Kolink" [level=1] [ref=e8]
-          - paragraph [ref=e9]: Inicia sesión para seguir creando contenido que conecta en LinkedIn.
-      - generic [ref=e10]:
-        - generic [ref=e11]:
-          - generic [ref=e12]:
-            - text: Correo electrónico
-            - textbox "Correo electrónico" [ref=e13]:
-              - /placeholder: nombre@empresa.com
-              - text: wrongpass-test-1761732629595@kolink.test
-          - generic [ref=e14]:
-            - text: Contraseña
-            - textbox "Contraseña" [ref=e15]:
-              - /placeholder: Ingresa tu contraseña
-              - text: WrongPassword123!
-          - paragraph [ref=e16]: Invalid login credentials
-          - button "Iniciar sesión" [ref=e17] [cursor=pointer]
-        - paragraph [ref=e18]:
-          - text: ¿Necesitas ayuda? Escríbenos a
-          - link "info@kolink.es" [ref=e19] [cursor=pointer]:
-            - /url: mailto:info@kolink.es
-        - paragraph [ref=e20]:
-          - text: ¿Aún no tienes cuenta?
-          - link "Regístrate" [ref=e21] [cursor=pointer]:
-            - /url: /signup
-  - button "Open Next.js Dev Tools" [ref=e27] [cursor=pointer]:
-    - img [ref=e28]
-  - alert [ref=e31]
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "K" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e7]:
+            - heading "Bienvenido de nuevo a Kolink" [level=1] [ref=e8]
+            - paragraph [ref=e9]: Inicia sesión para seguir creando contenido que conecta en LinkedIn.
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]:
+              - text: Correo electrónico
+              - textbox "Correo electrónico" [ref=e13]:
+                - /placeholder: nombre@empresa.com
+                - text: wrongpass-test-1762543338515@kolink.test
+            - generic [ref=e14]:
+              - generic [ref=e15]:
+                - generic [ref=e16]: Contraseña
+                - link "¿Olvidaste tu contraseña?" [ref=e17] [cursor=pointer]:
+                  - /url: /forgot-password
+              - textbox "Contraseña" [ref=e18]:
+                - /placeholder: Ingresa tu contraseña
+                - text: WrongPassword123!
+            - paragraph [ref=e19]: Invalid login credentials
+            - button "Iniciar sesión" [ref=e20] [cursor=pointer]
+          - paragraph [ref=e21]:
+            - text: ¿Necesitas ayuda? Escríbenos a
+            - link "info@kolink.es" [ref=e22] [cursor=pointer]:
+              - /url: mailto:info@kolink.es
+          - paragraph [ref=e23]:
+            - text: ¿Aún no tienes cuenta?
+            - link "Regístrate" [ref=e24] [cursor=pointer]:
+              - /url: /signup
+    - button "Reportar bug / sugerencia" [ref=e25] [cursor=pointer]:
+      - img [ref=e26]
+      - text: Reportar bug / sugerencia
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - heading "Tu privacidad en Kolink" [level=2] [ref=e32]
+        - paragraph [ref=e33]:
+          - text: Usamos cookies esenciales para que la plataforma funcione. Activa opcionalmente analíticas para ayudarnos a mejorar tu experiencia. Lee nuestra
+          - link "política de cookies" [ref=e34] [cursor=pointer]:
+            - /url: /legal/cookies
+          - text: "y"
+          - link "política de privacidad" [ref=e35] [cursor=pointer]:
+            - /url: /legal/privacidad
+          - text: .
+      - generic [ref=e36]:
+        - button "Solo esenciales" [ref=e37] [cursor=pointer]
+        - button "Personalizar" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - text: Personalizar
+        - button "Aceptar todo" [ref=e42] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e48] [cursor=pointer]:
+    - img [ref=e49]
+  - alert [ref=e52]
 ```

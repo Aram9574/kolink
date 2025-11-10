@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import crypto from "crypto";
 import React from "react";
@@ -30,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .maybeSingle();
 
     if (profileError) {
-      console.error("Error fetching user for reset:", profileError);
+      logger.error("Error fetching user for reset:", profileError);
     }
 
     if (!profile) {
@@ -77,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         />,
       });
     } catch (emailError) {
-      console.error("Error enviando correo de recuperación:", emailError);
+      logger.error("Error enviando correo de recuperación:", emailError);
     }
 
     const { error: alertError } = await supabase.rpc("create_security_alert", {
@@ -93,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (alertError) {
-      console.error("Error registrando alerta de seguridad (password reset):", alertError);
+      logger.error("Error registrando alerta de seguridad (password reset):", alertError);
     }
 
     return res.status(200).json({
@@ -101,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: "Si el correo existe, recibirás un enlace de recuperación",
     });
   } catch (error) {
-    console.error("Password reset initiation error:", error);
+    logger.error("Password reset initiation error:", error);
     return res.status(500).json({
       error: "No se pudo iniciar el proceso de recuperación",
     });

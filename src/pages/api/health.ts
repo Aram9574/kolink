@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
@@ -36,11 +37,11 @@ export default async function handler(
           .limit(1);
 
         if (error) {
-          console.error('[Health] Database check failed:', error.message);
+          logger.error('[Health] Database check failed:', error.message);
           databaseStatus = 'error';
         }
       } catch (err) {
-        console.error('[Health] Database connection failed:', err);
+        logger.error('[Health] Database connection failed:', err);
         databaseStatus = 'error';
       }
     } else {
@@ -92,7 +93,7 @@ export default async function handler(
     });
 
   } catch (error: unknown) {
-    console.error('[Health] Health check failed:', error);
+    logger.error('[Health] Health check failed:', error);
     const errorMessage = error instanceof Error ? error.message : 'Health check failed';
     return res.status(500).json({
       status: 'error',

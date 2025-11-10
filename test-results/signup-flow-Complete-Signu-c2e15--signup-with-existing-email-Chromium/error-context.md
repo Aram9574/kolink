@@ -2,48 +2,87 @@
 
 ```yaml
 - generic [ref=e1]:
-  - main [ref=e3]:
-    - generic [ref=e4]:
-      - generic [ref=e5]:
-        - link "K" [ref=e6] [cursor=pointer]:
-          - /url: /
-        - generic [ref=e7]:
-          - heading "Crea tu cuenta y haz crecer tu marca personal en LinkedIn" [level=1] [ref=e8]
-          - paragraph [ref=e9]: Kolink te ayuda a convertir ideas en publicaciones de alto impacto.
-      - generic [ref=e10]:
-        - generic [ref=e11]:
-          - generic [ref=e12]:
-            - text: Correo electrónico
-            - textbox "Correo electrónico" [ref=e13]:
-              - /placeholder: nombre@empresa.com
-              - text: existing-user@kolink.test
-          - generic [ref=e14]:
-            - text: Contraseña
-            - textbox "Contraseña" [ref=e15]:
-              - /placeholder: Mínimo 6 caracteres
-              - text: TestPassword123!
-          - generic [ref=e16]:
-            - text: Confirmar contraseña
-            - textbox "Confirmar contraseña" [active] [ref=e17]:
-              - /placeholder: Repite tu contraseña
-          - button "Registrarme con email" [ref=e18] [cursor=pointer]
-        - paragraph [ref=e19]:
-          - text: Al continuar aceptas nuestros
-          - link "Términos" [ref=e20] [cursor=pointer]:
-            - /url: /legal/terms
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "K" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e7]:
+            - heading "Crea tu cuenta y haz crecer tu marca personal en LinkedIn" [level=1] [ref=e8]
+            - paragraph [ref=e9]: Kolink te ayuda a convertir ideas en publicaciones de alto impacto.
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]:
+              - text: Correo electrónico
+              - textbox "Correo electrónico" [ref=e13]:
+                - /placeholder: nombre@empresa.com
+                - text: existing-user@kolink.test
+            - generic [ref=e14]:
+              - text: Contraseña
+              - textbox "Contraseña" [ref=e15]:
+                - /placeholder: Mínimo 8 caracteres
+                - text: TestPassword123!
+              - generic [ref=e17]:
+                - generic [ref=e19]:
+                  - generic [ref=e20]: Fortaleza de la contraseña
+                  - generic [ref=e21]: Buena
+                - generic [ref=e26]:
+                  - img [ref=e27]
+                  - generic [ref=e29]:
+                    - paragraph [ref=e30]: Esta contraseña es muy común y fácil de adivinar
+                    - paragraph [ref=e31]: Evita usar secuencias numéricas
+                - generic [ref=e33]:
+                  - img [ref=e34]
+                  - generic [ref=e36]:
+                    - paragraph [ref=e37]: "Consejos de seguridad:"
+                    - list [ref=e38]:
+                      - listitem [ref=e39]: Usa una combinación de mayúsculas y minúsculas
+                      - listitem [ref=e40]: Incluye números y caracteres especiales
+                      - listitem [ref=e41]: Evita palabras comunes o secuencias
+                      - listitem [ref=e42]: Usa al menos 12 caracteres para mayor seguridad
+            - generic [ref=e43]:
+              - text: Confirmar contraseña
+              - textbox "Confirmar contraseña" [active] [ref=e44]:
+                - /placeholder: Repite tu contraseña
+            - button "Registrarme con email" [ref=e45] [cursor=pointer]
+          - paragraph [ref=e46]:
+            - text: Al continuar aceptas nuestros
+            - link "Términos" [ref=e47] [cursor=pointer]:
+              - /url: /legal/terms
+            - text: "y"
+            - link "Política de privacidad" [ref=e48] [cursor=pointer]:
+              - /url: /legal/privacy
+            - text: .
+          - paragraph [ref=e49]:
+            - text: ¿Necesitas ayuda? Escríbenos a
+            - link "info@kolink.es" [ref=e50] [cursor=pointer]:
+              - /url: mailto:info@kolink.es
+          - paragraph [ref=e51]:
+            - text: ¿Ya tienes cuenta?
+            - link "Inicia sesión" [ref=e52] [cursor=pointer]:
+              - /url: /signin
+    - button "Reportar bug / sugerencia" [ref=e53] [cursor=pointer]:
+      - img [ref=e54]
+      - text: Reportar bug / sugerencia
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - heading "Tu privacidad en Kolink" [level=2] [ref=e60]
+        - paragraph [ref=e61]:
+          - text: Usamos cookies esenciales para que la plataforma funcione. Activa opcionalmente analíticas para ayudarnos a mejorar tu experiencia. Lee nuestra
+          - link "política de cookies" [ref=e62] [cursor=pointer]:
+            - /url: /legal/cookies
           - text: "y"
-          - link "Política de privacidad" [ref=e21] [cursor=pointer]:
-            - /url: /legal/privacy
+          - link "política de privacidad" [ref=e63] [cursor=pointer]:
+            - /url: /legal/privacidad
           - text: .
-        - paragraph [ref=e22]:
-          - text: ¿Necesitas ayuda? Escríbenos a
-          - link "info@kolink.es" [ref=e23] [cursor=pointer]:
-            - /url: mailto:info@kolink.es
-        - paragraph [ref=e24]:
-          - text: ¿Ya tienes cuenta?
-          - link "Inicia sesión" [ref=e25] [cursor=pointer]:
-            - /url: /signin
-  - button "Open Next.js Dev Tools" [ref=e31] [cursor=pointer]:
-    - img [ref=e32]
-  - alert [ref=e35]
+      - generic [ref=e64]:
+        - button "Solo esenciales" [ref=e65] [cursor=pointer]
+        - button "Personalizar" [ref=e66] [cursor=pointer]:
+          - img [ref=e67]
+          - text: Personalizar
+        - button "Aceptar todo" [ref=e70] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e76] [cursor=pointer]:
+    - img [ref=e77]
+  - alert [ref=e80]
 ```

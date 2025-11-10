@@ -4,6 +4,7 @@
  */
 
 import posthog from "posthog-js";
+import { logger } from "./logger";
 
 let posthogInitialized = false;
 
@@ -15,7 +16,7 @@ export function initPostHog() {
   const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com";
 
   if (!apiKey) {
-    console.warn("[PostHog] API key not configured. Analytics disabled.");
+    logger.warn("[PostHog] API key not configured. Analytics disabled.");
     return;
   }
 
@@ -24,7 +25,7 @@ export function initPostHog() {
     loaded: (posthog) => {
       if (process.env.NODE_ENV === "development") {
         posthog.opt_out_capturing(); // Disable in development
-        console.log("[PostHog] Analytics disabled in development");
+        logger.debug("[PostHog] Analytics disabled in development");
       }
     },
     capture_pageview: false, // We'll manually capture pageviews
@@ -33,7 +34,7 @@ export function initPostHog() {
   });
 
   posthogInitialized = true;
-  console.log("[PostHog] Analytics initialized");
+  logger.debug("[PostHog] Analytics initialized");
 }
 
 export function identifyUser(userId: string, properties?: Record<string, unknown>) {

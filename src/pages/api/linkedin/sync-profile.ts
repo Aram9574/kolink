@@ -3,6 +3,7 @@
  * Actualiza datos del perfil usando los tokens almacenados.
  */
 
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import {
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .maybeSingle();
 
     if (profileError || !profileRow) {
-      console.error("[LinkedIn Sync] Profile fetch error:", profileError);
+      logger.error("[LinkedIn Sync] Profile fetch error:", profileError);
       return res.status(500).json({ error: "No se pudo obtener tu perfil" });
     }
 
@@ -71,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ? new Date(Date.now() + refreshed.expiresIn * 1000).toISOString()
           : null;
       } catch (refreshError) {
-        console.warn("[LinkedIn Sync] Refresh token failed:", refreshError);
+        logger.warn("[LinkedIn Sync] Refresh token failed:", refreshError);
       }
     }
 
@@ -99,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ success: true, profile });
   } catch (error) {
-    console.error("[LinkedIn Sync] Unexpected error:", error);
+    logger.error("[LinkedIn Sync] Unexpected error:", error);
     return res.status(500).json({ error: "Error al sincronizar con LinkedIn" });
   }
 }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '@/lib/supabase';
 import { verifyTOTP, verifyBackupCode, decryptSecret, checkRateLimit, recordAttempt, resetAttempts } from '@/lib/security/twoFactor';
@@ -139,7 +140,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       remainingBackupCodes: usedBackupCode ? (tfaSettings.backup_codes?.length || 0) - 1 : tfaSettings.backup_codes?.length || 0,
     });
   } catch (error) {
-    console.error('2FA verification error:', error);
+    logger.error('2FA verification error:', error);
     res.status(500).json({
       error: 'Failed to verify 2FA',
       message: error instanceof Error ? error.message : 'Unknown error'

@@ -1,6 +1,7 @@
 // src/lib/rateLimiter.ts
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { logger } from "./logger";
 
 // Redis setup with fallback
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL;
@@ -16,17 +17,17 @@ try {
       token: redisToken,
     });
     redisEnabled = true;
-    console.log("[RateLimiter] Redis connected");
+    logger.info("[RateLimiter] Redis connected");
   } else {
     // Fallback to in-memory (for development)
     redis = new Redis({
       url: "",
       token: "",
     });
-    console.warn("[RateLimiter] Redis not configured. Using in-memory fallback.");
+    logger.warn("[RateLimiter] Redis not configured. Using in-memory fallback.");
   }
 } catch (err) {
-  console.error("[RateLimiter] Redis initialization failed:", err);
+  logger.error("[RateLimiter] Redis initialization failed:", err);
   redis = new Redis({ url: "", token: "" });
 }
 

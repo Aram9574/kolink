@@ -1,6 +1,7 @@
 // Export modal for content downloads
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Download, FileText, Loader2 } from "lucide-react";
@@ -42,7 +43,7 @@ export default function ExportModal({ open, onOpenChange, content, title }: Expo
         toast.error("Error al descargar archivo");
       }
     } catch (error) {
-      console.error("Download error:", error);
+      logger.error("Download error:", error);
       toast.error("Error al descargar");
     } finally {
       setLoadingDownload(false);

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import type { Session } from "@supabase/supabase-js";
@@ -295,7 +296,7 @@ export default function CalendarPage() {
         }))
       );
     } catch (error) {
-      console.error("Error loading events:", error);
+      logger.error("Error loading events:", error);
       toast.error("Error al cargar eventos");
     }
   };
@@ -322,7 +323,7 @@ export default function CalendarPage() {
         setPatternMessage(data.message ?? "Comparte más contenido para recibir recomendaciones personalizadas.");
       }
     } catch (error) {
-      console.error("Engagement pattern error:", error);
+      logger.error("Engagement pattern error:", error);
       setBestTimes([]);
       setPatternMessage("No pudimos calcular el mejor horario ahora mismo.");
     } finally {
@@ -345,7 +346,7 @@ export default function CalendarPage() {
       if (error) throw error;
       setPosts(data || []);
     } catch (error) {
-      console.error("Error loading posts:", error);
+      logger.error("Error loading posts:", error);
       toast.error("Error al cargar posts");
     } finally {
       setLoadingPosts(false);
@@ -394,7 +395,7 @@ export default function CalendarPage() {
         toast.error(data.error || "Error al programar");
       }
     } catch (error) {
-      console.error("Schedule error:", error);
+      logger.error("Schedule error:", error);
       toast.error("Error de conexión");
     } finally {
       setScheduling(false);
@@ -469,7 +470,7 @@ export default function CalendarPage() {
         fetchBestTimes(session.access_token);
       }
     } catch (error) {
-      console.error("Update event error:", error);
+      logger.error("Update event error:", error);
       toast.error("No se pudo reprogramar el evento");
     } finally {
       setUpdatingEvent(false);

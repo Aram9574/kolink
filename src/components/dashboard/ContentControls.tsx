@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sliders, Info } from "lucide-react";
-import { Tooltip } from "@/components/ui/Tooltip";
+import { Tooltip } from "@/components/ui/tooltip-legacy";
 
 type ContentControlsProps = {
   tone: string;

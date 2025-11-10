@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 
@@ -82,7 +83,7 @@ export default async function handler(
     });
 
     if (logError) {
-      console.error("Failed to log admin action:", logError);
+      logger.error("Failed to log admin action:", logError);
     }
 
     // Delete from auth.users (this will cascade to profiles and related tables)
@@ -92,7 +93,7 @@ export default async function handler(
 
     if (deleteAuthError) {
       // If auth deletion fails, try deleting from profiles table
-      console.error("Failed to delete from auth:", deleteAuthError);
+      logger.error("Failed to delete from auth:", deleteAuthError);
 
       const { error: deleteProfileError } = await supabase
         .from("profiles")
@@ -106,7 +107,7 @@ export default async function handler(
 
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error("Admin delete-user error:", error);
+    logger.error("Admin delete-user error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

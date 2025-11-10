@@ -2,34 +2,58 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - main [ref=e3]:
-    - generic [ref=e4]:
-      - generic [ref=e5]:
-        - link "K" [ref=e6] [cursor=pointer]:
-          - /url: /
-        - generic [ref=e7]:
-          - heading "Bienvenido de nuevo a Kolink" [level=1] [ref=e8]
-          - paragraph [ref=e9]: Inicia sesión para seguir creando contenido que conecta en LinkedIn.
-      - generic [ref=e10]:
-        - generic [ref=e11]:
-          - generic [ref=e12]:
-            - text: Correo electrónico
-            - textbox "Correo electrónico" [ref=e13]:
-              - /placeholder: nombre@empresa.com
-          - generic [ref=e14]:
-            - text: Contraseña
-            - textbox "Contraseña" [ref=e15]:
-              - /placeholder: Ingresa tu contraseña
-          - button "Iniciar sesión" [ref=e16] [cursor=pointer]
-        - paragraph [ref=e17]:
-          - text: ¿Necesitas ayuda? Escríbenos a
-          - link "info@kolink.es" [ref=e18] [cursor=pointer]:
-            - /url: mailto:info@kolink.es
-        - paragraph [ref=e19]:
-          - text: ¿Aún no tienes cuenta?
-          - link "Regístrate" [ref=e20] [cursor=pointer]:
-            - /url: /signup
-  - button "Open Next.js Dev Tools" [ref=e26] [cursor=pointer]:
-    - img [ref=e27]
-  - alert [ref=e30]: Inicia sesión | KOLINK
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "K" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e7]:
+            - heading "Bienvenido de nuevo a Kolink" [level=1] [ref=e8]
+            - paragraph [ref=e9]: Inicia sesión para seguir creando contenido que conecta en LinkedIn.
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]:
+              - text: Correo electrónico
+              - textbox "Correo electrónico" [ref=e13]:
+                - /placeholder: nombre@empresa.com
+            - generic [ref=e14]:
+              - generic [ref=e15]:
+                - generic [ref=e16]: Contraseña
+                - link "¿Olvidaste tu contraseña?" [ref=e17] [cursor=pointer]:
+                  - /url: /forgot-password
+              - textbox "Contraseña" [ref=e18]:
+                - /placeholder: Ingresa tu contraseña
+            - button "Iniciar sesión" [ref=e19] [cursor=pointer]
+          - paragraph [ref=e20]:
+            - text: ¿Necesitas ayuda? Escríbenos a
+            - link "info@kolink.es" [ref=e21] [cursor=pointer]:
+              - /url: mailto:info@kolink.es
+          - paragraph [ref=e22]:
+            - text: ¿Aún no tienes cuenta?
+            - link "Regístrate" [ref=e23] [cursor=pointer]:
+              - /url: /signup
+    - button "Reportar bug / sugerencia" [ref=e24] [cursor=pointer]:
+      - img [ref=e25]
+      - text: Reportar bug / sugerencia
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - heading "Tu privacidad en Kolink" [level=2] [ref=e31]
+        - paragraph [ref=e32]:
+          - text: Usamos cookies esenciales para que la plataforma funcione. Activa opcionalmente analíticas para ayudarnos a mejorar tu experiencia. Lee nuestra
+          - link "política de cookies" [ref=e33] [cursor=pointer]:
+            - /url: /legal/cookies
+          - text: "y"
+          - link "política de privacidad" [ref=e34] [cursor=pointer]:
+            - /url: /legal/privacidad
+          - text: .
+      - generic [ref=e35]:
+        - button "Solo esenciales" [ref=e36] [cursor=pointer]
+        - button "Personalizar" [ref=e37] [cursor=pointer]:
+          - img [ref=e38]
+          - text: Personalizar
+        - button "Aceptar todo" [ref=e41] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e47] [cursor=pointer]:
+    - img [ref=e48]
+  - alert [ref=e51]: Inicia sesión | KOLINK
 ```

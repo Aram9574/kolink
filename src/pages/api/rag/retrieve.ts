@@ -24,6 +24,7 @@ import type {
   SimilarPost,
 } from '@/types/personalization';
 import crypto from 'crypto';
+import { logger } from '@/lib/logger';
 
 // Inicializar cliente de Supabase
 const supabase = createClient(
@@ -78,7 +79,7 @@ export default async function handler(
     const topKViral = Math.min(body.top_k_viral ?? 5, 20); // Máximo 20
     const useCache = body.use_cache ?? true;
 
-    console.log(`[RAG Retrieve] Usuario ${userId} buscando: "${topic}"`);
+    logger.debug(`[RAG Retrieve] Usuario ${userId} buscando: "${topic}"`);
 
     // 3. GENERAR HASH DEL QUERY PARA CACHÉ
     const queryString = `${userId}:${topic}:${intent ?? 'all'}`;
@@ -98,7 +99,7 @@ export default async function handler(
         const cacheAgeHours = cacheAge / (1000 * 60 * 60);
 
         if (cacheAgeHours < CACHE_DURATION_HOURS) {
-          console.log(`[RAG Retrieve] Cache hit para query hash ${queryHash}`);
+          logger.debug(`[RAG Retrieve] Cache hit para query hash ${queryHash}`);
 
           // Recuperar posts completos desde caché
           const userPosts = await fetchPostsByIds(cachedResult.top_user_posts, 'user');
@@ -126,9 +127,9 @@ export default async function handler(
 
     try {
       queryEmbedding = await generateEmbedding(topic);
-      console.log(`[RAG Retrieve] Embedding generado (${queryEmbedding.length} dimensiones)`);
+      logger.debug(`[RAG Retrieve] Embedding generado (${queryEmbedding.length} dimensiones)`);
     } catch (embeddingError) {
-      console.error('[RAG Retrieve] Error al generar embedding:', embeddingError);
+      logger.error('[RAG Retrieve] Error al generar embedding:', embeddingError);
       const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
       return res.status(500).json({
         error: `Error al generar embedding: ${errorMessage}`,
@@ -147,7 +148,7 @@ export default async function handler(
     );
 
     if (userError) {
-      console.error('[RAG Retrieve] Error en búsqueda de posts de usuario:', userError);
+      logger.error('[RAG Retrieve] Error en búsqueda de posts de usuario:', userError);
     }
 
     const userPosts: SimilarPost[] = (userPostsData ?? []).map((row: Record<string, unknown>) => ({
@@ -157,7 +158,7 @@ export default async function handler(
       type: 'user' as const,
     }));
 
-    console.log(`[RAG Retrieve] ${userPosts.length} posts de usuario encontrados`);
+    logger.debug(`[RAG Retrieve] ${userPosts.length} posts de usuario encontrados`);
 
     // 7. BUSCAR POSTS VIRALES SIMILARES
     // Usa la función SQL search_similar_viral_posts
@@ -171,7 +172,7 @@ export default async function handler(
     );
 
     if (viralError) {
-      console.error('[RAG Retrieve] Error en búsqueda de posts virales:', viralError);
+      logger.error('[RAG Retrieve] Error en búsqueda de posts virales:', viralError);
     }
 
     const viralPosts: SimilarPost[] = (viralPostsData ?? []).map((row: Record<string, unknown>) => ({
@@ -182,7 +183,7 @@ export default async function handler(
       type: 'viral' as const,
     }));
 
-    console.log(`[RAG Retrieve] ${viralPosts.length} posts virales encontrados`);
+    logger.debug(`[RAG Retrieve] ${viralPosts.length} posts virales encontrados`);
 
     // 8. GUARDAR EN CACHÉ PARA FUTURAS CONSULTAS
     if (useCache && (userPosts.length > 0 || viralPosts.length > 0)) {
@@ -206,7 +207,7 @@ export default async function handler(
           }
         );
 
-      console.log(`[RAG Retrieve] Resultado guardado en caché`);
+      logger.debug(`[RAG Retrieve] Resultado guardado en caché`);
     }
 
     // 9. RETORNAR RESULTADOS
@@ -220,7 +221,7 @@ export default async function handler(
 
     return res.status(200).json(response);
   } catch (error) {
-    console.error('[RAG Retrieve] Error inesperado:', error);
+    logger.error('[RAG Retrieve] Error inesperado:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       error: `Error interno del servidor: ${errorMessage}`,
@@ -247,7 +248,7 @@ async function fetchPostsByIds(
       .in('id', ids);
 
     if (error || !data) {
-      console.error('[fetchPostsByIds] Error al recuperar posts de usuario:', error);
+      logger.error('[fetchPostsByIds] Error al recuperar posts de usuario:', error);
       return [];
     }
 
@@ -266,7 +267,7 @@ async function fetchPostsByIds(
       .eq('is_active', true);
 
     if (error || !data) {
-      console.error('[fetchPostsByIds] Error al recuperar posts virales:', error);
+      logger.error('[fetchPostsByIds] Error al recuperar posts virales:', error);
       return [];
     }
 

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
+import { logger } from '@/lib/logger';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -70,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       cancel_at_period_end: true,
     });
 
-    console.log(
+    logger.debug(
       `✅ Subscription ${subscription.id} marked for cancellation at period end for user ${user.id}`
     );
 
@@ -79,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: "Subscription will be canceled at the end of the billing period",
     });
   } catch (error) {
-    console.error("Error canceling subscription:", error);
+    logger.error("Error canceling subscription:", error);
     return res.status(500).json({ error: "Failed to cancel subscription" });
   }
 }

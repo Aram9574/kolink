@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { logger } from '@/lib/logger';
+
 import { supabaseClient } from "@/lib/supabaseClient";
 
 type Theme = "light" | "dark";
@@ -73,7 +75,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         .eq("id", userId)
         .then(({ error }) => {
           if (error) {
-            console.error("[ThemeProvider] Failed to persist theme preference", error);
+            logger.error("[ThemeProvider] Failed to persist theme preference", error);
           }
         });
     }
@@ -106,7 +108,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       if (error) {
-        console.error("[ThemeProvider] Failed to load user theme preference", error);
+        logger.error("[ThemeProvider] Failed to load user theme preference", error);
         return;
       }
 

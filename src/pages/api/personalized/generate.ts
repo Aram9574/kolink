@@ -21,6 +21,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { generateEmbedding } from '@/lib/ai/embeddings';
 import { generateLinkedInPost } from '@/lib/ai/generation';
+import { logger } from '@/lib/logger';
 import type {
   GenerateContentRequest,
   GenerateContentResponse,
@@ -86,7 +87,7 @@ export default async function handler(
     const topKUser = Math.min(body.top_k_user ?? 3, 10);
     const topKViral = Math.min(body.top_k_viral ?? 5, 20);
 
-    console.log(`[Generate] Usuario ${userId} | Topic: "${topic}" | Intent: "${intent}"`);
+    logger.debug(`[Generate] Usuario ${userId} | Topic: "${topic}" | Intent: "${intent}"`);
 
     // 3. VERIFICAR QUE EL USUARIO TENGA CRÉDITOS
     // (Integración con el sistema de créditos existente)
@@ -108,7 +109,7 @@ export default async function handler(
       });
     }
 
-    console.log(`[Generate] Usuario tiene ${profile.credits} créditos`);
+    logger.debug(`[Generate] Usuario tiene ${profile.credits} créditos`);
 
     // 4. GENERAR EMBEDDING DEL TOPIC
     let queryEmbedding: number[];
@@ -116,7 +117,7 @@ export default async function handler(
     try {
       queryEmbedding = await generateEmbedding(topic);
     } catch (embeddingError) {
-      console.error('[Generate] Error al generar embedding:', embeddingError);
+      logger.error('[Generate] Error al generar embedding:', embeddingError);
       const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
       return res.status(500).json({
         error: `Error al procesar el tema: ${errorMessage}`,
@@ -137,7 +138,7 @@ export default async function handler(
       type: 'user' as const,
     }));
 
-    console.log(`[Generate] Recuperados ${userPosts.length} posts de usuario`);
+    logger.debug(`[Generate] Recuperados ${userPosts.length} posts de usuario`);
 
     // 6. RECUPERAR POSTS VIRALES SIMILARES
     const { data: viralPostsData } = await supabase.rpc('search_similar_viral_posts', {
@@ -154,7 +155,7 @@ export default async function handler(
       type: 'viral' as const,
     }));
 
-    console.log(`[Generate] Recuperados ${viralPosts.length} posts virales`);
+    logger.debug(`[Generate] Recuperados ${viralPosts.length} posts virales`);
 
     // Si no hay ejemplos virales, usar posts virales generales del mismo intent
     if (viralPosts.length === 0) {
@@ -200,9 +201,9 @@ export default async function handler(
       variantA = generation.variantA;
       variantB = generation.variantB;
 
-      console.log(`[Generate] Variantes generadas exitosamente`);
+      logger.debug(`[Generate] Variantes generadas exitosamente`);
     } catch (generationError) {
-      console.error('[Generate] Error al generar contenido:', generationError);
+      logger.error('[Generate] Error al generar contenido:', generationError);
       const errorMessage = generationError instanceof Error ? generationError.message : 'Unknown error';
       return res.status(500).json({
         error: `Error al generar contenido: ${errorMessage}`,
@@ -228,7 +229,7 @@ export default async function handler(
       .single();
 
     if (saveError || !generationRecord) {
-      console.error('[Generate] Error al guardar generación:', saveError);
+      logger.error('[Generate] Error al guardar generación:', saveError);
       // No fallar si no se puede guardar, retornar contenido de todos modos
     }
 
@@ -239,12 +240,12 @@ export default async function handler(
       .eq('id', userId);
 
     if (creditError) {
-      console.error('[Generate] Error al descontar crédito:', creditError);
+      logger.error('[Generate] Error al descontar crédito:', creditError);
       // No fallar si no se puede descontar
     }
 
     const duration = Date.now() - startTime;
-    console.log(`[Generate] Completado en ${duration}ms | Créditos restantes: ${profile.credits - 1}`);
+    logger.debug(`[Generate] Completado en ${duration}ms | Créditos restantes: ${profile.credits - 1}`);
 
     // 10. RETORNAR RESPUESTA
     const response: GenerateContentResponse = {
@@ -259,7 +260,7 @@ export default async function handler(
 
     return res.status(200).json(response);
   } catch (error) {
-    console.error('[Generate] Error inesperado:', error);
+    logger.error('[Generate] Error inesperado:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       error: `Error interno del servidor: ${errorMessage}`,

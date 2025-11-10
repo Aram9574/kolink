@@ -7,6 +7,7 @@
 
 'use client';
 
+import { logger } from '@/lib/logger';
 import { useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabaseClient } from '@/lib/supabaseClient';
@@ -94,7 +95,7 @@ export default function PersonalizedGenerator({ session, onGenerated }: Personal
       }
 
     } catch (error) {
-      console.error('Error generating content:', error);
+      logger.error('Error generating content:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error al generar contenido';
       toast.error(errorMessage);
     } finally {

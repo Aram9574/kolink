@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -226,7 +227,7 @@ export default function Profile({ session }: ProfileProps) {
         .single();
 
       if (error) {
-        console.error("Error loading profile:", error);
+        logger.error("Error loading profile:", error);
         toast.error("Error al cargar el perfil");
         return;
       }
@@ -254,7 +255,7 @@ export default function Profile({ session }: ProfileProps) {
         .eq("id", session.user.id);
 
       if (error) {
-        console.error("Error saving workspace name:", error);
+        logger.error("Error saving workspace name:", error);
         toast.error("Error al guardar");
       } else {
         toast.success("Cambios guardados");
@@ -263,7 +264,7 @@ export default function Profile({ session }: ProfileProps) {
         }
       }
     } catch (error) {
-      console.error("Error:", error);
+      logger.error("Error:", error);
       toast.error("Error al guardar");
     }
   };
@@ -279,7 +280,7 @@ export default function Profile({ session }: ProfileProps) {
         .eq("id", session.user.id);
 
       if (error) {
-        console.error("Error saving language:", error);
+        logger.error("Error saving language:", error);
         toast.error("Error al guardar el idioma");
       } else {
         toast.success("Idioma actualizado correctamente");
@@ -304,7 +305,7 @@ export default function Profile({ session }: ProfileProps) {
         .eq("id", session.user.id);
 
       if (error) {
-        console.error("Error saving timezone:", error);
+        logger.error("Error saving timezone:", error);
         toast.error("Error al guardar la zona horaria");
       } else {
         toast.success("Zona horaria actualizada correctamente");
@@ -386,7 +387,7 @@ export default function Profile({ session }: ProfileProps) {
 
       toast.success("Datos exportados correctamente");
     } catch (error) {
-      console.error("Error exporting data:", error);
+      logger.error("Error exporting data:", error);
       toast.error("Error al exportar datos");
     } finally {
       setExportingData(false);
@@ -413,7 +414,7 @@ export default function Profile({ session }: ProfileProps) {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error("Error starting LinkedIn OAuth:", error);
+      logger.error("Error starting LinkedIn OAuth:", error);
       toast.error("No se pudo iniciar la conexión con LinkedIn");
     }
   };
@@ -445,7 +446,7 @@ export default function Profile({ session }: ProfileProps) {
       toast.success("Perfil de LinkedIn sincronizado");
       await loadProfile();
     } catch (error) {
-      console.error("Error syncing LinkedIn profile:", error);
+      logger.error("Error syncing LinkedIn profile:", error);
       toast.error("No se pudo sincronizar con LinkedIn");
     } finally {
       setSyncingLinkedIn(false);
@@ -480,7 +481,7 @@ export default function Profile({ session }: ProfileProps) {
       setShowDisconnectModal(false);
       await loadProfile();
     } catch (error) {
-      console.error("Error disconnecting LinkedIn:", error);
+      logger.error("Error disconnecting LinkedIn:", error);
       toast.error("No se pudo desconectar LinkedIn");
     } finally {
       setDisconnectingLinkedIn(false);
@@ -506,7 +507,7 @@ export default function Profile({ session }: ProfileProps) {
         setSubscriptionInfo(data);
       }
     } catch (error) {
-      console.error("Error loading subscription:", error);
+      logger.error("Error loading subscription:", error);
     } finally {
       setLoadingSubscription(false);
     }
@@ -538,7 +539,7 @@ export default function Profile({ session }: ProfileProps) {
         toast.error(data.error || "No se pudo cancelar la suscripción");
       }
     } catch (error) {
-      console.error("Error canceling subscription:", error);
+      logger.error("Error canceling subscription:", error);
       toast.error("Error al cancelar la suscripción");
     } finally {
       setCancelingSubscription(false);

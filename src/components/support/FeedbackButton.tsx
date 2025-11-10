@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useEffect, useMemo, useState } from "react";
 import { MessageCircleMore, Send } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -81,7 +82,7 @@ export default function FeedbackButton() {
       setOpen(false);
       notifySuccess("¡Gracias! Nuestro equipo revisará tu comentario muy pronto.");
     } catch (error) {
-      console.error("[FeedbackButton] Failed to submit feedback", error);
+      logger.error("[FeedbackButton] Failed to submit feedback", error);
       notifyError(error instanceof Error ? error.message : "Error inesperado al enviar el formulario.");
     } finally {
       setSubmitting(false);

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, useEffect, type FormEvent } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -69,7 +70,7 @@ export default function ResetPasswordPage() {
         setError(result.error || "Error al restablecer la contraseña");
       }
     } catch (error) {
-      console.error("Password reset error:", error);
+      logger.error("Password reset error:", error);
       setError("Error al restablecer la contraseña");
     } finally {
       setLoading(false);

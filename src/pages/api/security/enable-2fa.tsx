@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import React from "react";
 import { supabase } from "@/lib/supabase";
@@ -68,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (alertError) {
-      console.error("Error registrando alerta de seguridad (2FA):", alertError);
+      logger.error("Error registrando alerta de seguridad (2FA):", alertError);
     }
 
     try {
@@ -82,12 +83,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         />,
       });
     } catch (emailError) {
-      console.error("Error enviando correo de 2FA activado:", emailError);
+      logger.error("Error enviando correo de 2FA activado:", emailError);
     }
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Enable 2FA error:", error);
+    logger.error("Enable 2FA error:", error);
     return res.status(500).json({
       error: "No se pudo activar la autenticación en dos pasos",
     });

@@ -3,6 +3,7 @@ import { getResendClient, FROM_EMAIL } from "@/lib/resend";
 import { supabaseClient } from "@/lib/supabaseClient";
 import fs from "fs/promises";
 import path from "path";
+import { logger } from '@/lib/logger';
 
 /**
  * Replaces template variables in HTML string
@@ -48,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
 
     if (profileError || !profile) {
-      console.error("Error fetching profile:", profileError);
+      logger.error("Error fetching profile:", profileError);
       return res.status(404).json({ error: "User profile not found" });
     }
 
@@ -77,11 +78,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (result.error) {
-      console.error("Resend error:", result.error);
+      logger.error("Resend error:", result.error);
       return res.status(500).json({ error: "Failed to send email", details: result.error });
     }
 
-    console.log(`Welcome email sent to ${profile.email} (${userId})`);
+    logger.debug(`Welcome email sent to ${profile.email} (${userId})`);
 
     return res.status(200).json({
       success: true,
@@ -89,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: "Welcome email sent successfully",
     });
   } catch (error) {
-    console.error("Welcome email webhook error:", error);
+    logger.error("Welcome email webhook error:", error);
     return res.status(500).json({
       error: "Internal server error",
       message: error instanceof Error ? error.message : "Unknown error",

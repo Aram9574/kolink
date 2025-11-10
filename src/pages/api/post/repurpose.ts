@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { repurposePost } from "@/server/services/writerService";
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (error) {
-    console.error("❌ Error en rate limiter:", error);
+    logger.error("❌ Error en rate limiter:", error);
     // Continue without rate limiting if error
   }
 
@@ -71,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       recommendations: result.recommendations,
     });
   } catch (error) {
-    console.error("[api/post/repurpose] Error:", error);
+    logger.error("[api/post/repurpose] Error:", error);
     return res.status(500).json({ ok: false, error: (error as Error).message });
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import type { Session } from "@supabase/supabase-js";
@@ -338,7 +339,7 @@ export default function InspirationPage() {
         toast.error(data.error || "Error al buscar inspiración");
       }
     } catch (error) {
-      console.error("Search error:", error);
+      logger.error("Search error:", error);
       toast.error("Error de conexión");
     } finally {
       setSearching(false);
@@ -418,7 +419,7 @@ export default function InspirationPage() {
         toast.error(data.error || "Error al guardar");
       }
     } catch (error) {
-      console.error("Save error:", error);
+      logger.error("Save error:", error);
       toast.error("Error al guardar");
     }
   };
@@ -443,7 +444,7 @@ export default function InspirationPage() {
         setSavedSearches(sanitized);
       }
     } catch (error) {
-      console.error("Load searches error:", error);
+      logger.error("Load searches error:", error);
     }
   };
 
@@ -496,7 +497,7 @@ export default function InspirationPage() {
         toast.error(data.error || "Error al guardar búsqueda");
       }
     } catch (error) {
-      console.error("Save search error:", error);
+      logger.error("Save search error:", error);
       toast.error("Error al guardar búsqueda");
     }
   };
@@ -550,7 +551,7 @@ export default function InspirationPage() {
         toast.error(data.error || "Error al eliminar");
       }
     } catch (error) {
-      console.error("Delete search error:", error);
+      logger.error("Delete search error:", error);
       toast.error("Error al eliminar");
     }
   };
@@ -566,7 +567,7 @@ export default function InspirationPage() {
       toast.success("Idea enviada a tu editor. Redirigiendo al estudio creativo...");
       router.push("/dashboard");
     } catch (error) {
-      console.error("Use idea error:", error);
+      logger.error("Use idea error:", error);
       toast.error("No se pudo enviar la idea al editor");
     }
   };

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import Button from "./Button";
 import { Textarea } from "./ui/textarea";
@@ -175,7 +176,7 @@ export default function EditorAI({
     };
 
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event);
+      logger.error("Speech recognition error:", event);
       setIsListening(false);
       toast.error(language === 'es-ES' ? "Error en reconocimiento de voz" : language === 'en-US' ? "Voice recognition error" : "Erro no reconhecimento de voz");
     };
@@ -221,7 +222,7 @@ export default function EditorAI({
         );
       }
     } catch (error) {
-      console.error("Speech recognition toggle error:", error);
+      logger.error("Speech recognition toggle error:", error);
       toast.error(language === 'es-ES' ? "No se pudo iniciar el reconocimiento" : language === 'en-US' ? "Could not start recognition" : "Não foi possível iniciar o reconhecimento");
       setIsListening(false);
     }
@@ -286,7 +287,7 @@ export default function EditorAI({
     try {
       await onGenerate();
     } catch (error) {
-      console.error("Generate action error:", error);
+      logger.error("Generate action error:", error);
       const message =
         language === 'es-ES'
           ? "No se pudo iniciar la generación"

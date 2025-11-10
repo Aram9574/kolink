@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { generateCacheKey, withCache } from "@/lib/redis";
 import { openai } from "@/lib/openai";
@@ -52,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     supabase = getSupabaseServerClient(token);
   } catch (error) {
-    console.error("[api/inspiration/search] Supabase initialization error:", error);
+    logger.error("[api/inspiration/search] Supabase initialization error:", error);
     return res.status(500).json({ error: "Configuración de Supabase inválida" });
   }
 
@@ -62,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } = await supabase.auth.getUser(token);
 
   if (userError) {
-    console.error("[api/inspiration/search] Error autenticando usuario:", userError);
+    logger.error("[api/inspiration/search] Error autenticando usuario:", userError);
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
@@ -82,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (error) {
-    console.error("❌ Error en rate limiter:", error);
+    logger.error("❌ Error en rate limiter:", error);
     // Continuar sin rate limiting si hay error
   }
 
@@ -165,10 +166,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }));
             }
 
-            console.warn("[api/inspiration/search] RPC function not found, falling back to text search");
+            logger.warn("[api/inspiration/search] RPC function not found, falling back to text search");
           }
         } catch (embeddingError) {
-          console.error("[api/inspiration/search] Embedding error:", embeddingError);
+          logger.error("[api/inspiration/search] Embedding error:", embeddingError);
           // Fall through to text search
         }
       }
@@ -198,7 +199,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data, error } = await queryBuilder;
 
       if (error) {
-        console.error("[api/inspiration/search] Error:", error);
+        logger.error("[api/inspiration/search] Error:", error);
         throw error;
       }
 
@@ -222,7 +223,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       cached: true, // Indicates if result was from cache
     });
   } catch (error) {
-    console.error("[api/inspiration/search] Error:", error);
+    logger.error("[api/inspiration/search] Error:", error);
     return res.status(500).json({ error: "No se pudieron obtener resultados" });
   }
 }

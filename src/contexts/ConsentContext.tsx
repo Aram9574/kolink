@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { logger } from '@/lib/logger';
+
 import { supabaseClient } from "@/lib/supabaseClient";
 import { initPostHog, resetUser as resetPostHog, setAnalyticsOptInState } from "@/lib/posthog";
 
@@ -41,7 +43,7 @@ async function fetchProfileFeatures(userId: string) {
     .maybeSingle();
 
   if (error) {
-    console.error("[ConsentProvider] Failed to load profile features", error);
+    logger.error("[ConsentProvider] Failed to load profile features", error);
     return null;
   }
 
@@ -72,10 +74,10 @@ async function persistConsentToProfile(userId: string, consent: StoredConsent) {
       .eq("id", userId);
 
     if (error) {
-      console.error("[ConsentProvider] Failed to persist consent to profile", error);
+      logger.error("[ConsentProvider] Failed to persist consent to profile", error);
     }
   } catch (error) {
-    console.error("[ConsentProvider] Unexpected error persisting consent", error);
+    logger.error("[ConsentProvider] Unexpected error persisting consent", error);
   }
 }
 
@@ -93,7 +95,7 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
         restored = JSON.parse(storedValue) as StoredConsent;
       }
     } catch (error) {
-      console.error("[ConsentProvider] Failed to parse stored consent", error);
+      logger.error("[ConsentProvider] Failed to parse stored consent", error);
     }
 
     if (restored) {
@@ -142,7 +144,7 @@ export function ConsentProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     } catch (error) {
-      console.error("[ConsentProvider] Failed to persist consent locally", error);
+      logger.error("[ConsentProvider] Failed to persist consent locally", error);
     }
 
     if (userId) {

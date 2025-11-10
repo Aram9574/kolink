@@ -1,4 +1,6 @@
 import { openai } from "@/lib/openai";
+import { logger } from '@/lib/logger';
+
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { buildGenerationPrompt, buildRepurposePrompt, type PromptMetadata } from "@/utils/prompts";
 import { viralScore, type ViralScoreResult } from "@/utils/scoring";
@@ -131,7 +133,7 @@ ${payload.toneProfile ? `\nTono del usuario: ${payload.toneProfile}` : ''}`;
     .single();
 
   if (insertError) {
-    console.error("[writerService] Error al guardar post:", insertError);
+    logger.error("[writerService] Error al guardar post:", insertError);
     throw insertError;
   }
 
@@ -142,7 +144,7 @@ ${payload.toneProfile ? `\nTono del usuario: ${payload.toneProfile}` : ''}`;
     .eq("id", payload.userId);
 
   if (updateError) {
-    console.error("[writerService] Error al actualizar créditos:", updateError);
+    logger.error("[writerService] Error al actualizar créditos:", updateError);
     throw updateError;
   }
 
@@ -193,7 +195,7 @@ export async function repurposePost(input: RepurposeInput): Promise<GenerationRe
     .maybeSingle();
 
   if (postError) {
-    console.error("[writerService] Error fetching original post:", postError);
+    logger.error("[writerService] Error fetching original post:", postError);
     throw postError;
   }
 
@@ -270,7 +272,7 @@ export async function repurposePost(input: RepurposeInput): Promise<GenerationRe
     .single();
 
   if (insertError) {
-    console.error("[writerService] Error al guardar post reformulado:", insertError);
+    logger.error("[writerService] Error al guardar post reformulado:", insertError);
     throw insertError;
   }
 
@@ -327,7 +329,7 @@ async function createEmbedding(text: string) {
     });
     return response.data[0]?.embedding ?? null;
   } catch (error) {
-    console.error("[writerService] Error al generar embedding:", error);
+    logger.error("[writerService] Error al generar embedding:", error);
     return null;
   }
 }

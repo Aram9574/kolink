@@ -4,6 +4,7 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+import { logger } from "./logger";
 
 /**
  * Capture an error with context
@@ -13,7 +14,7 @@ export const captureError = (
   context?: Record<string, unknown>
 ) => {
   if (process.env.NODE_ENV === 'development') {
-    console.error('Error:', error, 'Context:', context);
+    logger.error('Error captured:', error, context);
     return;
   }
 
@@ -31,7 +32,7 @@ export const captureMessage = (
   context?: Record<string, unknown>
 ) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[${level.toUpperCase()}] ${message}`, context);
+    logger.info(`[${level.toUpperCase()}] ${message}`, context);
     return;
   }
 

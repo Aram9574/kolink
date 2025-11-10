@@ -14,6 +14,8 @@ import Sidebar from "@/components/Sidebar";
 import FeedbackButton from "@/components/support/FeedbackButton";
 import OnboardingTour from "@/components/onboarding/OnboardingTour";
 import CookieBanner from "@/components/compliance/CookieBanner";
+import { Analytics } from "@vercel/analytics/react";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function App({ Component, pageProps }: AppProps) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
@@ -76,31 +78,34 @@ export default function App({ Component, pageProps }: AppProps) {
   const userId = session?.user?.id ?? null;
 
   return (
-    <ThemeProvider>
-      <ConsentProvider>
-        <LanguageProvider userId={userId}>
-          <NotificationProvider>
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                style: {
-                  background: "var(--background)",
-                  color: "var(--foreground)",
-                  borderRadius: "0.75rem",
-                  border: "1px solid var(--border)",
-                  fontSize: "14px",
-                  padding: "12px 16px",
-                },
-              }}
-            />
-            {showSidebar && <Sidebar session={session} />}
-            <Component {...pageProps} session={session} />
-            <OnboardingTour userId={userId} />
-            <FeedbackButton />
-            <CookieBanner />
-          </NotificationProvider>
-        </LanguageProvider>
-      </ConsentProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ConsentProvider>
+          <LanguageProvider userId={userId}>
+            <NotificationProvider>
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  style: {
+                    background: "var(--background)",
+                    color: "var(--foreground)",
+                    borderRadius: "0.75rem",
+                    border: "1px solid var(--border)",
+                    fontSize: "14px",
+                    padding: "12px 16px",
+                  },
+                }}
+              />
+              {showSidebar && <Sidebar session={session} />}
+              <Component {...pageProps} session={session} />
+              <OnboardingTour userId={userId} />
+              <FeedbackButton />
+              <CookieBanner />
+              <Analytics />
+            </NotificationProvider>
+          </LanguageProvider>
+        </ConsentProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

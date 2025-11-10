@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { limiter } from "@/lib/rateLimiter";
@@ -41,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (error) {
-    console.error("❌ Error en rate limiter:", error);
+    logger.error("❌ Error en rate limiter:", error);
     // Continuar sin rate limiting si hay error
   }
 
@@ -88,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } catch (error) {
-    console.error("[api/calendar/schedule] Error:", error);
+    logger.error("[api/calendar/schedule] Error:", error);
     return res.status(500).json({ ok: false, error: (error as Error).message });
   }
 }
@@ -134,7 +135,7 @@ async function computeRecommendationWithAnalytics(
       };
     }
   } catch (error) {
-    console.error("Error analyzing historical data:", error);
+    logger.error("Error analyzing historical data:", error);
   }
 
   // Fallback to default recommendation

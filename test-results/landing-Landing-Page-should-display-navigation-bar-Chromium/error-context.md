@@ -2,270 +2,866 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - generic [ref=e3]:
-    - banner [ref=e4]:
-      - navigation "Main" [ref=e5]:
-        - link "KOLINK" [ref=e6] [cursor=pointer]:
-          - /url: /
-        - navigation [ref=e7]:
-          - link "Home" [ref=e8] [cursor=pointer]:
-            - /url: /#top
-          - link "Benefits" [ref=e9] [cursor=pointer]:
-            - /url: /#benefits
-          - link "Success" [ref=e10] [cursor=pointer]:
-            - /url: /#comparison
-          - link "Features" [ref=e11] [cursor=pointer]:
-            - /url: /#features
-          - link "Pricing" [ref=e12] [cursor=pointer]:
-            - /url: /#pricing
-          - link "Reviews" [ref=e13] [cursor=pointer]:
-            - /url: /#reviews
-          - link "About" [ref=e14] [cursor=pointer]:
-            - /url: /#about
-          - link "FAQ" [ref=e15] [cursor=pointer]:
-            - /url: /#faq
-        - link "Login" [ref=e16] [cursor=pointer]:
-          - /url: /signin
-    - main [ref=e17]:
-      - generic [ref=e19]:
-        - generic [ref=e20]: Crece con IA + estrategia
-        - heading "Convierte LinkedIn en tu canal principal de crecimiento" [level=1] [ref=e21]
-        - paragraph [ref=e22]: Crea contenido consistente, analiza resultados en tiempo real y recibe feedback profesional sin salir de Kolink.
-        - generic [ref=e23]:
-          - button "Empieza gratis" [ref=e24] [cursor=pointer]
-          - button "Ver cómo funciona" [ref=e25] [cursor=pointer]
-        - generic [ref=e26]:
-          - generic [ref=e27]:
-            - paragraph [ref=e28]: “Publicamos 5 veces por semana y los leads se triplicaron”
-            - paragraph [ref=e29]: Marta · Head of Growth
-          - generic [ref=e30]:
-            - paragraph [ref=e31]: “13 000 impresiones en 48h replicando insights de Kolink”
-            - paragraph [ref=e32]: Iker · Consultant
-          - generic [ref=e33]:
-            - paragraph [ref=e34]: “La comunidad nos ayuda a iterar nuestra voz y mensaje”
-            - paragraph [ref=e35]: Paula · Founder
-      - generic [ref=e37]:
-        - paragraph [ref=e38]: Beneficios clave
-        - heading "Todo lo que necesitas para ganar en LinkedIn sin perder el foco en tu negocio" [level=2] [ref=e39]
-        - generic [ref=e40]:
-          - generic [ref=e41]:
-            - img [ref=e43]
-            - heading "Propuesta clara en minutos" [level=3] [ref=e46]
-            - paragraph [ref=e47]: Briefings guiados que transforman tus ideas en publicaciones con CTA listos para publicar.
-          - generic [ref=e48]:
-            - img [ref=e50]
-            - heading "Insights accionables" [level=3] [ref=e58]
-            - paragraph [ref=e59]: Detecta el mejor horario, tono y formato con dashboards que muestran qué funciona.
-          - generic [ref=e60]:
-            - img [ref=e62]
-            - heading "Seguimiento continuo" [level=3] [ref=e64]
-            - paragraph [ref=e65]: Recibe alertas cuando un post despega y replica la fórmula antes de que pase la ola.
-      - generic [ref=e69]:
-        - paragraph [ref=e70]: Comparativa real
-        - heading "Así evolucionan los creadores que implementan Kolink" [level=2] [ref=e71]
-        - generic [ref=e72]:
-          - generic [ref=e73]:
-            - paragraph [ref=e74]: Mes 1
-            - paragraph [ref=e75]: Antes
-            - paragraph [ref=e76]: 1.2K impresiones
-            - paragraph [ref=e77]: Después con Kolink
-            - paragraph [ref=e78]: 8.5K impresiones
-          - generic [ref=e79]:
-            - paragraph [ref=e80]: Mes 3
-            - paragraph [ref=e81]: Antes
-            - paragraph [ref=e82]: 3 leads
-            - paragraph [ref=e83]: Después con Kolink
-            - paragraph [ref=e84]: 27 leads
-          - generic [ref=e85]:
-            - paragraph [ref=e86]: Mes 6
-            - paragraph [ref=e87]: Antes
-            - paragraph [ref=e88]: Sin procesos
-            - paragraph [ref=e89]: Después con Kolink
-            - paragraph [ref=e90]: Calendario con 4 semanas de buffer
-      - generic [ref=e91]:
-        - heading "Todo lo que necesitas para ganar en LinkedIn" [level=2] [ref=e92]
-        - generic [ref=e93]:
-          - generic [ref=e95]:
-            - img [ref=e97]
-            - heading "Collab AI" [level=3] [ref=e102]
-            - paragraph [ref=e103]: Briefings inteligentes que generan variantes con tu tono de voz.
-          - generic [ref=e105]:
-            - img [ref=e107]
-            - heading "Analytics" [level=3] [ref=e109]
-            - paragraph [ref=e110]: Paneles que te dicen qué replicar, cuándo publicar y en qué formato.
-          - generic [ref=e112]:
-            - img [ref=e114]
-            - heading "Community" [level=3] [ref=e119]
-            - paragraph [ref=e120]: Acceso a masterminds mensuales con creadores que ya monetizan LinkedIn.
-          - generic [ref=e122]:
-            - img [ref=e124]
-            - heading "Trends" [level=3] [ref=e127]
-            - paragraph [ref=e128]: Curación diaria de tendencias y hooks que están funcionando en tu industria.
-          - generic [ref=e130]:
-            - img [ref=e132]
-            - heading "Strategy Sessions" [level=3] [ref=e134]
-            - paragraph [ref=e135]: Sesiones 1:1 con expertos para revisar contenido y objetivos.
-          - generic [ref=e137]:
-            - img [ref=e139]
-            - heading "Feedback Loop" [level=3] [ref=e141]
-            - paragraph [ref=e142]: Recibe comentarios accionables de coaches y de la comunidad.
-      - generic [ref=e144]:
-        - paragraph [ref=e145]: Pricing
-        - heading "Planes que escalan contigo" [level=2] [ref=e146]
-        - paragraph [ref=e147]: Facturación mensual o anual con dos meses gratis. Cancela cuando quieras.
-        - generic [ref=e148]:
-          - generic [ref=e149]: Monthly
-          - button [ref=e150] [cursor=pointer]
-          - generic [ref=e152]: Annual
-        - generic [ref=e153]:
-          - generic [ref=e154]:
-            - heading "Starter" [level=3] [ref=e155]
-            - paragraph [ref=e156]: Para creadores que arrancan su presencia semanal
-            - generic [ref=e157]:
-              - generic [ref=e158]: €49
-              - generic [ref=e159]: /mes
-            - list [ref=e160]:
-              - listitem [ref=e161]:
-                - generic [ref=e163]: 10 publicaciones IA al mes
-              - listitem [ref=e164]:
-                - generic [ref=e166]: Plantillas personalizadas
-              - listitem [ref=e167]:
-                - generic [ref=e169]: Panel de métricas esenciales
-            - button "Empieza prueba gratis" [ref=e170] [cursor=pointer]
-          - generic [ref=e171]:
-            - generic [ref=e172]: Most popular
-            - heading "Growth" [level=3] [ref=e173]
-            - paragraph [ref=e174]: El plan favorito de equipos de marketing B2B
-            - generic [ref=e175]:
-              - generic [ref=e176]: €89
-              - generic [ref=e177]: /mes
-            - list [ref=e178]:
-              - listitem [ref=e179]:
-                - generic [ref=e181]: 30 publicaciones IA
-              - listitem [ref=e182]:
-                - generic [ref=e184]: Workflows colaborativos
-              - listitem [ref=e185]:
-                - generic [ref=e187]: Insights de tendencias
-              - listitem [ref=e188]:
-                - generic [ref=e190]: Support prioritario
-            - button "Empieza prueba gratis" [ref=e191] [cursor=pointer]
-          - generic [ref=e192]:
-            - heading "Scale" [level=3] [ref=e193]
-            - paragraph [ref=e194]: Para organizaciones que requieren coordinación avanzada
-            - generic [ref=e195]:
-              - generic [ref=e196]: €139
-              - generic [ref=e197]: /mes
-            - list [ref=e198]:
-              - listitem [ref=e199]:
-                - generic [ref=e201]: 90 publicaciones IA
-              - listitem [ref=e202]:
-                - generic [ref=e204]: Strategy sessions 1:1
-              - listitem [ref=e205]:
-                - generic [ref=e207]: Integraciones CRM
-              - listitem [ref=e208]:
-                - generic [ref=e210]: Feedback experto semanal
-            - button "Empieza prueba gratis" [ref=e211] [cursor=pointer]
-      - generic [ref=e213]:
-        - paragraph [ref=e214]: Reviews
-        - heading "Historias reales de creadores Kolink" [level=2] [ref=e215]
-        - paragraph [ref=e216]: Pruebas sociales que avalan nuestra metodología y acompañamiento.
-        - generic [ref=e217]:
-          - generic [ref=e218]:
-            - article [ref=e219]:
-              - generic [ref=e220]:
-                - generic [ref=e221]:
-                  - generic [ref=e222]: P
-                  - generic [ref=e223]:
-                    - heading "Patricia Serrano" [level=3] [ref=e224]
-                    - paragraph [ref=e225]: CMO · SaaS B2B
-                - paragraph [ref=e226]: “Kolink nos dio un sistema. Pasamos de publicar una vez al mes a tener pipeline mensual y 3x en demos.”
-            - article [ref=e227]:
-              - generic [ref=e228]:
-                - generic [ref=e229]:
-                  - generic [ref=e230]: P
-                  - generic [ref=e231]:
-                    - heading "Pablo Muñoz" [level=3] [ref=e232]
-                    - paragraph [ref=e233]: Founder · Studio Growth
-                - paragraph [ref=e234]: “El feedback semanal y la comunidad cambiaron nuestra narrativa. LinkedIn ahora es nuestro principal canal de leads.”
-            - article [ref=e235]:
-              - generic [ref=e236]:
-                - generic [ref=e237]:
-                  - generic [ref=e238]: I
-                  - generic [ref=e239]:
-                    - heading "Isabella Ríos" [level=3] [ref=e240]
-                    - paragraph [ref=e241]: Consultora de marca personal
-                - paragraph [ref=e242]: “En 90 días, mis posts duplicaron el alcance y cada semana recibo solicitudes de sesiones 1:1.”
-          - generic [ref=e243]:
-            - button "Ver testimonio 1" [ref=e244] [cursor=pointer]
-            - button "Ver testimonio 2" [ref=e245] [cursor=pointer]
-            - button "Ver testimonio 3" [ref=e246] [cursor=pointer]
-      - generic [ref=e248]:
-        - generic [ref=e249]:
-          - paragraph [ref=e250]: Nuestra historia
-          - heading "Diseñado por creadores que crecieron su audiencia en LinkedIn desde cero" [level=2] [ref=e251]
-        - generic [ref=e252]:
-          - paragraph [ref=e253]: Kolink nació al acompañar a consultores y founders que publicaban a diario sin ver resultados. Desde ese reto construimos un sistema que combina inteligencia artificial con procesos reales de marketing.
-          - paragraph [ref=e254]: "“Si una herramienta no te enseña qué mejorar, solo estás publicando a ciegas”. Por eso nuestro enfoque es estratégico: datos accionables, feedback experto y comunidad."
-          - paragraph [ref=e255]: Hoy más de 200 equipos utilizan Kolink para convertir LinkedIn en un motor de leads. Estamos obsesionados con ayudarte a comunicar mejor y crecer más rápido.
-      - generic [ref=e257]:
-        - paragraph [ref=e258]: FAQ
-        - heading "Resolvemos lo que suele frenar a los creadores" [level=2] [ref=e259]
-        - generic [ref=e260]:
-          - generic [ref=e261]:
-            - button "¿Cómo funciona la prueba gratuita?" [ref=e262] [cursor=pointer]:
-              - generic [ref=e263]: ¿Cómo funciona la prueba gratuita?
-              - img [ref=e265]
-            - paragraph [ref=e269]: Accedes a todas las funciones durante 7 días. No pedimos tarjeta y puedes cancelar cuando quieras.
-          - generic [ref=e270]:
-            - button "¿Qué soporte ofrecen?" [ref=e271] [cursor=pointer]:
-              - generic [ref=e272]: ¿Qué soporte ofrecen?
-              - img [ref=e274]
-            - generic:
-              - paragraph: Incluimos onboarding guiado, sesiones grupales y canal de soporte prioritario.
-          - generic [ref=e275]:
-            - button "¿Puedo invitar a mi equipo?" [ref=e276] [cursor=pointer]:
-              - generic [ref=e277]: ¿Puedo invitar a mi equipo?
-              - img [ref=e279]
-            - generic:
-              - paragraph: Sí. En los planes Growth y Scale puedes añadir miembros, asignar permisos y compartir bibliotecas de contenido.
-          - generic [ref=e280]:
-            - button "¿Se integra con mis herramientas?" [ref=e281] [cursor=pointer]:
-              - generic [ref=e282]: ¿Se integra con mis herramientas?
-              - img [ref=e284]
-            - generic:
-              - paragraph: "Kolink se conecta con HubSpot, Notion y Slack. Próximamente: Salesforce y ClickUp."
-      - generic [ref=e286]:
-        - heading "¿Listo para tu próxima publicación viral?" [level=2] [ref=e287]
-        - paragraph [ref=e288]: Únete a creadores y equipos que ya transforman LinkedIn en su principal canal de adquisición. Empieza gratis hoy y recibe feedback experto en la primera semana.
-        - generic [ref=e289]:
-          - link "Empieza gratis" [ref=e290] [cursor=pointer]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - banner [ref=e4]:
+        - navigation "Main" [ref=e5]:
+          - link "KOLINK" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - navigation [ref=e7]:
+            - link "Home" [ref=e8] [cursor=pointer]:
+              - /url: /#top
+            - link "Benefits" [ref=e9] [cursor=pointer]:
+              - /url: /#benefits
+            - link "Success" [ref=e10] [cursor=pointer]:
+              - /url: /#comparison
+            - link "Features" [ref=e11] [cursor=pointer]:
+              - /url: /#features
+            - link "Pricing" [ref=e12] [cursor=pointer]:
+              - /url: /#pricing
+            - link "Reviews" [ref=e13] [cursor=pointer]:
+              - /url: /#reviews
+            - link "About" [ref=e14] [cursor=pointer]:
+              - /url: /#about
+            - link "FAQ" [ref=e15] [cursor=pointer]:
+              - /url: /#faq
+          - link "Login" [ref=e16] [cursor=pointer]:
             - /url: /signin
-            - button "Empieza gratis" [ref=e291]
-          - link "Agenda una demo" [ref=e292] [cursor=pointer]:
-            - /url: mailto:info@kolink.es
-            - button "Agenda una demo" [ref=e293]
-    - contentinfo [ref=e294]:
-      - generic [ref=e295]:
-        - generic [ref=e296]:
-          - paragraph [ref=e297]: Kolink
-          - paragraph [ref=e298]: La plataforma que combina IA y estrategia para que tu voz destaque en LinkedIn.
-        - generic [ref=e299]:
-          - link "Reviews" [ref=e300] [cursor=pointer]:
-            - /url: "#reviews"
-          - link "Pricing" [ref=e301] [cursor=pointer]:
-            - /url: "#pricing"
-          - link "About" [ref=e302] [cursor=pointer]:
-            - /url: "#about"
-          - link "Contacto" [ref=e303] [cursor=pointer]:
-            - /url: mailto:info@kolink.es
-      - generic [ref=e305]:
-        - paragraph [ref=e306]: © 2025 Kolink. Todos los derechos reservados.
-        - generic [ref=e307]:
-          - link "Privacy Policy" [ref=e308] [cursor=pointer]:
-            - /url: /legal/privacy
-          - link "Terms of Service" [ref=e309] [cursor=pointer]:
-            - /url: /legal/terms
-  - button "Open Next.js Dev Tools" [ref=e315] [cursor=pointer]:
-    - img [ref=e316]
-  - alert [ref=e319]
+      - main [ref=e17]:
+        - generic [ref=e19]:
+          - generic [ref=e20]: Crece con IA + estrategia
+          - heading "Convierte LinkedIn en tu canal principal de crecimiento" [level=1] [ref=e21]
+          - paragraph [ref=e22]: Genera y analiza contenido para LinkedIn con IA personalizada
+          - paragraph [ref=e23]: Crea contenido consistente, analiza resultados en tiempo real y recibe feedback profesional sin salir de Kolink.
+          - generic [ref=e24]:
+            - button "Empieza gratis" [ref=e25] [cursor=pointer]
+            - button "Ver cómo funciona" [ref=e26] [cursor=pointer]
+          - generic [ref=e27]:
+            - generic [ref=e28]:
+              - paragraph [ref=e29]: “Publicamos 5 veces por semana y los leads se triplicaron”
+              - paragraph [ref=e30]: Marta · Head of Growth
+            - generic [ref=e31]:
+              - paragraph [ref=e32]: “13 000 impresiones en 48h replicando insights de Kolink”
+              - paragraph [ref=e33]: Iker · Consultant
+            - generic [ref=e34]:
+              - paragraph [ref=e35]: “La comunidad nos ayuda a iterar nuestra voz y mensaje”
+              - paragraph [ref=e36]: Paula · Founder
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - paragraph [ref=e40]: Confianza respaldada por datos
+            - heading "Miles de profesionales ya están creciendo con Kolink" [level=2] [ref=e41]
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - img [ref=e45]
+              - paragraph [ref=e50]: 2,500+
+              - paragraph [ref=e51]: Usuarios activos
+              - paragraph [ref=e52]: Creadores confiando en Kolink
+            - generic [ref=e53]:
+              - img [ref=e55]
+              - paragraph [ref=e58]: 50,000+
+              - paragraph [ref=e59]: Posts generados
+              - paragraph [ref=e60]: Contenido creado con IA
+            - generic [ref=e61]:
+              - img [ref=e63]
+              - paragraph [ref=e66]: 3.5x
+              - paragraph [ref=e67]: Mejora promedio
+              - paragraph [ref=e68]: En engagement de LinkedIn
+            - generic [ref=e69]:
+              - img [ref=e71]
+              - paragraph [ref=e74]: 94%
+              - paragraph [ref=e75]: Satisfacción
+              - paragraph [ref=e76]: De nuestros usuarios
+        - generic [ref=e78]:
+          - paragraph [ref=e79]: Beneficios clave
+          - heading "Todo lo que necesitas para ganar en LinkedIn sin perder el foco en tu negocio" [level=2] [ref=e80]
+          - generic [ref=e81]:
+            - generic [ref=e82]:
+              - img [ref=e84]
+              - heading "Propuesta clara en minutos" [level=3] [ref=e87]
+              - paragraph [ref=e88]: Briefings guiados que transforman tus ideas en publicaciones con CTA listos para publicar.
+            - generic [ref=e89]:
+              - img [ref=e91]
+              - heading "Insights accionables" [level=3] [ref=e99]
+              - paragraph [ref=e100]: Detecta el mejor horario, tono y formato con dashboards que muestran qué funciona.
+            - generic [ref=e101]:
+              - img [ref=e103]
+              - heading "Seguimiento continuo" [level=3] [ref=e105]
+              - paragraph [ref=e106]: Recibe alertas cuando un post despega y replica la fórmula antes de que pase la ola.
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - paragraph [ref=e110]: Cómo funciona
+            - heading "De idea a publicación en minutos" [level=2] [ref=e111]
+            - paragraph [ref=e112]: Descubre cómo Kolink simplifica tu flujo de trabajo en LinkedIn
+          - button [ref=e115] [cursor=pointer]:
+            - img [ref=e117]
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - generic [ref=e121]: "1"
+              - generic [ref=e122]:
+                - img [ref=e124]
+                - heading "Genera contenido con IA" [level=3] [ref=e127]
+                - paragraph [ref=e128]: Describe tu idea y deja que nuestra IA cree posts profesionales adaptados a tu voz
+            - generic [ref=e129]:
+              - generic [ref=e130]: "2"
+              - generic [ref=e131]:
+                - img [ref=e133]
+                - heading "Analiza el rendimiento" [level=3] [ref=e135]
+                - paragraph [ref=e136]: Obtén insights en tiempo real sobre qué contenido funciona mejor con tu audiencia
+            - generic [ref=e137]:
+              - generic [ref=e138]: "3"
+              - generic [ref=e139]:
+                - img [ref=e141]
+                - heading "Escala tu presencia" [level=3] [ref=e143]
+                - paragraph [ref=e144]: Programa publicaciones, colabora con tu equipo y optimiza tu estrategia
+        - generic [ref=e148]:
+          - paragraph [ref=e149]: Comparativa real
+          - heading "Así evolucionan los creadores que implementan Kolink" [level=2] [ref=e150]
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - paragraph [ref=e153]: Mes 1
+              - paragraph [ref=e154]: Antes
+              - paragraph [ref=e155]: 1.2K impresiones
+              - paragraph [ref=e156]: Después con Kolink
+              - paragraph [ref=e157]: 8.5K impresiones
+            - generic [ref=e158]:
+              - paragraph [ref=e159]: Mes 3
+              - paragraph [ref=e160]: Antes
+              - paragraph [ref=e161]: 3 leads
+              - paragraph [ref=e162]: Después con Kolink
+              - paragraph [ref=e163]: 27 leads
+            - generic [ref=e164]:
+              - paragraph [ref=e165]: Mes 6
+              - paragraph [ref=e166]: Antes
+              - paragraph [ref=e167]: Sin procesos
+              - paragraph [ref=e168]: Después con Kolink
+              - paragraph [ref=e169]: Calendario con 4 semanas de buffer
+        - generic [ref=e170]:
+          - heading "Todo lo que necesitas para ganar en LinkedIn" [level=2] [ref=e171]
+          - generic [ref=e172]:
+            - generic [ref=e174]:
+              - img [ref=e176]
+              - heading "Collab AI" [level=3] [ref=e181]
+              - paragraph [ref=e182]: Briefings inteligentes que generan variantes con tu tono de voz.
+            - generic [ref=e184]:
+              - img [ref=e186]
+              - heading "Analytics" [level=3] [ref=e188]
+              - paragraph [ref=e189]: Paneles que te dicen qué replicar, cuándo publicar y en qué formato.
+            - generic [ref=e191]:
+              - img [ref=e193]
+              - heading "Community" [level=3] [ref=e198]
+              - paragraph [ref=e199]: Acceso a masterminds mensuales con creadores que ya monetizan LinkedIn.
+            - generic [ref=e201]:
+              - img [ref=e203]
+              - heading "Trends" [level=3] [ref=e206]
+              - paragraph [ref=e207]: Curación diaria de tendencias y hooks que están funcionando en tu industria.
+            - generic [ref=e209]:
+              - img [ref=e211]
+              - heading "Strategy Sessions" [level=3] [ref=e213]
+              - paragraph [ref=e214]: Sesiones 1:1 con expertos para revisar contenido y objetivos.
+            - generic [ref=e216]:
+              - img [ref=e218]
+              - heading "Feedback Loop" [level=3] [ref=e220]
+              - paragraph [ref=e221]: Recibe comentarios accionables de coaches y de la comunidad.
+        - generic [ref=e223]:
+          - generic [ref=e224]:
+            - paragraph [ref=e225]: Marcas que confían en nosotros
+            - heading "Empresas y profesionales que ya crecen con Kolink" [level=2] [ref=e226]
+          - generic [ref=e227]:
+            - generic [ref=e228]:
+              - generic [ref=e229]: TE
+              - paragraph [ref=e230]: TechCorp
+              - paragraph [ref=e231]: SaaS B2B
+            - generic [ref=e232]:
+              - generic [ref=e233]: GR
+              - paragraph [ref=e234]: Growth Studio
+              - paragraph [ref=e235]: Marketing Agency
+            - generic [ref=e236]:
+              - generic [ref=e237]: IN
+              - paragraph [ref=e238]: InnovateHub
+              - paragraph [ref=e239]: Startup Accelerator
+            - generic [ref=e240]:
+              - generic [ref=e241]: DI
+              - paragraph [ref=e242]: Digital Minds
+              - paragraph [ref=e243]: Consulting
+            - generic [ref=e244]:
+              - generic [ref=e245]: BR
+              - paragraph [ref=e246]: BrandBoost
+              - paragraph [ref=e247]: Brand Strategy
+            - generic [ref=e248]:
+              - generic [ref=e249]: FU
+              - paragraph [ref=e250]: FutureScale
+              - paragraph [ref=e251]: Tech Consulting
+          - paragraph [ref=e252]: Únete a más de 2,500+ profesionales que transforman su presencia en LinkedIn
+        - generic [ref=e254]:
+          - paragraph [ref=e255]: Pricing
+          - heading "Planes que escalan contigo" [level=2] [ref=e256]
+          - paragraph [ref=e257]: Facturación mensual o anual con dos meses gratis. Cancela cuando quieras.
+          - generic [ref=e258]:
+            - generic [ref=e259]: Monthly
+            - button [ref=e260] [cursor=pointer]
+            - generic [ref=e262]: Annual
+          - generic [ref=e263]:
+            - generic [ref=e264]:
+              - heading "Starter" [level=3] [ref=e265]
+              - paragraph [ref=e266]: Para creadores que arrancan su presencia semanal
+              - generic [ref=e267]:
+                - generic [ref=e268]: €49
+                - generic [ref=e269]: /mes
+              - list [ref=e270]:
+                - listitem [ref=e271]:
+                  - generic [ref=e273]: 10 publicaciones IA al mes
+                - listitem [ref=e274]:
+                  - generic [ref=e276]: Plantillas personalizadas
+                - listitem [ref=e277]:
+                  - generic [ref=e279]: Panel de métricas esenciales
+              - button "Empieza prueba gratis" [ref=e280] [cursor=pointer]
+            - generic [ref=e281]:
+              - generic [ref=e282]: Most popular
+              - heading "Growth" [level=3] [ref=e283]
+              - paragraph [ref=e284]: El plan favorito de equipos de marketing B2B
+              - generic [ref=e285]:
+                - generic [ref=e286]: €89
+                - generic [ref=e287]: /mes
+              - list [ref=e288]:
+                - listitem [ref=e289]:
+                  - generic [ref=e291]: 30 publicaciones IA
+                - listitem [ref=e292]:
+                  - generic [ref=e294]: Workflows colaborativos
+                - listitem [ref=e295]:
+                  - generic [ref=e297]: Insights de tendencias
+                - listitem [ref=e298]:
+                  - generic [ref=e300]: Support prioritario
+              - button "Empieza prueba gratis" [ref=e301] [cursor=pointer]
+            - generic [ref=e302]:
+              - heading "Scale" [level=3] [ref=e303]
+              - paragraph [ref=e304]: Para organizaciones que requieren coordinación avanzada
+              - generic [ref=e305]:
+                - generic [ref=e306]: €139
+                - generic [ref=e307]: /mes
+              - list [ref=e308]:
+                - listitem [ref=e309]:
+                  - generic [ref=e311]: 90 publicaciones IA
+                - listitem [ref=e312]:
+                  - generic [ref=e314]: Strategy sessions 1:1
+                - listitem [ref=e315]:
+                  - generic [ref=e317]: Integraciones CRM
+                - listitem [ref=e318]:
+                  - generic [ref=e320]: Feedback experto semanal
+              - button "Empieza prueba gratis" [ref=e321] [cursor=pointer]
+          - generic [ref=e322]:
+            - generic [ref=e323]:
+              - img [ref=e325]
+              - generic [ref=e328]:
+                - heading "Prueba gratuita de 7 días" [level=3] [ref=e329]
+                - paragraph [ref=e330]: Acceso completo sin tarjeta de crédito. Explora todas las funciones sin compromiso.
+            - generic [ref=e331]:
+              - img [ref=e333]
+              - generic [ref=e335]:
+                - heading "Garantía de reembolso" [level=3] [ref=e336]
+                - paragraph [ref=e337]: 30 días de garantía sin preguntas. Si no estás satisfecho, te devolvemos el 100%.
+            - generic [ref=e338]:
+              - img [ref=e340]
+              - generic [ref=e345]:
+                - heading "Cancela cuando quieras" [level=3] [ref=e346]
+                - paragraph [ref=e347]: Sin contratos ni penalizaciones. Mantén acceso hasta el final de tu periodo actual.
+        - generic [ref=e349]:
+          - generic [ref=e350]:
+            - paragraph [ref=e351]: Comparación detallada
+            - heading "Encuentra el plan perfecto para ti" [level=2] [ref=e352]
+            - paragraph [ref=e353]: Todas las funcionalidades comparadas lado a lado
+          - table [ref=e357]:
+            - rowgroup [ref=e358]:
+              - row "Funcionalidad Starter €49/mes Growth Popular €89/mes Scale €139/mes" [ref=e359]:
+                - cell "Funcionalidad" [ref=e360]
+                - cell "Starter €49/mes" [ref=e361]:
+                  - generic [ref=e362]: Starter
+                  - generic [ref=e363]: €49/mes
+                - cell "Growth Popular €89/mes" [ref=e364]:
+                  - generic [ref=e365]:
+                    - generic [ref=e366]: Growth
+                    - generic [ref=e367]: Popular
+                  - generic [ref=e368]: €89/mes
+                - cell "Scale €139/mes" [ref=e369]:
+                  - generic [ref=e370]: Scale
+                  - generic [ref=e371]: €139/mes
+            - rowgroup [ref=e372]:
+              - row "Generación de contenido" [ref=e373]:
+                - cell "Generación de contenido" [ref=e374]:
+                  - heading "Generación de contenido" [level=3] [ref=e375]
+              - row "Publicaciones IA al mes 10 30 90" [ref=e376]:
+                - cell "Publicaciones IA al mes" [ref=e377]
+                - cell "10" [ref=e378]
+                - cell "30" [ref=e379]
+                - cell "90" [ref=e380]
+              - row "Plantillas personalizadas" [ref=e381]:
+                - cell "Plantillas personalizadas" [ref=e382]
+                - cell [ref=e383]:
+                  - img [ref=e384]
+                - cell [ref=e386]:
+                  - img [ref=e387]
+                - cell [ref=e389]:
+                  - img [ref=e390]
+              - row "Editor avanzado" [ref=e392]:
+                - cell "Editor avanzado" [ref=e393]
+                - cell [ref=e394]:
+                  - img [ref=e395]
+                - cell [ref=e398]:
+                  - img [ref=e399]
+                - cell [ref=e401]:
+                  - img [ref=e402]
+              - row "Repurposing de contenido" [ref=e404]:
+                - cell "Repurposing de contenido" [ref=e405]
+                - cell [ref=e406]:
+                  - img [ref=e407]
+                - cell [ref=e410]:
+                  - img [ref=e411]
+                - cell [ref=e413]:
+                  - img [ref=e414]
+              - row "Biblioteca de inspiración" [ref=e416]:
+                - cell "Biblioteca de inspiración" [ref=e417]
+                - cell [ref=e418]:
+                  - img [ref=e419]
+                - cell [ref=e422]:
+                  - img [ref=e423]
+                - cell [ref=e425]:
+                  - img [ref=e426]
+              - row "Analytics e Insights" [ref=e428]:
+                - cell "Analytics e Insights" [ref=e429]:
+                  - heading "Analytics e Insights" [level=3] [ref=e430]
+              - row "Panel de métricas básicas" [ref=e431]:
+                - cell "Panel de métricas básicas" [ref=e432]
+                - cell [ref=e433]:
+                  - img [ref=e434]
+                - cell [ref=e436]:
+                  - img [ref=e437]
+                - cell [ref=e439]:
+                  - img [ref=e440]
+              - row "Analytics avanzados" [ref=e442]:
+                - cell "Analytics avanzados" [ref=e443]
+                - cell [ref=e444]:
+                  - img [ref=e445]
+                - cell [ref=e448]:
+                  - img [ref=e449]
+                - cell [ref=e451]:
+                  - img [ref=e452]
+              - row "Insights de tendencias" [ref=e454]:
+                - cell "Insights de tendencias" [ref=e455]
+                - cell [ref=e456]:
+                  - img [ref=e457]
+                - cell [ref=e460]:
+                  - img [ref=e461]
+                - cell [ref=e463]:
+                  - img [ref=e464]
+              - row "Reportes personalizados" [ref=e466]:
+                - cell "Reportes personalizados" [ref=e467]
+                - cell [ref=e468]:
+                  - img [ref=e469]
+                - cell [ref=e472]:
+                  - img [ref=e473]
+                - cell [ref=e476]:
+                  - img [ref=e477]
+              - row "Forecasting con IA" [ref=e479]:
+                - cell "Forecasting con IA" [ref=e480]
+                - cell [ref=e481]:
+                  - img [ref=e482]
+                - cell [ref=e485]:
+                  - img [ref=e486]
+                - cell [ref=e489]:
+                  - img [ref=e490]
+              - row "Colaboración" [ref=e492]:
+                - cell "Colaboración" [ref=e493]:
+                  - heading "Colaboración" [level=3] [ref=e494]
+              - row "Usuarios incluidos 1 3 10" [ref=e495]:
+                - cell "Usuarios incluidos" [ref=e496]
+                - cell "1" [ref=e497]
+                - cell "3" [ref=e498]
+                - cell "10" [ref=e499]
+              - row "Workflows colaborativos" [ref=e500]:
+                - cell "Workflows colaborativos" [ref=e501]
+                - cell [ref=e502]:
+                  - img [ref=e503]
+                - cell [ref=e506]:
+                  - img [ref=e507]
+                - cell [ref=e509]:
+                  - img [ref=e510]
+              - row "Permisos y roles" [ref=e512]:
+                - cell "Permisos y roles" [ref=e513]
+                - cell [ref=e514]:
+                  - img [ref=e515]
+                - cell [ref=e518]:
+                  - img [ref=e519]
+                - cell [ref=e521]:
+                  - img [ref=e522]
+              - row "Calendario compartido" [ref=e524]:
+                - cell "Calendario compartido" [ref=e525]
+                - cell [ref=e526]:
+                  - img [ref=e527]
+                - cell [ref=e530]:
+                  - img [ref=e531]
+                - cell [ref=e533]:
+                  - img [ref=e534]
+              - row "Aprobaciones de equipo" [ref=e536]:
+                - cell "Aprobaciones de equipo" [ref=e537]
+                - cell [ref=e538]:
+                  - img [ref=e539]
+                - cell [ref=e542]:
+                  - img [ref=e543]
+                - cell [ref=e546]:
+                  - img [ref=e547]
+              - row "Integraciones" [ref=e549]:
+                - cell "Integraciones" [ref=e550]:
+                  - heading "Integraciones" [level=3] [ref=e551]
+              - row "Exportación básica" [ref=e552]:
+                - cell "Exportación básica" [ref=e553]
+                - cell [ref=e554]:
+                  - img [ref=e555]
+                - cell [ref=e557]:
+                  - img [ref=e558]
+                - cell [ref=e560]:
+                  - img [ref=e561]
+              - row "Slack / Notion" [ref=e563]:
+                - cell "Slack / Notion" [ref=e564]
+                - cell [ref=e565]:
+                  - img [ref=e566]
+                - cell [ref=e569]:
+                  - img [ref=e570]
+                - cell [ref=e572]:
+                  - img [ref=e573]
+              - row "HubSpot / Salesforce" [ref=e575]:
+                - cell "HubSpot / Salesforce" [ref=e576]
+                - cell [ref=e577]:
+                  - img [ref=e578]
+                - cell [ref=e581]:
+                  - img [ref=e582]
+                - cell [ref=e585]:
+                  - img [ref=e586]
+              - row "API personalizada" [ref=e588]:
+                - cell "API personalizada" [ref=e589]
+                - cell [ref=e590]:
+                  - img [ref=e591]
+                - cell [ref=e594]:
+                  - img [ref=e595]
+                - cell [ref=e598]:
+                  - img [ref=e599]
+              - row "Webhooks" [ref=e601]:
+                - cell "Webhooks" [ref=e602]
+                - cell [ref=e603]:
+                  - img [ref=e604]
+                - cell [ref=e607]:
+                  - img [ref=e608]
+                - cell [ref=e611]:
+                  - img [ref=e612]
+              - row "Soporte" [ref=e614]:
+                - cell "Soporte" [ref=e615]:
+                  - heading "Soporte" [level=3] [ref=e616]
+              - row "Email support 24-48h <24h <12h" [ref=e617]:
+                - cell "Email support" [ref=e618]
+                - cell "24-48h" [ref=e619]
+                - cell "<24h" [ref=e620]
+                - cell "<12h" [ref=e621]
+              - row "Onboarding guiado" [ref=e622]:
+                - cell "Onboarding guiado" [ref=e623]
+                - cell [ref=e624]:
+                  - img [ref=e625]
+                - cell [ref=e628]:
+                  - img [ref=e629]
+                - cell [ref=e631]:
+                  - img [ref=e632]
+              - row "Sesiones grupales Mensual Semanal" [ref=e634]:
+                - cell "Sesiones grupales" [ref=e635]
+                - cell [ref=e636]:
+                  - img [ref=e637]
+                - cell "Mensual" [ref=e640]
+                - cell "Semanal" [ref=e641]
+              - row "Strategy sessions 1:1" [ref=e642]:
+                - cell "Strategy sessions 1:1" [ref=e643]
+                - cell [ref=e644]:
+                  - img [ref=e645]
+                - cell [ref=e648]:
+                  - img [ref=e649]
+                - cell [ref=e652]:
+                  - img [ref=e653]
+              - row "Feedback experto Semanal" [ref=e655]:
+                - cell "Feedback experto" [ref=e656]
+                - cell [ref=e657]:
+                  - img [ref=e658]
+                - cell [ref=e661]:
+                  - img [ref=e662]
+                - cell "Semanal" [ref=e665]
+          - paragraph [ref=e667]:
+            - text: ¿Necesitas más de 10 usuarios o funcionalidades enterprise?
+            - link "Contáctanos para un plan personalizado" [ref=e668] [cursor=pointer]:
+              - /url: "#contact"
+        - generic [ref=e670]:
+          - paragraph [ref=e671]: Reviews
+          - heading "Historias reales de creadores Kolink" [level=2] [ref=e672]
+          - paragraph [ref=e673]: Pruebas sociales que avalan nuestra metodología y acompañamiento.
+          - generic [ref=e674]:
+            - generic [ref=e675]:
+              - article [ref=e676]:
+                - generic [ref=e677]:
+                  - generic [ref=e678]:
+                    - generic [ref=e679]: P
+                    - generic [ref=e680]:
+                      - heading "Patricia Serrano" [level=3] [ref=e681]
+                      - paragraph [ref=e682]: CMO · SaaS B2B
+                  - generic [ref=e683]:
+                    - img [ref=e684]
+                    - img [ref=e686]
+                    - img [ref=e688]
+                    - img [ref=e690]
+                    - img [ref=e692]
+                  - paragraph [ref=e694]: “Kolink nos dio un sistema. Pasamos de publicar una vez al mes a tener pipeline mensual y 3x en demos.”
+              - article [ref=e695]:
+                - generic [ref=e696]:
+                  - generic [ref=e697]:
+                    - generic [ref=e698]: P
+                    - generic [ref=e699]:
+                      - heading "Pablo Muñoz" [level=3] [ref=e700]
+                      - paragraph [ref=e701]: Founder · Studio Growth
+                  - generic [ref=e702]:
+                    - img [ref=e703]
+                    - img [ref=e705]
+                    - img [ref=e707]
+                    - img [ref=e709]
+                    - img [ref=e711]
+                  - paragraph [ref=e713]: “El feedback semanal y la comunidad cambiaron nuestra narrativa. LinkedIn ahora es nuestro principal canal de leads.”
+              - article [ref=e714]:
+                - generic [ref=e715]:
+                  - generic [ref=e716]:
+                    - generic [ref=e717]: I
+                    - generic [ref=e718]:
+                      - heading "Isabella Ríos" [level=3] [ref=e719]
+                      - paragraph [ref=e720]: Consultora de marca personal
+                  - generic [ref=e721]:
+                    - img [ref=e722]
+                    - img [ref=e724]
+                    - img [ref=e726]
+                    - img [ref=e728]
+                    - img [ref=e730]
+                  - paragraph [ref=e732]: “En 90 días, mis posts duplicaron el alcance y cada semana recibo solicitudes de sesiones 1:1.”
+              - article [ref=e733]:
+                - generic [ref=e734]:
+                  - generic [ref=e735]:
+                    - generic [ref=e736]: C
+                    - generic [ref=e737]:
+                      - heading "Carlos Mendoza" [level=3] [ref=e738]
+                      - paragraph [ref=e739]: Director Marketing · Tech Startup
+                  - generic [ref=e740]:
+                    - img [ref=e741]
+                    - img [ref=e743]
+                    - img [ref=e745]
+                    - img [ref=e747]
+                    - img [ref=e749]
+                  - paragraph [ref=e751]: “La IA de Kolink entiende nuestra industria. Generamos contenido técnico de calidad manteniendo nuestra voz auténtica.”
+              - article [ref=e752]:
+                - generic [ref=e753]:
+                  - generic [ref=e754]:
+                    - generic [ref=e755]: L
+                    - generic [ref=e756]:
+                      - heading "Laura Fernández" [level=3] [ref=e757]
+                      - paragraph [ref=e758]: Consultora de Recursos Humanos
+                  - generic [ref=e759]:
+                    - img [ref=e760]
+                    - img [ref=e762]
+                    - img [ref=e764]
+                    - img [ref=e766]
+                    - img [ref=e768]
+                  - paragraph [ref=e770]: “Antes me costaba horas escribir un post. Ahora con Kolink creo contenido de valor en minutos. Mi audiencia ha crecido un 200%.”
+              - article [ref=e771]:
+                - generic [ref=e772]:
+                  - generic [ref=e773]:
+                    - generic [ref=e774]: M
+                    - generic [ref=e775]:
+                      - heading "Miguel Ángel Torres" [level=3] [ref=e776]
+                      - paragraph [ref=e777]: CEO · Agencia Digital
+                  - generic [ref=e778]:
+                    - img [ref=e779]
+                    - img [ref=e781]
+                    - img [ref=e783]
+                    - img [ref=e785]
+                    - img [ref=e787]
+                  - paragraph [ref=e789]: “Implementamos Kolink para todo el equipo. La consistencia en LinkedIn nos ha traído 12 clientes nuevos en 3 meses.”
+              - article [ref=e790]:
+                - generic [ref=e791]:
+                  - generic [ref=e792]:
+                    - generic [ref=e793]: S
+                    - generic [ref=e794]:
+                      - heading "Sofía Ramírez" [level=3] [ref=e795]
+                      - paragraph [ref=e796]: Coach Ejecutiva
+                  - generic [ref=e797]:
+                    - img [ref=e798]
+                    - img [ref=e800]
+                    - img [ref=e802]
+                    - img [ref=e804]
+                    - img [ref=e806]
+                  - paragraph [ref=e808]: “Los analytics me ayudan a entender qué temas resuenan más con mi audiencia. Mis sesiones de coaching se llenan cada mes.”
+              - article [ref=e809]:
+                - generic [ref=e810]:
+                  - generic [ref=e811]:
+                    - generic [ref=e812]: J
+                    - generic [ref=e813]:
+                      - heading "Javier Ortiz" [level=3] [ref=e814]
+                      - paragraph [ref=e815]: Product Manager · Fintech
+                  - generic [ref=e816]:
+                    - img [ref=e817]
+                    - img [ref=e819]
+                    - img [ref=e821]
+                    - img [ref=e823]
+                    - img [ref=e825]
+                  - paragraph [ref=e827]: “La integración con nuestras herramientas y el soporte del equipo han sido excepcionales. Kolink es parte esencial de nuestra estrategia.”
+            - generic [ref=e828]:
+              - button "Testimonio anterior" [ref=e829] [cursor=pointer]:
+                - img [ref=e830]
+              - generic [ref=e832]:
+                - button "Ver testimonio 1" [ref=e833] [cursor=pointer]
+                - button "Ver testimonio 2" [ref=e834] [cursor=pointer]
+                - button "Ver testimonio 3" [ref=e835] [cursor=pointer]
+                - button "Ver testimonio 4" [ref=e836] [cursor=pointer]
+                - button "Ver testimonio 5" [ref=e837] [cursor=pointer]
+                - button "Ver testimonio 6" [ref=e838] [cursor=pointer]
+                - button "Ver testimonio 7" [ref=e839] [cursor=pointer]
+                - button "Ver testimonio 8" [ref=e840] [cursor=pointer]
+              - button "Siguiente testimonio" [ref=e841] [cursor=pointer]:
+                - img [ref=e842]
+        - generic [ref=e845]:
+          - generic [ref=e846]:
+            - paragraph [ref=e847]: Nuestra historia
+            - heading "Diseñado por creadores que crecieron su audiencia en LinkedIn desde cero" [level=2] [ref=e848]
+          - generic [ref=e849]:
+            - paragraph [ref=e850]: Kolink nació al acompañar a consultores y founders que publicaban a diario sin ver resultados. Desde ese reto construimos un sistema que combina inteligencia artificial con procesos reales de marketing.
+            - paragraph [ref=e851]: "“Si una herramienta no te enseña qué mejorar, solo estás publicando a ciegas”. Por eso nuestro enfoque es estratégico: datos accionables, feedback experto y comunidad."
+            - paragraph [ref=e852]: Hoy más de 200 equipos utilizan Kolink para convertir LinkedIn en un motor de leads. Estamos obsesionados con ayudarte a comunicar mejor y crecer más rápido.
+        - generic [ref=e854]:
+          - paragraph [ref=e855]: FAQ
+          - heading "Resolvemos lo que suele frenar a los creadores" [level=2] [ref=e856]
+          - generic [ref=e857]:
+            - generic [ref=e858]:
+              - button "¿Cómo funciona la prueba gratuita?" [ref=e859] [cursor=pointer]:
+                - generic [ref=e860]: ¿Cómo funciona la prueba gratuita?
+                - img [ref=e862]
+              - paragraph [ref=e866]: Accedes a todas las funciones durante 7 días sin necesidad de tarjeta de crédito. Puedes explorar la plataforma completa, generar contenido con IA, y ver analytics. Si no te convence, simplemente no hagas nada y tu cuenta no será cobrada.
+            - generic [ref=e867]:
+              - button "¿Cómo se integra Kolink con LinkedIn?" [ref=e868] [cursor=pointer]:
+                - generic [ref=e869]: ¿Cómo se integra Kolink con LinkedIn?
+                - img [ref=e871]
+              - generic:
+                - paragraph: Kolink genera y optimiza contenido que luego copias y publicas directamente en LinkedIn. No publicamos automáticamente en tu nombre para mantener tu autenticidad. Próximamente tendremos integración OAuth para facilitar aún más el proceso.
+            - generic [ref=e872]:
+              - button "¿Cómo funcionan los créditos?" [ref=e873] [cursor=pointer]:
+                - generic [ref=e874]: ¿Cómo funcionan los créditos?
+                - img [ref=e876]
+              - generic:
+                - paragraph: "Cada generación de contenido con IA consume 1 crédito. Los créditos se renuevan mensualmente según tu plan: Starter (10), Growth (30), Scale (90). Los créditos no utilizados no se acumulan al mes siguiente."
+            - generic [ref=e877]:
+              - button "¿Qué pasa con mis datos y privacidad?" [ref=e878] [cursor=pointer]:
+                - generic [ref=e879]: ¿Qué pasa con mis datos y privacidad?
+                - img [ref=e881]
+              - generic:
+                - paragraph: Tus datos están protegidos con encriptación de nivel empresarial. Solo los usamos para mejorar tu experiencia. Nunca compartimos tu información con terceros. Cumplimos con GDPR y puedes exportar o eliminar tus datos en cualquier momento.
+            - generic [ref=e882]:
+              - button "¿Ofrecen reembolsos?" [ref=e883] [cursor=pointer]:
+                - generic [ref=e884]: ¿Ofrecen reembolsos?
+                - img [ref=e886]
+              - generic:
+                - paragraph: Sí, ofrecemos garantía de reembolso de 30 días sin preguntas. Si no estás satisfecho con Kolink en el primer mes, te devolvemos el 100% de tu dinero. Simplemente contáctanos a info@kolink.es.
+            - generic [ref=e887]:
+              - button "¿Qué soporte ofrecen?" [ref=e888] [cursor=pointer]:
+                - generic [ref=e889]: ¿Qué soporte ofrecen?
+                - img [ref=e891]
+              - generic:
+                - paragraph: Todos los planes incluyen soporte por email (respuesta en menos de 24h). Los planes Growth y Scale tienen soporte prioritario, onboarding guiado, sesiones grupales mensuales y acceso a nuestra comunidad privada de creadores.
+            - generic [ref=e892]:
+              - button "¿Puedo cambiar de plan?" [ref=e893] [cursor=pointer]:
+                - generic [ref=e894]: ¿Puedo cambiar de plan?
+                - img [ref=e896]
+              - generic:
+                - paragraph: Sí, puedes actualizar o degradar tu plan en cualquier momento. Si actualizas, se prorratea la diferencia. Si degradas, el cambio se aplica en tu siguiente ciclo de facturación.
+            - generic [ref=e897]:
+              - button "¿Puedo invitar a mi equipo?" [ref=e898] [cursor=pointer]:
+                - generic [ref=e899]: ¿Puedo invitar a mi equipo?
+                - img [ref=e901]
+              - generic:
+                - paragraph: Sí. En los planes Growth (hasta 3 usuarios) y Scale (hasta 10 usuarios) puedes añadir miembros de tu equipo, asignar permisos y compartir bibliotecas de contenido. Cada usuario tiene su propio dashboard y créditos.
+            - generic [ref=e902]:
+              - button "¿Se integra con mis herramientas?" [ref=e903] [cursor=pointer]:
+                - generic [ref=e904]: ¿Se integra con mis herramientas?
+                - img [ref=e906]
+              - generic:
+                - paragraph: "Kolink se conecta con HubSpot, Notion y Slack para sincronizar contenido y recibir notificaciones. Próximamente: Salesforce, ClickUp, y Google Calendar. Si necesitas una integración específica, contáctanos."
+            - generic [ref=e907]:
+              - button "¿Puedo cancelar en cualquier momento?" [ref=e908] [cursor=pointer]:
+                - generic [ref=e909]: ¿Puedo cancelar en cualquier momento?
+                - img [ref=e911]
+              - generic:
+                - paragraph: Sí, puedes cancelar tu suscripción cuando quieras desde tu panel de control. Mantendrás acceso hasta el final de tu periodo de facturación actual. No hay contratos ni penalizaciones por cancelación.
+            - generic [ref=e912]:
+              - button "¿La IA comprende mi industria?" [ref=e913] [cursor=pointer]:
+                - generic [ref=e914]: ¿La IA comprende mi industria?
+                - img [ref=e916]
+              - generic:
+                - paragraph: Sí, nuestra IA está entrenada en múltiples industrias (B2B SaaS, consultoría, marketing, fintech, HR, etc.). Cuanto más uses la plataforma, mejor aprenderá tu voz y estilo específico. También puedes crear plantillas personalizadas.
+            - generic [ref=e917]:
+              - button "¿Qué idiomas soporta Kolink?" [ref=e918] [cursor=pointer]:
+                - generic [ref=e919]: ¿Qué idiomas soporta Kolink?
+                - img [ref=e921]
+              - generic:
+                - paragraph: Actualmente soportamos español e inglés completamente. La IA puede generar contenido en múltiples idiomas incluyendo portugués, francés, alemán e italiano. Contáctanos si necesitas soporte para otro idioma.
+        - generic [ref=e923]:
+          - generic [ref=e924]:
+            - paragraph [ref=e925]: Contacto
+            - heading "¿Tienes preguntas? Hablemos" [level=2] [ref=e926]
+            - paragraph [ref=e927]: Nuestro equipo está listo para ayudarte a impulsar tu presencia en LinkedIn
+          - generic [ref=e928]:
+            - generic [ref=e930]:
+              - generic [ref=e931]:
+                - generic [ref=e932]: Nombre completo
+                - textbox "Nombre completo" [ref=e933]:
+                  - /placeholder: Tu nombre
+              - generic [ref=e934]:
+                - generic [ref=e935]: Email
+                - textbox "Email" [ref=e936]:
+                  - /placeholder: tu@email.com
+              - generic [ref=e937]:
+                - generic [ref=e938]: Empresa (opcional)
+                - textbox "Empresa (opcional)" [ref=e939]:
+                  - /placeholder: Tu empresa
+              - generic [ref=e940]:
+                - generic [ref=e941]: Mensaje
+                - textbox "Mensaje" [ref=e942]:
+                  - /placeholder: ¿Cómo podemos ayudarte?
+              - button "Enviar mensaje" [ref=e943] [cursor=pointer]:
+                - generic [ref=e944]:
+                  - img [ref=e945]
+                  - text: Enviar mensaje
+            - generic [ref=e948]:
+              - generic [ref=e950]:
+                - img [ref=e952]
+                - generic [ref=e955]:
+                  - heading "Email directo" [level=3] [ref=e956]
+                  - paragraph [ref=e957]: Para soporte general y consultas
+                  - link "info@kolink.es" [ref=e958] [cursor=pointer]:
+                    - /url: mailto:info@kolink.es
+              - generic [ref=e960]:
+                - img [ref=e962]
+                - generic [ref=e964]:
+                  - heading "Chat en vivo" [level=3] [ref=e965]
+                  - paragraph [ref=e966]: Respuestas instantáneas de nuestro equipo
+                  - button "Iniciar chat →" [ref=e967] [cursor=pointer]
+              - generic [ref=e969]:
+                - img [ref=e971]
+                - generic [ref=e974]:
+                  - heading "Horario de atención" [level=3] [ref=e975]
+                  - paragraph [ref=e976]: "Lunes a Viernes: 9:00 - 18:00 CET"
+                  - paragraph [ref=e977]: Respondemos emails en menos de 24 horas
+        - generic [ref=e979]:
+          - heading "¿Listo para tu próxima publicación viral?" [level=2] [ref=e980]
+          - paragraph [ref=e981]: Únete a creadores y equipos que ya transforman LinkedIn en su principal canal de adquisición. Empieza gratis hoy y recibe feedback experto en la primera semana.
+          - generic [ref=e982]:
+            - link "Empieza gratis" [ref=e983] [cursor=pointer]:
+              - /url: /signin
+              - button "Empieza gratis" [ref=e984]
+            - link "Agenda una demo" [ref=e985] [cursor=pointer]:
+              - /url: mailto:info@kolink.es
+              - button "Agenda una demo" [ref=e986]
+      - contentinfo [ref=e987]:
+        - generic [ref=e988]:
+          - generic [ref=e989]:
+            - generic [ref=e990]:
+              - paragraph [ref=e991]: Kolink
+              - paragraph [ref=e992]: La plataforma que combina IA y estrategia para que tu voz destaque en LinkedIn.
+              - generic [ref=e993]:
+                - link "LinkedIn" [ref=e994] [cursor=pointer]:
+                  - /url: https://linkedin.com
+                  - img [ref=e995]
+                - link "Twitter" [ref=e999] [cursor=pointer]:
+                  - /url: https://twitter.com
+                  - img [ref=e1000]
+                - link "Email" [ref=e1002] [cursor=pointer]:
+                  - /url: mailto:info@kolink.es
+                  - img [ref=e1003]
+            - generic [ref=e1006]:
+              - heading "Producto" [level=3] [ref=e1007]
+              - list [ref=e1008]:
+                - listitem [ref=e1009]:
+                  - link "Funcionalidades" [ref=e1010] [cursor=pointer]:
+                    - /url: "#features"
+                - listitem [ref=e1011]:
+                  - link "Precios" [ref=e1012] [cursor=pointer]:
+                    - /url: "#pricing"
+                - listitem [ref=e1013]:
+                  - link "Testimonios" [ref=e1014] [cursor=pointer]:
+                    - /url: "#reviews"
+                - listitem [ref=e1015]:
+                  - link "Iniciar sesión" [ref=e1016] [cursor=pointer]:
+                    - /url: /signin
+                - listitem [ref=e1017]:
+                  - link "Crear cuenta" [ref=e1018] [cursor=pointer]:
+                    - /url: /signup
+            - generic [ref=e1019]:
+              - heading "Recursos" [level=3] [ref=e1020]
+              - list [ref=e1021]:
+                - listitem [ref=e1022]:
+                  - link "FAQ" [ref=e1023] [cursor=pointer]:
+                    - /url: "#faq"
+                - listitem [ref=e1024]:
+                  - link "Sobre nosotros" [ref=e1025] [cursor=pointer]:
+                    - /url: "#about"
+                - listitem [ref=e1026]:
+                  - link "Contacto" [ref=e1027] [cursor=pointer]:
+                    - /url: "#contact"
+                - listitem [ref=e1028]:
+                  - link "Blog" [ref=e1029] [cursor=pointer]:
+                    - /url: /blog
+                - listitem [ref=e1030]:
+                  - link "Documentación" [ref=e1031] [cursor=pointer]:
+                    - /url: /docs
+            - generic [ref=e1032]:
+              - heading "Legal" [level=3] [ref=e1033]
+              - list [ref=e1034]:
+                - listitem [ref=e1035]:
+                  - link "Política de Privacidad" [ref=e1036] [cursor=pointer]:
+                    - /url: /legal/privacidad
+                - listitem [ref=e1037]:
+                  - link "Términos de Servicio" [ref=e1038] [cursor=pointer]:
+                    - /url: /legal/terms
+                - listitem [ref=e1039]:
+                  - link "Política de Cookies" [ref=e1040] [cursor=pointer]:
+                    - /url: /legal/cookies
+                - listitem [ref=e1041]:
+                  - link "Política de Reembolso" [ref=e1042] [cursor=pointer]:
+                    - /url: /legal/refund
+                - listitem [ref=e1043]:
+                  - link "GDPR" [ref=e1044] [cursor=pointer]:
+                    - /url: /legal/gdpr
+          - generic [ref=e1046]:
+            - paragraph [ref=e1047]: © 2025 Kolink. Todos los derechos reservados.
+            - generic [ref=e1048]:
+              - generic [ref=e1049]: Hecho con ❤️ en España
+              - generic [ref=e1050]: •
+              - link "info@kolink.es" [ref=e1051] [cursor=pointer]:
+                - /url: mailto:info@kolink.es
+    - button "Reportar bug / sugerencia" [ref=e1052] [cursor=pointer]:
+      - img [ref=e1053]
+      - text: Reportar bug / sugerencia
+    - generic [ref=e1057]:
+      - generic [ref=e1058]:
+        - heading "Tu privacidad en Kolink" [level=2] [ref=e1059]
+        - paragraph [ref=e1060]:
+          - text: Usamos cookies esenciales para que la plataforma funcione. Activa opcionalmente analíticas para ayudarnos a mejorar tu experiencia. Lee nuestra
+          - link "política de cookies" [ref=e1061] [cursor=pointer]:
+            - /url: /legal/cookies
+          - text: "y"
+          - link "política de privacidad" [ref=e1062] [cursor=pointer]:
+            - /url: /legal/privacidad
+          - text: .
+      - generic [ref=e1063]:
+        - button "Solo esenciales" [ref=e1064] [cursor=pointer]
+        - button "Personalizar" [ref=e1065] [cursor=pointer]:
+          - img [ref=e1066]
+          - text: Personalizar
+        - button "Aceptar todo" [ref=e1069] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e1075] [cursor=pointer]:
+    - img [ref=e1076]
+  - alert [ref=e1079]
 ```

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { Session } from "@supabase/supabase-js";
@@ -79,7 +80,7 @@ export default function WritePage({ session }: WritePageProps) {
         }
       }
     } catch (error) {
-      console.warn("[write] No se pudo leer el buffer local", error);
+      logger.warn("[write] No se pudo leer el buffer local", error);
     }
 
     const { data, error } = await supabaseClient

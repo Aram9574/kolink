@@ -3,6 +3,7 @@
  * Elimina tokens y metadatos almacenados del usuario.
  */
 
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { clearLinkedInConnection } from "@/lib/linkedin";
@@ -46,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("[LinkedIn Disconnect] Unexpected error:", error);
+    logger.error("[LinkedIn Disconnect] Unexpected error:", error);
     return res.status(500).json({ error: "Error inesperado al desconectar LinkedIn" });
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useCallback, useEffect, useState } from "react";
 import {
   FileText,
@@ -124,7 +125,7 @@ export default function EnhancedStatsCard() {
         toast.success("Estadísticas cargadas correctamente");
       }
     } catch (err) {
-      console.error("Stats error:", err);
+      logger.error("Stats error:", err);
       const errorMessage = err instanceof Error ? err.message : "Error al cargar estadísticas";
       setError(errorMessage);
       toast.error(errorMessage);
@@ -164,7 +165,7 @@ export default function EnhancedStatsCard() {
 
       toast.success("Estadísticas exportadas correctamente");
     } catch (error) {
-      console.error("Export error:", error);
+      logger.error("Export error:", error);
       toast.error("Error al exportar estadísticas");
     }
   };

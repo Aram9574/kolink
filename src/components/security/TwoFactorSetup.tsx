@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useState } from "react";
 import { Shield, Key, Copy, CheckCircle, AlertTriangle } from "lucide-react";
 import Image from "next/image";
@@ -57,7 +58,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error("Failed to setup 2FA:", error);
+      logger.error("Failed to setup 2FA:", error);
       toast.error("Error al configurar 2FA");
     } finally {
       setLoading(false);
@@ -100,7 +101,7 @@ export function TwoFactorSetup({ onComplete }: TwoFactorSetupProps) {
         toast.error(result.error || "Código inválido");
       }
     } catch (error) {
-      console.error("Failed to verify code:", error);
+      logger.error("Failed to verify code:", error);
       toast.error("Error al verificar el código");
     } finally {
       setLoading(false);

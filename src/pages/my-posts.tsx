@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import type { Session } from "@supabase/supabase-js";
@@ -177,7 +178,7 @@ export default function MyPostsPage() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("[my-posts] Error cargando posts:", error);
+        logger.error("[my-posts] Error cargando posts:", error);
         toast.error("No se pudieron cargar tus publicaciones");
         setPosts([]);
       } else {
@@ -262,7 +263,7 @@ export default function MyPostsPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("[my-posts] Error recargando posts:", error);
+      logger.error("[my-posts] Error recargando posts:", error);
       return;
     }
     const normalized = Array.isArray(data) ? (data as RawPost[]).map(normalizePost) : [];
@@ -294,7 +295,7 @@ export default function MyPostsPage() {
       .eq("id", post.id);
 
     if (error) {
-      console.error("[my-posts] Error actualizando metadata:", error);
+      logger.error("[my-posts] Error actualizando metadata:", error);
       toast.error("No se pudo actualizar la publicación");
       await refreshPosts();
     }
@@ -325,7 +326,7 @@ export default function MyPostsPage() {
         })
       );
     } catch (error) {
-      console.warn("[my-posts] No se pudo guardar el borrador para calendario:", error);
+      logger.warn("[my-posts] No se pudo guardar el borrador para calendario:", error);
     }
     router.push(`/calendar?postId=${post.id}`);
   };
@@ -346,7 +347,7 @@ export default function MyPostsPage() {
       localStorage.setItem(bufferKey, JSON.stringify(payload));
       localStorage.setItem("kolink-write-selected", post.id);
     } catch (error) {
-      console.warn("[my-posts] No se pudo preparar el post para el editor", error);
+      logger.warn("[my-posts] No se pudo preparar el post para el editor", error);
     }
     router.push("/write");
   };
@@ -370,7 +371,7 @@ export default function MyPostsPage() {
     setProcessingIds((prev) => [...prev, postId]);
     const { error } = await supabaseClient.from("posts").delete().eq("id", postId);
     if (error) {
-      console.error("[my-posts] Error al eliminar:", error);
+      logger.error("[my-posts] Error al eliminar:", error);
       toast.error("No se pudo eliminar la publicación");
     } else {
       setPosts((prev) => prev.filter((post) => post.id !== postId));
@@ -388,7 +389,7 @@ export default function MyPostsPage() {
     if (!confirmation) return;
     const { error } = await supabaseClient.from("posts").delete().in("id", selected);
     if (error) {
-      console.error("[my-posts] Error eliminando selección:", error);
+      logger.error("[my-posts] Error eliminando selección:", error);
       toast.error("No se pudieron eliminar las publicaciones seleccionadas");
       return;
     }

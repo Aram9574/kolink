@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import toast from "react-hot-toast";
 import { supabaseClient } from "@/lib/supabaseClient";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { logger } from "@/lib/logger";
 
 interface NotificationContextType {
   notifySuccess: (message: string) => void;
@@ -109,7 +110,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         JSON.stringify({ lastShown: now })
       );
     } catch (error) {
-      console.error("Error checking credit reminder:", error);
+      logger.error("Error checking credit reminder:", error);
     }
   };
 
@@ -153,16 +154,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               .update({ read: true })
               .eq("id", notification.id)
               .then(() => {
-                console.log("Admin notification marked as read:", notification.id);
+                logger.debug("Admin notification marked as read", { notificationId: notification.id });
               });
           }
         )
         .subscribe();
 
       setRealtimeChannel(channel);
-      console.log("Realtime notifications enabled for user:", userId);
+      logger.debug("Realtime notifications enabled for user", { userId });
     } catch (error) {
-      console.error("Error setting up realtime notifications:", error);
+      logger.error("Error setting up realtime notifications:", error);
     }
   };
 
@@ -170,7 +171,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (realtimeChannel) {
       supabaseClient.removeChannel(realtimeChannel);
       setRealtimeChannel(null);
-      console.log("Realtime notifications disabled");
+      logger.debug("Realtime notifications disabled");
     }
   };
 

@@ -16,6 +16,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { generateBatchEmbeddings } from '@/lib/ai/embeddings';
+import { logger } from '@/lib/logger';
 import type {
   IngestViralPostsRequest,
   IngestViralPostsResponse,
@@ -59,7 +60,7 @@ export default async function handler(
 
     // Verificar que el usuario sea administrador
     if (!ADMIN_EMAILS.includes(user.email || '')) {
-      console.warn(`[Viral Ingest] Usuario no autorizado: ${user.email}`);
+      logger.warn(`[Viral Ingest] Usuario no autorizado: ${user.email}`);
       return res.status(403).json({
         error: 'Acceso denegado. Solo administradores pueden usar este endpoint.',
       });
@@ -116,7 +117,7 @@ export default async function handler(
       }
     }
 
-    console.log(`[Viral Ingest] Admin ${user.email} ingresando ${body.posts.length} posts virales`);
+    logger.debug(`[Viral Ingest] Admin ${user.email} ingresando ${body.posts.length} posts virales`);
 
     // 3. INSERTAR POSTS VIRALES EN LA BASE DE DATOS
     const viralPostsToInsert = body.posts.map((post) => ({
@@ -148,7 +149,7 @@ export default async function handler(
       .select('id, content');
 
     if (insertError) {
-      console.error('[Viral Ingest] Error al insertar posts:', insertError);
+      logger.error('[Viral Ingest] Error al insertar posts:', insertError);
       return res.status(500).json({
         error: `Error al guardar posts virales: ${insertError.message}`,
       });
@@ -160,7 +161,7 @@ export default async function handler(
       });
     }
 
-    console.log(`[Viral Ingest] ${insertedPosts.length} posts virales insertados`);
+    logger.debug(`[Viral Ingest] ${insertedPosts.length} posts virales insertados`);
 
     // 4. GENERAR EMBEDDINGS EN BATCH
     const contents = insertedPosts.map((p) => p.content);
@@ -168,9 +169,9 @@ export default async function handler(
 
     try {
       embeddings = await generateBatchEmbeddings(contents);
-      console.log(`[Viral Ingest] ${embeddings.length} embeddings generados`);
+      logger.debug(`[Viral Ingest] ${embeddings.length} embeddings generados`);
     } catch (embeddingError) {
-      console.error('[Viral Ingest] Error al generar embeddings:', embeddingError);
+      logger.error('[Viral Ingest] Error al generar embeddings:', embeddingError);
       const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
       // Eliminar posts si falla la generación de embeddings
       await supabase.from('viral_corpus').delete().in(
@@ -195,7 +196,7 @@ export default async function handler(
       .select('id');
 
     if (embeddingInsertError) {
-      console.error('[Viral Ingest] Error al guardar embeddings:', embeddingInsertError);
+      logger.error('[Viral Ingest] Error al guardar embeddings:', embeddingInsertError);
       // Rollback: eliminar posts virales
       await supabase.from('viral_corpus').delete().in(
         'id',
@@ -206,7 +207,7 @@ export default async function handler(
       });
     }
 
-    console.log(`[Viral Ingest] ${insertedEmbeddings?.length ?? 0} embeddings guardados`);
+    logger.debug(`[Viral Ingest] ${insertedEmbeddings?.length ?? 0} embeddings guardados`);
 
     // 6. RETORNAR RESPUESTA EXITOSA
     const response: IngestViralPostsResponse = {
@@ -218,7 +219,7 @@ export default async function handler(
 
     return res.status(201).json(response);
   } catch (error) {
-    console.error('[Viral Ingest] Error inesperado:', error);
+    logger.error('[Viral Ingest] Error inesperado:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       error: `Error interno del servidor: ${errorMessage}`,

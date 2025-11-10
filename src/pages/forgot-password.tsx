@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useState, type FormEvent } from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -29,7 +30,7 @@ export default function ForgotPasswordPage() {
         toast.error(result.error || "Error al solicitar recuperación");
       }
     } catch (error) {
-      console.error("Password reset request error:", error);
+      logger.error("Password reset request error:", error);
       toast.error("Error al solicitar recuperación de contraseña");
     } finally {
       setLoading(false);

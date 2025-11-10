@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
 
@@ -73,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     supabase = getSupabaseServerClient(token);
   } catch (error) {
-    console.error("[api/inspiration/save] Supabase initialization error:", error);
+    logger.error("[api/inspiration/save] Supabase initialization error:", error);
     return res.status(500).json({ error: "Configuración de Supabase inválida." });
   }
 
@@ -83,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } = await supabase.auth.getUser(token);
 
   if (userError) {
-    console.error("[api/inspiration/save] Error obteniendo usuario:", userError);
+    logger.error("[api/inspiration/save] Error obteniendo usuario:", userError);
     return res.status(401).json({ error: "Sesión inválida" });
   }
 
@@ -142,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ ok: true, type: "search" });
   } catch (error) {
-    console.error("[api/inspiration/save] Error:", error);
+    logger.error("[api/inspiration/save] Error:", error);
     return res.status(500).json({ ok: false, error: (error as Error).message });
   }
 }

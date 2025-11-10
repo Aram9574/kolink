@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { generatePostWithContext } from "@/server/services/writerService";
-import { logGeneration, logError } from "@/lib/logger";
+import { logger } from "@/lib/logger";
 import { limiter } from "@/lib/rateLimiter"; // 🚦 Rate limiter agregado
 
 type GenerateRequestBody = {
@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (err) {
-    console.error("[RateLimiter] Error:", err);
+    logger.error("[RateLimiter] Error:", err);
     // En caso de fallo del limitador, no bloquea al usuario
   }
 
@@ -78,7 +78,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Registrar la generación exitosa
-    await logGeneration(user.id, result.postId, 1);
+    logger.info(`Content generated successfully for user ${user.id}`, {
+      postId: result.postId,
+      creditsUsed: 1,
+    });
 
     return res.status(200).json({
       ok: true,
@@ -94,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const err = error as Error & { code?: string; plan?: string };
 
     if (err.code === "NO_CREDITS") {
-      await logError(user.id, "Content generation failed: No credits remaining", {
+      logger.warn(`No credits remaining for user ${user.id}`, {
         error_code: err.code,
         plan: err.plan,
       });
@@ -107,9 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Log de errores generales
-    console.error("[api/post/generate] Error:", err);
-    await logError(user.id, "Content generation failed", {
-      error: err.message,
+    logger.error(`Content generation failed for user ${user.id}`, err, {
       prompt_length: body.prompt?.length || 0,
     });
 

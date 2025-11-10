@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 
@@ -54,13 +55,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (insertError) {
-      console.error("[admin/log-access] Failed to insert audit log:", insertError);
+      logger.error("[admin/log-access] Failed to insert audit log:", insertError);
       return res.status(500).json({ error: "Failed to register access log" });
     }
 
     return res.status(201).json({ success: true });
   } catch (error) {
-    console.error("[admin/log-access] Unexpected error:", error);
+    logger.error("[admin/log-access] Unexpected error:", error);
     return res.status(500).json({ error: "Unexpected error" });
   }
 }

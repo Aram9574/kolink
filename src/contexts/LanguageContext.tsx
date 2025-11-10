@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { logger } from '@/lib/logger';
+
 import { supabaseClient } from "@/lib/supabaseClient";
 
 export type SupportedLanguage =
@@ -71,7 +73,7 @@ export function LanguageProvider({ children, userId }: LanguageProviderProps) {
         if (!isMounted) return;
 
         if (error) {
-          console.error("[LanguageProvider] Failed to load preferred language", error);
+          logger.error("[LanguageProvider] Failed to load preferred language", error);
           setLoading(false);
           return;
         }
@@ -109,7 +111,7 @@ export function LanguageProvider({ children, userId }: LanguageProviderProps) {
           .eq("id", userId);
 
         if (error) {
-          console.error("[LanguageProvider] Failed to persist language", error);
+          logger.error("[LanguageProvider] Failed to persist language", error);
         }
       }
     },

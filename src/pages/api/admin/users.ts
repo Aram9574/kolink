@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 
@@ -70,7 +71,7 @@ export default async function handler(
       .select("user_id, posts_generated, credits_used, last_activity");
 
     if (statsError) {
-      console.error("Error fetching usage stats:", statsError);
+      logger.error("Error fetching usage stats:", statsError);
     }
 
     // Fetch post counts for all users
@@ -79,7 +80,7 @@ export default async function handler(
       .select("user_id");
 
     if (postsError) {
-      console.error("Error fetching post counts:", postsError);
+      logger.error("Error fetching post counts:", postsError);
     }
 
     // Merge stats with users
@@ -98,7 +99,7 @@ export default async function handler(
 
     return res.status(200).json({ users: usersWithStats });
   } catch (error) {
-    console.error("Admin users error:", error);
+    logger.error("Admin users error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

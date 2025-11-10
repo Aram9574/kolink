@@ -6,6 +6,7 @@
 
 'use client';
 
+import { logger } from '@/lib/logger';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Session } from '@supabase/supabase-js';
@@ -51,7 +52,7 @@ export default function PersonalizedPage({ session }: PersonalizedPageProps) {
 
       setUserPostsCount(count || 0);
     } catch (error) {
-      console.error('Error fetching user posts count:', error);
+      logger.error('Error fetching user posts count:', error);
     } finally {
       setLoading(false);
     }

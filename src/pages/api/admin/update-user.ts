@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 
@@ -117,12 +118,12 @@ export default async function handler(
     });
 
     if (logError) {
-      console.error("Failed to log admin action:", logError);
+      logger.error("Failed to log admin action:", logError);
     }
 
     return res.status(200).json({ user: updatedUser });
   } catch (error) {
-    console.error("Admin update-user error:", error);
+    logger.error("Admin update-user error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

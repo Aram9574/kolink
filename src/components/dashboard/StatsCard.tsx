@@ -1,6 +1,7 @@
 // [Phase 5] Analytics and statistics card component
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useCallback, useEffect, useState } from "react";
 import { Eye, MessageCircle, Heart, Repeat2, Users, FileText, Zap } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -62,7 +63,7 @@ export default function StatsCard() {
       const data = await response.json();
       setStats(data);
     } catch (err) {
-      console.error("Stats error:", err);
+      logger.error("Stats error:", err);
       setError("Error al cargar estadísticas");
     } finally {
       setLoading(false);

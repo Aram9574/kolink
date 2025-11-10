@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
@@ -60,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
 
     if (profileError || !profile) {
-      console.error("Profile fetch error:", profileError);
+      logger.error("Profile fetch error:", profileError);
       return res.status(404).json({ error: "Profile not found" });
     }
 
@@ -125,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       paymentMethod,
     });
   } catch (error) {
-    console.error("Error fetching subscription info:", error);
+    logger.error("Error fetching subscription info:", error);
     return res.status(500).json({ error: "Failed to fetch subscription info" });
   }
 }

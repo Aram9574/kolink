@@ -2,46 +2,67 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - main [ref=e3]:
-    - generic [ref=e4]:
-      - generic [ref=e5]:
-        - link "K" [ref=e6] [cursor=pointer]:
-          - /url: /
-        - generic [ref=e7]:
-          - heading "Crea tu cuenta y haz crecer tu marca personal en LinkedIn" [level=1] [ref=e8]
-          - paragraph [ref=e9]: Kolink te ayuda a convertir ideas en publicaciones de alto impacto.
-      - generic [ref=e10]:
-        - generic [ref=e11]:
-          - generic [ref=e12]:
-            - text: Correo electrónico
-            - textbox "Correo electrónico" [ref=e13]:
-              - /placeholder: nombre@empresa.com
-          - generic [ref=e14]:
-            - text: Contraseña
-            - textbox "Contraseña" [ref=e15]:
-              - /placeholder: Mínimo 6 caracteres
-          - generic [ref=e16]:
-            - text: Confirmar contraseña
-            - textbox "Confirmar contraseña" [ref=e17]:
-              - /placeholder: Repite tu contraseña
-          - button "Registrarme con email" [ref=e18] [cursor=pointer]
-        - paragraph [ref=e19]:
-          - text: Al continuar aceptas nuestros
-          - link "Términos" [ref=e20] [cursor=pointer]:
-            - /url: /legal/terms
+  - generic [ref=e2]:
+    - main [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "K" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e7]:
+            - heading "Crea tu cuenta y haz crecer tu marca personal en LinkedIn" [level=1] [ref=e8]
+            - paragraph [ref=e9]: Kolink te ayuda a convertir ideas en publicaciones de alto impacto.
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]:
+              - text: Correo electrónico
+              - textbox "Correo electrónico" [ref=e13]:
+                - /placeholder: nombre@empresa.com
+            - generic [ref=e14]:
+              - text: Contraseña
+              - textbox "Contraseña" [ref=e15]:
+                - /placeholder: Mínimo 8 caracteres
+            - generic [ref=e16]:
+              - text: Confirmar contraseña
+              - textbox "Confirmar contraseña" [ref=e17]:
+                - /placeholder: Repite tu contraseña
+            - button "Registrarme con email" [ref=e18] [cursor=pointer]
+          - paragraph [ref=e19]:
+            - text: Al continuar aceptas nuestros
+            - link "Términos" [ref=e20] [cursor=pointer]:
+              - /url: /legal/terms
+            - text: "y"
+            - link "Política de privacidad" [ref=e21] [cursor=pointer]:
+              - /url: /legal/privacy
+            - text: .
+          - paragraph [ref=e22]:
+            - text: ¿Necesitas ayuda? Escríbenos a
+            - link "info@kolink.es" [ref=e23] [cursor=pointer]:
+              - /url: mailto:info@kolink.es
+          - paragraph [ref=e24]:
+            - text: ¿Ya tienes cuenta?
+            - link "Inicia sesión" [ref=e25] [cursor=pointer]:
+              - /url: /signin
+    - button "Reportar bug / sugerencia" [ref=e26] [cursor=pointer]:
+      - img [ref=e27]
+      - text: Reportar bug / sugerencia
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - heading "Tu privacidad en Kolink" [level=2] [ref=e33]
+        - paragraph [ref=e34]:
+          - text: Usamos cookies esenciales para que la plataforma funcione. Activa opcionalmente analíticas para ayudarnos a mejorar tu experiencia. Lee nuestra
+          - link "política de cookies" [ref=e35] [cursor=pointer]:
+            - /url: /legal/cookies
           - text: "y"
-          - link "Política de privacidad" [ref=e21] [cursor=pointer]:
-            - /url: /legal/privacy
+          - link "política de privacidad" [ref=e36] [cursor=pointer]:
+            - /url: /legal/privacidad
           - text: .
-        - paragraph [ref=e22]:
-          - text: ¿Necesitas ayuda? Escríbenos a
-          - link "info@kolink.es" [ref=e23] [cursor=pointer]:
-            - /url: mailto:info@kolink.es
-        - paragraph [ref=e24]:
-          - text: ¿Ya tienes cuenta?
-          - link "Inicia sesión" [ref=e25] [cursor=pointer]:
-            - /url: /signin
-  - button "Open Next.js Dev Tools" [ref=e31] [cursor=pointer]:
-    - img [ref=e32]
-  - alert [ref=e35]
+      - generic [ref=e37]:
+        - button "Solo esenciales" [ref=e38] [cursor=pointer]
+        - button "Personalizar" [ref=e39] [cursor=pointer]:
+          - img [ref=e40]
+          - text: Personalizar
+        - button "Aceptar todo" [ref=e43] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e49] [cursor=pointer]:
+    - img [ref=e50]
+  - alert [ref=e53]
 ```

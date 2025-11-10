@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 import { openai } from "@/lib/openai";
@@ -40,7 +41,7 @@ export default async function handler(
       .limit(20);
 
     if (postsError) {
-      console.error("Error fetching posts:", postsError);
+      logger.error("Error fetching posts:", postsError);
       return res.status(500).json({ error: "Error al obtener posts" });
     }
 
@@ -187,7 +188,7 @@ Proporciona un análisis en formato JSON con esta estructura:
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error analyzing audience:", error);
+    logger.error("Error analyzing audience:", error);
     return res.status(500).json({
       error: "Error al analizar audiencia",
       details: error instanceof Error ? error.message : "Unknown error",

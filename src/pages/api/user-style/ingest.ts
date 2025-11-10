@@ -16,6 +16,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { generateBatchEmbeddings } from '@/lib/ai/embeddings';
+import { logger } from '@/lib/logger';
 import type {
   IngestUserPostsRequest,
   IngestUserPostsResponse,
@@ -83,7 +84,7 @@ export default async function handler(
       }
     }
 
-    console.log(`[Ingest] Usuario ${userId} ingresando ${body.posts.length} posts`);
+    logger.debug(`[Ingest] Usuario ${userId} ingresando ${body.posts.length} posts`);
 
     // 3. INSERTAR POSTS EN LA BASE DE DATOS
     const postsToInsert = body.posts.map((post) => ({
@@ -105,7 +106,7 @@ export default async function handler(
       .select('id, content');
 
     if (insertError) {
-      console.error('[Ingest] Error al insertar posts:', insertError);
+      logger.error('[Ingest] Error al insertar posts:', insertError);
       return res.status(500).json({
         error: `Error al guardar posts: ${insertError.message}`,
       });
@@ -117,7 +118,7 @@ export default async function handler(
       });
     }
 
-    console.log(`[Ingest] ${insertedPosts.length} posts insertados correctamente`);
+    logger.debug(`[Ingest] ${insertedPosts.length} posts insertados correctamente`);
 
     // 4. GENERAR EMBEDDINGS EN BATCH
     const contents = insertedPosts.map((p) => p.content);
@@ -125,9 +126,9 @@ export default async function handler(
 
     try {
       embeddings = await generateBatchEmbeddings(contents);
-      console.log(`[Ingest] ${embeddings.length} embeddings generados`);
+      logger.debug(`[Ingest] ${embeddings.length} embeddings generados`);
     } catch (embeddingError) {
-      console.error('[Ingest] Error al generar embeddings:', embeddingError);
+      logger.error('[Ingest] Error al generar embeddings:', embeddingError);
       const errorMessage = embeddingError instanceof Error ? embeddingError.message : 'Unknown error';
       // Si falla la generación de embeddings, eliminamos los posts insertados
       await supabase.from('user_posts').delete().in(
@@ -153,7 +154,7 @@ export default async function handler(
       .select('id');
 
     if (embeddingInsertError) {
-      console.error('[Ingest] Error al guardar embeddings:', embeddingInsertError);
+      logger.error('[Ingest] Error al guardar embeddings:', embeddingInsertError);
       // Eliminar posts si falla el guardado de embeddings
       await supabase.from('user_posts').delete().in(
         'id',
@@ -164,7 +165,7 @@ export default async function handler(
       });
     }
 
-    console.log(`[Ingest] ${insertedEmbeddings?.length ?? 0} embeddings guardados`);
+    logger.debug(`[Ingest] ${insertedEmbeddings?.length ?? 0} embeddings guardados`);
 
     // 6. RETORNAR RESPUESTA EXITOSA
     const response: IngestUserPostsResponse = {
@@ -176,7 +177,7 @@ export default async function handler(
 
     return res.status(201).json(response);
   } catch (error) {
-    console.error('[Ingest] Error inesperado:', error);
+    logger.error('[Ingest] Error inesperado:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       error: `Error interno del servidor: ${errorMessage}`,

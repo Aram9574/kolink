@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 import OpenAI from "openai";
@@ -235,7 +236,7 @@ NO copies literalmente los ejemplos. Úsalos como guía de estilo y estructura.`
       .single();
 
     if (postError || !post) {
-      console.error("Error saving post:", postError);
+      logger.error("Error saving post:", postError);
       return res.status(500).json({ error: "Failed to save post" });
     }
 
@@ -246,7 +247,7 @@ NO copies literalmente los ejemplos. Úsalos como guía de estilo y estructura.`
       .eq("id", user.id);
 
     if (creditError) {
-      console.error("Error deducting credits:", creditError);
+      logger.error("Error deducting credits:", creditError);
     }
 
     // Save generation history
@@ -297,7 +298,7 @@ NO copies literalmente los ejemplos. Úsalos como guía de estilo y estructura.`
       },
     });
   } catch (error) {
-    console.error("Error in smart generation:", error);
+    logger.error("Error in smart generation:", error);
 
     if (error instanceof Error && error.message.includes("API key")) {
       return res.status(500).json({

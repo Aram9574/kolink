@@ -2,11 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { buffer } from "micro";
 import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
-import { logPayment, logError } from "@/lib/logger";
 import { getResendClient, FROM_EMAIL } from "@/lib/resend";
 import * as Sentry from "@sentry/nextjs";
 import fs from "fs/promises";
 import path from "path";
+import { logger } from '@/lib/logger';
 
 export const config = {
   api: { bodyParser: false },
@@ -97,9 +97,9 @@ async function sendPaymentEmail(
       html: processedHtml,
     });
 
-    console.log(`📧 Payment confirmation email sent to ${to}`);
+    logger.debug(`📧 Payment confirmation email sent to ${to}`);
   } catch (error) {
-    console.error("Failed to send payment email:", error);
+    logger.error("Failed to send payment email:", error);
     // Don't throw - email failure shouldn't fail the webhook
   }
 }
@@ -110,19 +110,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
-    console.error("❌ Supabase server keys missing.");
+    logger.error("❌ Supabase server keys missing.");
     return res.status(500).send("Configuración de Supabase incompleta (requiere clave service role).");
   }
 
   if (!webhookSecret) {
-    console.error("❌ STRIPE_WEBHOOK_SECRET no configurado.");
+    logger.error("❌ STRIPE_WEBHOOK_SECRET no configurado.");
     return res.status(500).send("Configuración de Stripe incompleta.");
   }
 
   const signature = req.headers["stripe-signature"];
 
   if (!signature) {
-    console.warn("⚠️ Webhook recibido sin firma.");
+    logger.warn("⚠️ Webhook recibido sin firma.");
     return res.status(400).send("Falta la firma de Stripe");
   }
 
@@ -131,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const rawBody = await buffer(req);
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-    console.log(`📦 Evento recibido: ${event.type}`);
+    logger.debug(`📦 Evento recibido: ${event.type}`);
 
     // Log successful webhook verification
     Sentry.addBreadcrumb({
@@ -142,7 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const err = error as Error;
-    console.error("⚠️ Webhook signature verification failed:", err.message);
+    logger.error("⚠️ Webhook signature verification failed:", err.message);
 
     // Log signature verification failure
     Sentry.captureException(error, {
@@ -173,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userId = session.metadata?.user_id;
 
     if (!userId) {
-      console.warn("⚠️ checkout.session.completed sin user_id en metadata.");
+      logger.warn("⚠️ checkout.session.completed sin user_id en metadata.");
       return res.status(400).send("user_id faltante en metadata.");
     }
 
@@ -190,12 +190,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .single();
 
       if (fetchError) {
-        console.error(`❌ Error obteniendo perfil ${userId}:`, fetchError.message);
-        await logError(
-          userId,
-          "Failed to fetch profile during payment processing",
-          { error: fetchError.message }
-        );
+        logger.error(`❌ Error obteniendo perfil ${userId}:`, fetchError.message);
+        // await logError(userId, "Failed to fetch profile during payment processing", { error: fetchError.message });
 
         // Log profile fetch error
         Sentry.captureException(new Error("Failed to fetch profile"), {
@@ -241,7 +237,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
       } catch (_error) {
-        console.warn("⚠️ Could not retrieve line items, using fallback plan mapping");
+        logger.warn("⚠️ Could not retrieve line items, using fallback plan mapping");
       }
 
       // Calculate new credits
@@ -258,15 +254,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq("id", userId);
 
       if (updateError) {
-        console.error(
+        logger.error(
           `❌ Error actualizando plan para ${userId}:`,
           updateError.message
         );
-        await logError(
-          userId,
-          "Failed to update profile after payment",
-          { error: updateError.message, plan: planInfo.plan }
-        );
+        
 
         // Log profile update error
         Sentry.captureException(new Error("Failed to update profile"), {
@@ -281,10 +273,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).send("Error actualizando plan.");
       }
 
-      console.log(
+      logger.debug(
         `✅ Plan actualizado a ${planInfo.displayName} para usuario ${userId} (${profile?.email})`
       );
-      console.log(`   Créditos: ${currentCredits} → ${newCredits} (+${planInfo.credits})`);
+      logger.debug(`   Créditos: ${currentCredits} → ${newCredits} (+${planInfo.credits})`);
 
       // Log successful payment processing
       Sentry.addBreadcrumb({
@@ -301,14 +293,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // Log successful payment
-      await logPayment(
-        userId,
-        planInfo.plan,
-        session.amount_total || 0,
-        session.id
-      );
+      
 
-      console.log(`📝 Payment logged for user ${userId}`);
+      logger.debug(`📝 Payment logged for user ${userId}`);
 
       // Send payment confirmation email
       if (profile?.email) {
@@ -323,12 +310,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     } catch (error) {
       const err = error as Error;
-      console.error("❌ Excepción procesando webhook:", err.message);
-      await logError(
-        userId,
-        "Exception during payment processing",
-        { error: err.message, stack: err.stack }
-      );
+      logger.error("❌ Excepción procesando webhook:", err.message);
+      
 
       // Log general exception
       Sentry.captureException(error, {

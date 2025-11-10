@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from '@/lib/logger';
 import { useState, useEffect } from "react";
 import { Monitor, Smartphone, Tablet, MapPin, Calendar, AlertTriangle, X } from "lucide-react";
 import Button from "@/components/Button";
@@ -56,7 +57,7 @@ export function ActiveSessions() {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error("Failed to fetch sessions:", error);
+      logger.error("Failed to fetch sessions:", error);
       toast.error("Error al cargar las sesiones activas");
     } finally {
       setLoading(false);
@@ -91,7 +92,7 @@ export function ActiveSessions() {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error("Failed to revoke session:", error);
+      logger.error("Failed to revoke session:", error);
       toast.error("Error al cerrar la sesión");
     } finally {
       setRevoking(null);
@@ -130,7 +131,7 @@ export function ActiveSessions() {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error("Failed to revoke all sessions:", error);
+      logger.error("Failed to revoke all sessions:", error);
       toast.error("Error al cerrar las sesiones");
     } finally {
       setRevoking(null);

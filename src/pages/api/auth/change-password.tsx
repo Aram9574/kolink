@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
@@ -87,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (historyError) {
-      console.error("Error guardando el historial de contraseñas:", historyError);
+      logger.error("Error guardando el historial de contraseñas:", historyError);
     }
 
     const forwardedFor = req.headers["x-forwarded-for"];
@@ -110,7 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (alertError) {
-      console.error("Error registrando alerta de seguridad (password change):", alertError);
+      logger.error("Error registrando alerta de seguridad (password change):", alertError);
     }
 
     try {
@@ -123,12 +124,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         />,
       });
     } catch (emailError) {
-      console.error("Error enviando correo de confirmación de contraseña:", emailError);
+      logger.error("Error enviando correo de confirmación de contraseña:", emailError);
     }
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Password change error:", error);
+    logger.error("Password change error:", error);
     return res.status(500).json({
       error: "No se pudo actualizar la contraseña",
     });

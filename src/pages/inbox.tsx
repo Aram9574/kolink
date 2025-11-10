@@ -9,6 +9,7 @@ import { Bell, Check, Info, AlertTriangle, CheckCircle2, XCircle, Inbox as Inbox
 import Navbar from "@/components/Navbar";
 import Loader from "@/components/Loader";
 import toast from "react-hot-toast";
+import { logger } from '@/lib/logger';
 
 type InboxProps = {
   session: Session | null | undefined;
@@ -53,7 +54,7 @@ export default function Inbox({ session }: InboxProps) {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error loading notifications:", error);
+        logger.error("Error loading notifications:", error);
         toast.error("Error al cargar notificaciones");
         return;
       }
@@ -66,7 +67,7 @@ export default function Inbox({ session }: InboxProps) {
 
       setNotifications(activeNotifications);
     } catch (err) {
-      console.error("Error:", err);
+      logger.error("Error:", err);
       toast.error("Error al cargar notificaciones");
     } finally {
       setLoading(false);
@@ -87,7 +88,7 @@ export default function Inbox({ session }: InboxProps) {
           filter: `user_id=eq.${session.user.id}`,
         },
         (payload) => {
-          console.log("Notification update:", payload);
+          logger.debug("Notification update:", payload);
           loadNotifications();
         }
       )
@@ -106,7 +107,7 @@ export default function Inbox({ session }: InboxProps) {
         .eq("id", id);
 
       if (error) {
-        console.error("Error marking as read:", error);
+        logger.error("Error marking as read:", error);
         toast.error("Error al marcar como leída");
         return;
       }
@@ -116,7 +117,7 @@ export default function Inbox({ session }: InboxProps) {
       );
       toast.success("Marcada como leída");
     } catch (err) {
-      console.error("Error:", err);
+      logger.error("Error:", err);
       toast.error("Error al actualizar");
     }
   };
@@ -129,7 +130,7 @@ export default function Inbox({ session }: InboxProps) {
         .eq("id", id);
 
       if (error) {
-        console.error("Error deleting notification:", error);
+        logger.error("Error deleting notification:", error);
         toast.error("Error al eliminar");
         return;
       }
@@ -137,7 +138,7 @@ export default function Inbox({ session }: InboxProps) {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
       toast.success("Notificación eliminada");
     } catch (err) {
-      console.error("Error:", err);
+      logger.error("Error:", err);
       toast.error("Error al eliminar");
     }
   };
@@ -153,7 +154,7 @@ export default function Inbox({ session }: InboxProps) {
         .eq("read", false);
 
       if (error) {
-        console.error("Error marking all as read:", error);
+        logger.error("Error marking all as read:", error);
         toast.error("Error al marcar todas como leídas");
         return;
       }
@@ -161,7 +162,7 @@ export default function Inbox({ session }: InboxProps) {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       toast.success("Todas marcadas como leídas");
     } catch (err) {
-      console.error("Error:", err);
+      logger.error("Error:", err);
       toast.error("Error al actualizar");
     }
   };

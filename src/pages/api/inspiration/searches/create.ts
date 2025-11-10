@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { z } from "zod";
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     supabase = getSupabaseServerClient(token);
   } catch (error) {
-    console.error("[api/inspiration/searches/create] Supabase initialization error:", error);
+    logger.error("[api/inspiration/searches/create] Supabase initialization error:", error);
     return res.status(500).json({ error: "Configuración de Supabase inválida" });
   }
 
@@ -91,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       search: data,
     });
   } catch (error) {
-    console.error("[api/inspiration/searches/create] Error:", error);
+    logger.error("[api/inspiration/searches/create] Error:", error);
     return res.status(500).json({ error: "Error al guardar búsqueda" });
   }
 }

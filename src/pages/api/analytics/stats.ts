@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getSupabaseAdminClient } from "@/lib/supabaseAdmin";
 import { limiter } from "@/lib/rateLimiter";
@@ -76,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
   } catch (err) {
-    console.error("❌ Error en rate limiter:", err);
+    logger.error("❌ Error en rate limiter:", err);
   }
 
   try {
@@ -188,7 +189,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json(response);
   } catch (err: unknown) {
-    console.error("[api/analytics/stats] Error:", err);
+    logger.error("[api/analytics/stats] Error:", err);
     const fallbackDays = Math.max(1, Math.min(period, 30));
     const today = new Date();
     const fallbackDailyStats = Array.from({ length: fallbackDays }, (_, index) => {

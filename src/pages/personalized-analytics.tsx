@@ -6,6 +6,7 @@
 
 'use client';
 
+import { logger } from '@/lib/logger';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Session } from '@supabase/supabase-js';
@@ -108,7 +109,7 @@ export default function PersonalizedAnalyticsPage({ session }: PersonalizedAnaly
         recentGenerations: recent || [],
       });
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      logger.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }

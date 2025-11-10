@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { rateLimit, RATE_LIMIT_CONFIGS } from "@/lib/rateLimit";
@@ -45,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   ]);
 
   if (error) {
-    console.error("Error al crear perfil:", error.message);
+    logger.error("Error al crear perfil:", error.message);
     return res.status(500).json({ error: error.message });
   }
 

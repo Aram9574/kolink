@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import type { NextApiRequest, NextApiResponse } from "next";
 import { supabase } from "@/lib/supabase";
 import { sendEmail } from "@/emails/sendEmail";
@@ -72,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("[support/report] Failed to send feedback email:", error);
+    logger.error("[support/report] Failed to send feedback email:", error);
     return res.status(500).json({
       error: "No pudimos registrar tu feedback. Intenta nuevamente más tarde.",
     });

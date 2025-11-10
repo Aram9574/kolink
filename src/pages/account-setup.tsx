@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { useEffect, useState, type FormEvent } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -42,7 +43,7 @@ export default function AccountSetupPage() {
         .maybeSingle();
 
       if (error) {
-        console.error("Failed to load profile", error);
+        logger.error("Failed to load profile", error);
         toast.error("No se pudo cargar tu perfil");
         router.replace("/dashboard");
         return;

@@ -1,89 +1,30 @@
-"use client";
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
-import { useState, useRef, useEffect } from "react";
-import { HelpCircle } from "lucide-react";
+import { cn } from "@/lib/utils"
 
-interface TooltipProps {
-  content: string;
-  children?: React.ReactNode;
-  position?: "top" | "bottom" | "left" | "right";
-  className?: string;
-  showIcon?: boolean;
-}
+const TooltipProvider = TooltipPrimitive.Provider
 
-export function Tooltip({
-  content,
-  children,
-  position = "top",
-  className = "",
-  showIcon = true,
-}: TooltipProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [tooltipStyle, setTooltipStyle] = useState({});
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
+const Tooltip = TooltipPrimitive.Root
 
-  useEffect(() => {
-    if (isVisible && triggerRef.current && tooltipRef.current) {
-      const triggerRect = triggerRef.current.getBoundingClientRect();
-      const tooltipRect = tooltipRef.current.getBoundingClientRect();
+const TooltipTrigger = TooltipPrimitive.Trigger
 
-      let top = 0;
-      let left = 0;
-
-      switch (position) {
-        case "top":
-          top = -tooltipRect.height - 8;
-          left = (triggerRect.width - tooltipRect.width) / 2;
-          break;
-        case "bottom":
-          top = triggerRect.height + 8;
-          left = (triggerRect.width - tooltipRect.width) / 2;
-          break;
-        case "left":
-          top = (triggerRect.height - tooltipRect.height) / 2;
-          left = -tooltipRect.width - 8;
-          break;
-        case "right":
-          top = (triggerRect.height - tooltipRect.height) / 2;
-          left = triggerRect.width + 8;
-          break;
-      }
-
-      setTooltipStyle({ top: `${top}px`, left: `${left}px` });
-    }
-  }, [isVisible, position]);
-
-  return (
-    <div
-      ref={triggerRef}
-      className={`relative inline-flex items-center ${className}`}
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
-      onFocus={() => setIsVisible(true)}
-      onBlur={() => setIsVisible(false)}
-    >
-      {children || (
-        showIcon && <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600 cursor-help" />
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-tooltip-content-transform-origin]",
+        className
       )}
+      {...props}
+    />
+  </TooltipPrimitive.Portal>
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-      {isVisible && (
-        <div
-          ref={tooltipRef}
-          className="absolute z-50 px-3 py-2 text-sm text-white bg-slate-900 rounded-lg shadow-lg whitespace-nowrap max-w-xs"
-          style={tooltipStyle}
-        >
-          {content}
-          <div
-            className={`absolute w-2 h-2 bg-slate-900 transform rotate-45 ${
-              position === "top" ? "bottom-[-4px] left-1/2 -translate-x-1/2" :
-              position === "bottom" ? "top-[-4px] left-1/2 -translate-x-1/2" :
-              position === "left" ? "right-[-4px] top-1/2 -translate-y-1/2" :
-              "left-[-4px] top-1/2 -translate-y-1/2"
-            }`}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
