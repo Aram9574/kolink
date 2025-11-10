@@ -8,7 +8,6 @@ import fs from "fs/promises";
 import path from "path";
 import { logger } from '@/lib/logger';
 import { withErrorHandler } from '@/lib/middleware/errorHandler';
-import { InternalServerError, BadRequestError } from '@/lib/errors/ApiError';
 
 export const config = {
   api: { bodyParser: false },

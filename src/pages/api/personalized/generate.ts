@@ -24,7 +24,7 @@ import { generateLinkedInPost } from '@/lib/ai/generation';
 import { logger } from '@/lib/logger';
 import { apiEndpointSchemas, validateRequest, formatZodErrors } from '@/lib/validation';
 import { applyRateLimit } from '@/lib/middleware/rateLimit';
-import { withErrorHandler, safeExternalApiCall, safeDatabaseOperation } from '@/lib/middleware/errorHandler';
+import { withErrorHandler, safeExternalApiCall } from '@/lib/middleware/errorHandler';
 import { UnauthorizedError, InsufficientCreditsError, NotFoundError } from '@/lib/errors/ApiError';
 import type {
   GenerateContentRequest,

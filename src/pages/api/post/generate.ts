@@ -4,7 +4,7 @@ import { generatePostWithContext } from "@/server/services/writerService";
 import { logger } from "@/lib/logger";
 import { limiter } from "@/lib/rateLimiter";
 import { apiEndpointSchemas, validateRequest, formatZodErrors } from "@/lib/validation";
-import { withErrorHandler, safeExternalApiCall } from "@/lib/middleware/errorHandler";
+import { withErrorHandler } from "@/lib/middleware/errorHandler";
 import { UnauthorizedError, InsufficientCreditsError, BadRequestError } from "@/lib/errors/ApiError";
 
 type _GenerateRequestBody = {

@@ -7,7 +7,7 @@ import * as Sentry from "@sentry/nextjs";
 import { logger } from '@/lib/logger';
 import { apiEndpointSchemas, validateRequest, formatZodErrors } from '@/lib/validation';
 import { withErrorHandler } from '@/lib/middleware/errorHandler';
-import { InternalServerError, ValidationError, ExternalApiError } from '@/lib/errors/ApiError';
+import { InternalServerError, ExternalApiError } from '@/lib/errors/ApiError';
 
 type PlanTier = "basic" | "standard" | "premium";
 
